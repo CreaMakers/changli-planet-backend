@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: web-system
+  # 运行的环境
+  profiles:
+    active: test
+  datasource:
+    url: jdbc:mysql://${planet.mysql.ip}:${planet.mysql.port}/${planet.mysql.db}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    password: ${planet.mysql.password}
+    username: ${planet.mysql.username}
+
+server:
+  port: 8082
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/**/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true
+
+
+
+planet:
+  jwt:
+    secret:
+      creamakerscreamakeres
