@@ -1,0 +1,7 @@
+planet:
+  mysql:
+    ip: localhost # 服务器ip
+    port: 3306
+    db: changli-planet # database名
+    username: root
+    password: 1234 #密码
