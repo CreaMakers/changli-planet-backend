@@ -8,6 +8,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="tool-system" />
         <module name="user-system" />
+        <module name="web-system" />
       </profile>
     </annotationProcessing>
   </component>
@@ -16,6 +17,7 @@
       <module name="changli-planet-backend" options="" />
       <module name="tool-system" options="-parameters" />
       <module name="user-system" options="-parameters" />
+      <module name="web-system" options="-parameters" />
     </option>
   </component>
 </project>
