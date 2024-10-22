@@ -4,6 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <!-- Spring Boot parent -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -11,96 +12,145 @@
         <relativePath/>
     </parent>
 
-    <modules>
-        <module>user-system</module>
-        <module>tool-system</module>
-    </modules>
-
+    <!-- 项目信息 -->
     <groupId>com.CreaMakers</groupId>
     <artifactId>changli-plant-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
+    <!-- 子模块 -->
+    <modules>
+        <module>user-system</module>
+        <module>tool-system</module>
+        <module>web-system</module>
+    </modules>
+
+    <!-- 属性配置 -->
     <properties>
         <java.version>21</java.version> <!-- Java 版本 -->
         <lombok.version>1.18.28</lombok.version> <!-- Lombok 版本 -->
         <mysql.version>8.0.33</mysql.version> <!-- MySQL 版本 -->
-        <spring.rabbitmq.version>3.3.4</spring.rabbitmq.version> <!-- Spring Boot AMQP 版本 -->
-        <redis.version>3.3.4</redis.version> <!-- Spring Boot Redis 版本 -->
-        <web.version>3.3.4</web.version> <!-- Spring Boot Web 版本 -->
-        <security.version>3.3.4</security.version> <!-- Spring Boot Security 版本 -->
-        <security.test.version>6.3.3</security.test.version> <!-- Spring Security 测试 版本 -->
+        <spring.rabbitmq.version>3.3.4</spring.rabbitmq.version> <!-- RabbitMQ 版本 -->
+        <redis.version>3.3.4</redis.version> <!-- Redis 版本 -->
+        <web.version>3.3.4</web.version> <!-- Web Starter 版本 -->
+        <security.version>3.3.4</security.version> <!-- Spring Security 版本 -->
+        <security.test.version>6.3.3</security.test.version> <!-- Spring Security 测试版本 -->
+        <mybatisPlus.version>3.5.5</mybatisPlus.version> <!-- MyBatis-Plus 版本 -->
+        <swagger.version>3.0.0</swagger.version> <!-- Swagger 版本 -->
+        <jackson-databind.version>2.17.2</jackson-databind.version> <!-- Jackson 版本 -->
+        <validation-api.version>2.0.1.Final</validation-api.version> <!-- Validation API 版本 -->
+        <hibernate-validator.version>8.0.1.Final</hibernate-validator.version> <!-- Hibernate Validator 版本 -->
+        <annotations.version>24.1.0</annotations.version> <!-- JetBrains Annotations 版本 -->
+        <spring-boot-starter-test.version>3.3.4</spring-boot-starter-test.version><!-- spring-boot-starter-test 版本 -->
+        <spring-boot-starter.version>3.3.4</spring-boot-starter.version><!-- spring-boot-starter 版本 -->
     </properties>
 
-    <dependencies>
-        <!-- Spring Boot Starter -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
-        </dependency>
+    <!-- 依赖管理 -->
+    <dependencyManagement>
+        <dependencies>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
-            <version>${redis.version}</version>
-        </dependency>
+            <!-- Spring Boot 核心依赖 -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter</artifactId>
+                <version>${spring-boot-starter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-web</artifactId>
+                <version>${web.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-data-jpa</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-security</artifactId>
+                <version>${security.version}</version>
+            </dependency>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
+            <!-- Redis 支持 -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-data-redis</artifactId>
+                <version>${redis.version}</version>
+            </dependency>
 
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>${mysql.version}</version>
-        </dependency>
+            <!-- MySQL 数据库连接器 -->
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>${mysql.version}</version>
+            </dependency>
 
-        <!-- Spring Boot Test Starter for unit testing -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
+            <!-- MyBatis-Plus -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-boot-starter</artifactId>
+                <version>${mybatisPlus.version}</version>
+            </dependency>
 
-        <!-- Redis Support -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
-            <version>${redis.version}</version>
-        </dependency>
+            <!-- Swagger 支持 -->
+            <dependency>
+                <groupId>io.springfox</groupId>
+                <artifactId>springfox-boot-starter</artifactId>
+                <version>${swagger.version}</version>
+            </dependency>
 
-        <!-- Lombok with version management -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>
-            <scope>provided</scope>
-        </dependency>
+            <!-- Lombok（简化代码） -->
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+                <scope>provided</scope>
+            </dependency>
 
-        <!-- Web Starter -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-            <version>${web.version}</version>
-        </dependency>
+            <!-- JetBrains 注解（静态分析） -->
+            <dependency>
+                <groupId>org.jetbrains</groupId>
+                <artifactId>annotations</artifactId>
+                <version>${annotations.version}</version>
+                <scope>compile</scope>
+            </dependency>
 
-        <!-- Spring Security -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-            <version>${security.version}</version>
-        </dependency>
+            <!-- JSON 处理 -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson-databind.version}</version>
+            </dependency>
 
+            <!-- 校验依赖 -->
+            <dependency>
+                <groupId>javax.validation</groupId>
+                <artifactId>validation-api</artifactId>
+                <version>${validation-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate.validator</groupId>
+                <artifactId>hibernate-validator</artifactId>
+                <version>${hibernate-validator.version}</version>
+            </dependency>
 
-        <!-- Spring Security Testing -->
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-test</artifactId>
-            <version>${security.test.version}</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+            <!-- 测试依赖 -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-test</artifactId>
+                <version>${spring-boot-starter-test.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-test</artifactId>
+                <version>${security.test.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+    <!-- 构建配置 -->
     <build>
         <plugins>
             <!-- Spring Boot Maven Plugin -->
