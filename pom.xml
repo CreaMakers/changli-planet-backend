@@ -35,7 +35,7 @@
         <web.version>3.3.4</web.version> <!-- Web Starter 版本 -->
         <security.version>3.3.4</security.version> <!-- Spring Security 版本 -->
         <security.test.version>6.3.3</security.test.version> <!-- Spring Security 测试版本 -->
-        <mybatisPlus.version>3.5.5</mybatisPlus.version> <!-- MyBatis-Plus 版本 -->
+        <mybatisPlus.version>3.5.7</mybatisPlus.version> <!-- MyBatis-Plus 版本 -->
         <swagger.version>3.0.0</swagger.version> <!-- Swagger 版本 -->
         <jackson-databind.version>2.17.2</jackson-databind.version> <!-- Jackson 版本 -->
         <validation-api.version>2.0.1.Final</validation-api.version> <!-- Validation API 版本 -->
@@ -43,6 +43,7 @@
         <annotations.version>24.1.0</annotations.version> <!-- JetBrains Annotations 版本 -->
         <spring-boot-starter-test.version>3.3.4</spring-boot-starter-test.version><!-- spring-boot-starter-test 版本 -->
         <spring-boot-starter.version>3.3.4</spring-boot-starter.version><!-- spring-boot-starter 版本 -->
+        <java-jwt.version>3.18.1</java-jwt.version>
     </properties>
 
     <!-- 依赖管理 -->
@@ -77,6 +78,16 @@
                 <version>${redis.version}</version>
             </dependency>
 
+
+
+
+            <dependency>
+                <groupId>com.auth0</groupId>
+                <artifactId>java-jwt</artifactId>
+                <version>${java-jwt.version}</version> <!-- 使用最新版本 -->
+            </dependency>
+
+
             <!-- MySQL 数据库连接器 -->
             <dependency>
                 <groupId>mysql</groupId>
@@ -87,9 +98,10 @@
             <!-- MyBatis-Plus -->
             <dependency>
                 <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-boot-starter</artifactId>
+                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
                 <version>${mybatisPlus.version}</version>
             </dependency>
+
 
             <!-- Swagger 支持 -->
             <dependency>

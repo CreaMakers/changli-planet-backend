@@ -14,7 +14,7 @@
 
     <artifactId>web-system</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>user-system</name>
+    <name>web-system</name>
     <description>user-system 模块</description>
 
     <properties>

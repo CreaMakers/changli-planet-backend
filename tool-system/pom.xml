@@ -14,8 +14,8 @@
 
 	<artifactId>tool-system</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>user-system</name>
-	<description>user-system 模块</description>
+	<name>tool-system</name>
+	<description>tool-system 模块</description>
 
 	<properties>
 		<java.version>21</java.version> <!-- Java 版本 -->

@@ -1,9 +1,11 @@
 package com.creamakers.usersystem;
 
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
+@MapperScan("com.creamakers.usersystem.mapper")
 public class UserSystemApplication {
 
 	public static void main(String[] args) {
