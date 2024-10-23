@@ -4,6 +4,8 @@ import ch.qos.logback.core.util.StringUtil;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
+import com.creamakers.websystem.constants.CommonConst;
+import com.creamakers.websystem.context.BaseContext;
 import com.creamakers.websystem.domain.dto.User;
 import com.creamakers.websystem.dao.UserMapper;
 import com.creamakers.websystem.enums.CommonEnums;
@@ -26,32 +28,28 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     private UserMapper userMapper;
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-
-
-
         if(!(handler instanceof HandlerMethod)) {
             return true;
         }
-
         // 获取token
         String token = Optional.ofNullable(request.getHeader("token"))
-                .orElseThrow(() -> new RuntimeException("token异常，请重新登陆"));
+                .orElseThrow(() -> new RuntimeException(CommonConst.TOKEN_NOT_FOUND));
 
-        String userId = Optional.ofNullable(jwtUtils.getUidOrNull(token))
-                .orElseThrow(() -> new RuntimeException("用户不存在，请重新登陆"));
+        Long userId = Optional.ofNullable(jwtUtils.getUidOrNull(token))
+                .orElseThrow(() -> new RuntimeException(CommonConst.ACCOUNT_NOT_FOUND));
 
+        BaseContext.set(userId);
 
         User user = Optional.ofNullable(userMapper.selectOne(Wrappers.<User>lambdaQuery()
                         .eq(User::getUserId, userId)))
-                .orElseThrow(() -> new RuntimeException("用户查询失败，token无效"));
+                .orElseThrow(() -> new RuntimeException(CommonConst.TOKEN_INVALID));
 
         if(user.getIsAdmin() == CommonEnums.USER_TYPE_USER.getCode()) {
-            throw new RuntimeException("账号权限不足");
+            throw new RuntimeException(CommonConst.INSUFFICIENT_PERMISSION);
         }
-        if(user.getIsBanned() || user.getIsDeleted()) {
-            throw new RuntimeException("账号异常，已被删除或封禁");
+        if(user.isBanned() || user.isDeleted()) {
+            throw new RuntimeException(CommonConst.ACCOUNT_DISABLED_OR_BANNED);
         }
-
         return true;
     }
 }

@@ -46,7 +46,7 @@
 		<!-- MyBatis-Plus - 数据库操作 ORM 框架 -->
 		<dependency>
 			<groupId>com.baomidou</groupId>
-			<artifactId>mybatis-plus-boot-starter</artifactId>
+			<artifactId>mybatis-plus-spring-boot3-starter</artifactId>
 		</dependency>
 
 		<!-- Redis Support - Spring Boot 集成 Redis -->

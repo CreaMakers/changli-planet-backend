@@ -59,4 +59,9 @@ public class UserProfileResp {
      * 用户展示信息描述
      */
     private String description;
+
+    /*
+    * token
+    * */
+    private String token;
 }

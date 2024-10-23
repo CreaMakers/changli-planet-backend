@@ -21,11 +21,15 @@ public class ResultVo<T> {
         return new ResultVo<T>(RESULT_SUCCESS_CODE, RESULT_SUCCESS_MSG, data);
     }
 
-    public static <Void> ResultVo<Void> failure() {
+    public static <Void> ResultVo<Void> fail() {
         return new ResultVo<Void>(RESULT_FAILURE_CODE, RESULT_FAILURE_MSG, null);
     }
 
-    public static <T> ResultVo<T> failure(T data) {
+    public static <Void> ResultVo<Void> fail(String msg) {
+        return new ResultVo<Void>(RESULT_FAILURE_CODE, msg, null);
+    }
+
+    public static <T> ResultVo<T> fail(T data) {
         return new ResultVo<T>(RESULT_FAILURE_CODE, RESULT_FAILURE_MSG, data);
     }
 
