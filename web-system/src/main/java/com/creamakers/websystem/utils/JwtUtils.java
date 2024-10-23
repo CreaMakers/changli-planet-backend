@@ -28,6 +28,11 @@ public class JwtUtils {
      */
     @Value("${planet.jwt.secret}")
     private String secret;
+    /*
+    * 默认2小时过期
+    * */
+    @Value("${planet.jwt.expiration_time}")
+    private Long EXPIRATION_TIME;
 
     private static final String UID_CLAIM = "uid";
     private static final String CREATE_TIME = "createTime";
@@ -37,11 +42,13 @@ public class JwtUtils {
      * <p>
      * JWT构成: header, payload, signature
      */
-    public String createToken(String uid) {
+    public String createToken(Long uid) {
+        Date expirationDate = new Date(new Date().getTime() + EXPIRATION_TIME);
         // build token
         String token = JWT.create()
                 .withClaim(UID_CLAIM, uid) // 只存一个uid信息，其他的自己去redis查
                 .withClaim(CREATE_TIME, new Date())
+                .withExpiresAt(expirationDate)
                 .sign(Algorithm.HMAC256(secret)); // signature
         return token;
     }
@@ -73,10 +80,10 @@ public class JwtUtils {
      * @param token
      * @return uid
      */
-    public String getUidOrNull(String token) {
+    public Long getUidOrNull(String token) {
         return Optional.ofNullable(verifyToken(token))
                 .map(map -> map.get(UID_CLAIM))
-                .map(Claim::asString)
+                .map(Claim::asLong)
                 .orElse(null);
     }
 

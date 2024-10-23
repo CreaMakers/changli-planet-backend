@@ -25,3 +25,5 @@ planet:
   jwt:
     secret:
       creamakerscreamakeres
+    expiration_time:
+      7200000
