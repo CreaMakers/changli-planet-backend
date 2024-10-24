@@ -1,6 +1,7 @@
 package com.creamakers.usersystem.po;
 
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
@@ -28,7 +29,7 @@ public class User {
 
     @ApiModelProperty(value = "用户ID", example = "1")
     @NotNull(message = "用户ID不能为空")
-    @TableField("user_id")
+    @TableId
     private Integer userId;
 
     @NotBlank(message = "用户名不能为空")
