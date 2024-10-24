@@ -48,13 +48,15 @@ public class User {
     @TableField("is_admin")
     private Byte isAdmin;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    @ApiModelProperty(value = "创建时间", example = "2024-10-22 10:00:00")
+    // 返回 ISO 8601 时间格式
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "GMT+8")
+    @ApiModelProperty(value = "创建时间", example = "2024-10-22T10:00:00.000+08:00")
     @TableField("create_time")
     private Date createTime;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    @ApiModelProperty(value = "最后更新时间", example = "2024-10-22 12:00:00")
+    // 返回 ISO 8601 时间格式
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "GMT+8")
+    @ApiModelProperty(value = "最后更新时间", example = "2024-10-22T12:00:00.000+08:00")
     @TableField("update_time")
     private Date updateTime;
 
@@ -72,4 +74,6 @@ public class User {
     @ApiModelProperty(value = "用户描述", example = "这是一个普通用户")
     @TableField("description")
     private String description;
+
+
 }

@@ -1,10 +1,12 @@
 package com.creamakers.usersystem.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.creamakers.usersystem.dto.GeneralResponse;
-import com.creamakers.usersystem.dto.LoginRequest;
-import com.creamakers.usersystem.dto.LoginSuccessData;
+import com.creamakers.usersystem.dto.request.RegisterRequest;
+import com.creamakers.usersystem.dto.request.UsernameCheckRequest;
+import com.creamakers.usersystem.dto.response.GeneralResponse;
+import com.creamakers.usersystem.dto.request.LoginRequest;
+import com.creamakers.usersystem.dto.response.LoginSuccessData;
 
+import com.creamakers.usersystem.exception.UserServiceException;
 import com.creamakers.usersystem.mapper.UserMapper;
 import com.creamakers.usersystem.po.User;
 import com.creamakers.usersystem.service.UserService;
@@ -13,20 +15,25 @@ import com.creamakers.usersystem.util.RedisUtil;
 import org.mybatis.spring.MyBatisSystemException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserServiceImpl implements UserService {
 
     @Autowired
-    private UserMapper userMapper; // 使用 UserMapper 进行数据库操作
+    CacheServiceImpl cacheService;
 
     @Autowired
-    private JwtUtil jwtUtil; // 注入 JwtUtil
+    private UserMapper userMapper;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @Autowired
     private RedisUtil redisUtil;
@@ -34,80 +41,160 @@ public class UserServiceImpl implements UserService {
     @Value("${REFRESH_TOKEN_PREFIX}")
     private String REFRESH_TOKEN_PREFIX;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Override
     public GeneralResponse login(LoginRequest loginRequest) {
-        User user = getUserByUsername(loginRequest.getUsername());
+        try {
+            User user = getUserByUsername(loginRequest.getUsername());
+            if (user == null) {
+                return new GeneralResponse("404", "User not found", null);
+            }
 
-        // 验证用户名和密码
-        if (user != null && user.getPassword().equals(loginRequest.getPassword())) {
-            // 生成 JWT 和刷新 token
-            String accessToken = jwtUtil.generateToken(user.getUsername());
-            String refreshToken = jwtUtil.generateRefreshToken(user.getUsername());
+            // 使用 BCrypt 验证加密密码
+            if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+                String accessToken = jwtUtil.generateToken(user.getUsername());
+                String refreshToken = jwtUtil.generateRefreshToken(user.getUsername());
 
-            // 缓存刷新 token
-            cacheRefreshToken(user.getUsername(), refreshToken);
+                cacheRefreshToken(user.getUsername(), refreshToken);
 
-            // 创建成功响应数据
-            LoginSuccessData successData = LoginSuccessData.builder()
-                    .access_token(accessToken)
-                    .refresh_token(refreshToken)
-                    .expires_in("3600")
-                    .build();
+                LoginSuccessData successData = LoginSuccessData.builder()
+                        .access_token(accessToken)
+                        .refresh_token(refreshToken)
+                        .expires_in("3600")
+                        .build();
 
-            // 创建成功响应
+                return GeneralResponse.builder()
+                        .code("200")
+                        .msg("Login successful")
+                        .data(successData)
+                        .build();
+            } else {
+                return new GeneralResponse("400", "Invalid username or password", null);
+            }
+        } catch (DataAccessException dae) {
+            // 数据库访问异常处理
             return GeneralResponse.builder()
-                    .code("200")
-                    .msg("Login successful")
-                    .data(successData)
+                    .code("500")
+                    .msg("Database error: " + dae.getMessage())
+                    .data(null)
                     .build();
-        } else {
-            // 创建失败响应
+        } catch (Exception e) {
+            // 其他异常处理
             return GeneralResponse.builder()
-                    .code("400")
-                    .msg("Invalid username or password")
+                    .code("500")
+                    .msg("Login failed: " + e.getMessage())
                     .data(null)
                     .build();
         }
-
     }
 
-    // 缓存刷新 token 到 Redis
-    private void cacheRefreshToken(String username, String refreshToken) {
-        redisUtil.setValue(REFRESH_TOKEN_PREFIX + username, refreshToken, 30, TimeUnit.DAYS);
-    }
+    @Override
+    public GeneralResponse register(RegisterRequest registerRequest) {
+        try {
+            if (userMapper.findUserByUsername(registerRequest.getUsername()) != null) {
+                return new GeneralResponse("400", "Username already exists", null);
+            }
 
-    // 刷新 token 方法
-    public GeneralResponse refreshToken(String refreshToken) {
-        // 验证 refreshToken
-        String username = jwtUtil.extractUsername(refreshToken);
-        String cachedRefreshToken = (String) redisUtil.getValue(REFRESH_TOKEN_PREFIX + username);
-
-        if (cachedRefreshToken != null && cachedRefreshToken.equals(refreshToken)) {
-            // 生成新的 accessToken 和 refreshToken
-            String newAccessToken = jwtUtil.generateToken(username);
-            String newRefreshToken = jwtUtil.generateRefreshToken(username);
-
-            // 更新缓存中的刷新 token
-            cacheRefreshToken(username, newRefreshToken);
-
-            // 创建成功响应数据
-            LoginSuccessData successData = LoginSuccessData.builder()
-                    .access_token(newAccessToken)
-                    .refresh_token(newRefreshToken)
-                    .expires_in("3600")
+            // 加密用户密码
+            String encodedPassword = passwordEncoder.encode(registerRequest.getPassword());
+            User newUser = User.builder()
+                    .username(registerRequest.getUsername())
+                    .password(encodedPassword)
                     .build();
 
-            // 创建成功响应
+            int rowsAffected = userMapper.insertUser(newUser);
+            if (rowsAffected > 0) {
+                return GeneralResponse.builder()
+                        .code("201")
+                        .msg("User registered successfully")
+                        .data(newUser.getUserId()) // 返回用户ID
+                        .build();
+            } else {
+                throw new UserServiceException("Failed to register user", "500");
+            }
+        } catch (DataAccessException dae) {
+            return GeneralResponse.builder()
+                    .code("500")
+                    .msg("Database error: " + dae.getMessage())
+                    .data(null)
+                    .build();
+        } catch (Exception e) {
+            return GeneralResponse.builder()
+                    .code("500")
+                    .msg("Registration failed: " + e.getMessage())
+                    .data(null)
+                    .build();
+        }
+    }
+
+    @Override
+    public GeneralResponse refreshAuth(String refreshToken, String accessToken) {
+        try {
+            String username = jwtUtil.extractUsername(refreshToken);
+            String cachedRefreshToken = (String) redisUtil.getValue(REFRESH_TOKEN_PREFIX + username);
+
+            if (cachedRefreshToken != null && cachedRefreshToken.equals(refreshToken)) {
+                String newAccessToken = jwtUtil.generateToken(username);
+                String newRefreshToken = jwtUtil.generateRefreshToken(username);
+                cacheRefreshToken(username, newRefreshToken);
+
+                LoginSuccessData successData = LoginSuccessData.builder()
+                        .access_token(newAccessToken)
+                        .refresh_token(newRefreshToken)
+                        .expires_in("3600")
+                        .build();
+
+                return GeneralResponse.builder()
+                        .code("200")
+                        .msg("Token refreshed successfully")
+                        .data(successData)
+                        .build();
+            } else {
+                return new GeneralResponse("401", "Invalid refresh token", null);
+            }
+        } catch (Exception e) {
+            return GeneralResponse.builder()
+                    .code("500")
+                    .msg("Token refresh failed: " + e.getMessage())
+                    .data(null)
+                    .build();
+        }
+    }
+
+    @Override
+    public GeneralResponse checkUsernameAvailability(UsernameCheckRequest usernameCheckRequest) {
+        try {
+             User user = userMapper.findUserByUsername(usernameCheckRequest.getUsername());
+            if (user != null) {
+                return new GeneralResponse("409", "Username already taken", null);
+            }
+            return new GeneralResponse("200", "Username is available", null);
+        } catch (DataAccessException dae) {
+            return GeneralResponse.builder()
+                    .code("500")
+                    .msg("Database error: " + dae.getMessage())
+                    .data(null)
+                    .build();
+        }
+    }
+
+    @Override
+    public GeneralResponse quit(String refreshToken, String accessToken) {
+        try {
+            String username = jwtUtil.extractUsername(refreshToken);
+            redisUtil.deleteValue(REFRESH_TOKEN_PREFIX + username);
+
             return GeneralResponse.builder()
                     .code("200")
-                    .msg("Token refreshed successfully")
-                    .data(successData)
+                    .msg("Logged out successfully")
+                    .data(null)
                     .build();
-        } else {
-            // 创建失败响应
+        } catch (Exception e) {
             return GeneralResponse.builder()
-                    .code("401")
-                    .msg("Invalid refresh token")
+                    .code("500")
+                    .msg("Logout failed: " + e.getMessage())
                     .data(null)
                     .build();
         }
@@ -115,21 +202,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserByUsername(String username) {
-        List<User> users = userMapper.findUserByUsername(username);
-
-        if (users.isEmpty()) {
-            // 如果没有找到用户，返回 null 或者抛出异常
-            return null; // 或者 throw new UsernameNotFoundException("User not found: " + username);
+        try {
+            return userMapper.findUserByUsername(username);
+        } catch (DataAccessException dae) {
+            throw new MyBatisSystemException(dae); // 转换为MyBatis特定异常
         }
-
-        if (users.size() > 1) {
-            // 如果找到多条记录，抛出异常
-            throw new MyBatisSystemException(new RuntimeException("Multiple users found with the same username: " + username));
-        }
-
-        return users.get(0); // 返回唯一的用户
     }
 
-
-
+    // 缓存 refresh token 到 Redis
+    private void cacheRefreshToken(String username, String refreshToken) {
+        redisUtil.setValue(REFRESH_TOKEN_PREFIX + username, refreshToken, 30, TimeUnit.DAYS);
+    }
 }

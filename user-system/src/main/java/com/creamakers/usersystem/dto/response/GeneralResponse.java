@@ -1,4 +1,4 @@
-package com.creamakers.usersystem.dto;
+package com.creamakers.usersystem.dto.response;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;

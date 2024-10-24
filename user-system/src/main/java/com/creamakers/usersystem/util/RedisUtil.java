@@ -28,4 +28,8 @@ public class RedisUtil {
     public Object getHashValue(String key, String hashKey) {
         return redisTemplate.opsForHash().get(key, hashKey);
     }
+
+    public void deleteValue(String s) {
+    }
+
 }
