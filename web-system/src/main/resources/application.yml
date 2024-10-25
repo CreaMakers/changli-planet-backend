@@ -9,6 +9,17 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     password: ${planet.mysql.password}
     username: ${planet.mysql.username}
+  data:
+    redis:
+      host: ${planet.redis.host}
+      port: ${planet.redis.port}
+      password: ${planet.redis.password}
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 10
+          min-idle: 1
+          time-between-eviction-runs: 10s
 
 server:
   port: 8082
@@ -20,10 +31,14 @@ mybatis-plus:
     map-underscore-to-camel-case: true
 
 
-
 planet:
   jwt:
     secret:
       creamakerscreamakeres
     expiration_time:
       7200000
+    refresh_expiration_time:
+      86400000
+  bloom:
+    expected_insertions: 20000000
+    fpp: 0.000001

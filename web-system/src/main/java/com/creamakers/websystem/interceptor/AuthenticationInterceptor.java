@@ -1,11 +1,9 @@
 package com.creamakers.websystem.interceptor;
 
-import ch.qos.logback.core.util.StringUtil;
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.creamakers.websystem.constants.CommonConst;
-import com.creamakers.websystem.context.BaseContext;
+import com.creamakers.websystem.context.UserIdContext;
+import com.creamakers.websystem.context.UserNameContext;
 import com.creamakers.websystem.domain.dto.User;
 import com.creamakers.websystem.dao.UserMapper;
 import com.creamakers.websystem.enums.CommonEnums;
@@ -35,14 +33,18 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         String token = Optional.ofNullable(request.getHeader("token"))
                 .orElseThrow(() -> new RuntimeException(CommonConst.TOKEN_NOT_FOUND));
 
-        Long userId = Optional.ofNullable(jwtUtils.getUidOrNull(token))
+        String userName = Optional.ofNullable(jwtUtils.getUserNameOrNull(token))
                 .orElseThrow(() -> new RuntimeException(CommonConst.ACCOUNT_NOT_FOUND));
 
-        BaseContext.set(userId);
-
         User user = Optional.ofNullable(userMapper.selectOne(Wrappers.<User>lambdaQuery()
-                        .eq(User::getUserId, userId)))
+                        .eq(User::getUsername, userName)))
                 .orElseThrow(() -> new RuntimeException(CommonConst.TOKEN_INVALID));
+
+        /*
+        * 保存两个上下文
+        * */
+        UserIdContext.set(user.getUserId());
+        UserNameContext.set(user.getUsername());
 
         if(user.getIsAdmin() == CommonEnums.USER_TYPE_USER.getCode()) {
             throw new RuntimeException(CommonConst.INSUFFICIENT_PERMISSION);

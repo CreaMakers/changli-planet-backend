@@ -28,6 +28,9 @@ public class ResultVo<T> {
     public static <Void> ResultVo<Void> fail(String msg) {
         return new ResultVo<Void>(RESULT_FAILURE_CODE, msg, null);
     }
+    public static <Void> ResultVo<Void> fail(String code, String msg) {
+        return new ResultVo<Void>(code, msg, null);
+    }
 
     public static <T> ResultVo<T> fail(T data) {
         return new ResultVo<T>(RESULT_FAILURE_CODE, RESULT_FAILURE_MSG, data);

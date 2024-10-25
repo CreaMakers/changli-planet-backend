@@ -44,7 +44,10 @@
         <spring-boot-starter-test.version>3.3.4</spring-boot-starter-test.version><!-- spring-boot-starter-test 版本 -->
         <spring-boot-starter.version>3.3.4</spring-boot-starter.version><!-- spring-boot-starter 版本 -->
         <java-jwt.version>3.18.1</java-jwt.version>
-        <hutool.version>5.8.25</hutool.version>
+        <hutool.version>5.8.25</hutool.version> <!--hutool工具版本-->
+        <caffeine.version>3.1.8</caffeine.version> <!--caffeine缓存版本-->
+        <guava.version>33.2.1-jre</guava.version> <!--caffeine缓存版本-->
+
     </properties>
 
     <!-- 依赖管理 -->
@@ -165,6 +168,20 @@
                 <groupId>cn.hutool</groupId>
                 <artifactId>hutool-all</artifactId>
                 <version>${hutool.version}</version>
+            </dependency>
+
+            <!--Caffeine-->
+            <dependency>
+                <groupId>com.github.ben-manes.caffeine</groupId>
+                <artifactId>caffeine</artifactId>
+                <version>${caffeine.version}</version>
+            </dependency>
+
+            <!--布隆过滤器-->
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
             </dependency>
 
 

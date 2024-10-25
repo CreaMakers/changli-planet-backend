@@ -12,6 +12,8 @@ public class RedisUtil {
     @Autowired
     private RedisTemplate redisTemplate;
 
+
+
     public void setValue(String key, Object value, long timeout, TimeUnit unit) {
         redisTemplate.opsForValue().set(key, value, timeout, unit);
     }
