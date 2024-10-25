@@ -23,6 +23,11 @@ public class CommonConst {
 
     public final static String ACCOUNT_DISABLED_OR_BANNED = "账号异常，已被删除或封禁";
 
+    public final static String REFRESH_TOKEN_PREFIX = "web:refresh_token:";
+    public final static String ACCESS_TOKEN_PREFIX = "web:access_token:";
+
+    public final static String TOKEN_EXPIRATION_TIME = "7200";
+
     public final static Integer REGULAR_USER = 0;
 
     public final static Integer OPERATIONS_TEAM = 1;

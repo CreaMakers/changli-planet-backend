@@ -91,7 +91,7 @@ public class UserProfile implements Serializable {
     /**
      * 是否删除: 0-未删除，1-已删除
      */
-    @TableLogic
+    @TableLogic(value = "0", delval = "1")
     @TableField("is_deleted")
     private Byte isDeleted;
 

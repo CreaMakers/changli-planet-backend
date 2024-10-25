@@ -1,6 +1,6 @@
 package com.creamakers.websystem.context;
 
-public class BaseContext {
+public class UserIdContext {
     private static ThreadLocal<Long> threadLocal = new ThreadLocal<>();
 
     public static void set(Long id) {

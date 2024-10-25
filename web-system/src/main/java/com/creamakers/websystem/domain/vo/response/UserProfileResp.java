@@ -60,8 +60,4 @@ public class UserProfileResp {
      */
     private String description;
 
-    /*
-    * token
-    * */
-    private String token;
 }

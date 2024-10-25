@@ -11,8 +11,8 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserInfoReq implements Serializable {
-    @JsonProperty("name")
-    String name;
+    @JsonProperty("username")
+    String username;
 
     @JsonProperty("password")
     String password;
