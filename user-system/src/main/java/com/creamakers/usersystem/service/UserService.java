@@ -14,7 +14,7 @@ public interface UserService {
 
     GeneralResponse checkUsernameAvailability(UsernameCheckRequest usernameCheckRequest);
 
-    GeneralResponse quit(String refreshToken, String accessToken);
+    GeneralResponse quit(String accessToken);
 
-    GeneralResponse refreshAuth(String refreshToken, String accessToken);
+    GeneralResponse refreshAuth(String accessToken);
 }

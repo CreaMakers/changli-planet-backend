@@ -5,10 +5,11 @@ import com.creamakers.usersystem.consts.HttpCode;
 import com.creamakers.usersystem.consts.SuccessMessage;
 import com.creamakers.usersystem.dto.request.RegisterRequest;
 import com.creamakers.usersystem.dto.request.UsernameCheckRequest;
-import com.creamakers.usersystem.dto.response.GeneralResponse;
 import com.creamakers.usersystem.dto.request.LoginRequest;
+import com.creamakers.usersystem.dto.response.GeneralResponse;
 import com.creamakers.usersystem.dto.response.LoginSuccessData;
 
+import com.creamakers.usersystem.dto.response.RefreshAuthResp;
 import com.creamakers.usersystem.exception.UserServiceException;
 import com.creamakers.usersystem.mapper.UserMapper;
 import com.creamakers.usersystem.po.User;
@@ -19,15 +20,16 @@ import org.mybatis.spring.MyBatisSystemException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
+
+import static com.creamakers.usersystem.consts.SuccessMessage.USER_LOGGED_OUT;
+import static com.creamakers.usersystem.consts.SuccessMessage.USER_TOKEN_REFRESH;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -48,9 +50,14 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
     @Override
     public GeneralResponse login(LoginRequest loginRequest) {
+        // 拿出设备ID
+        String deviceId = loginRequest.getDeviceId();
+
         logger.info("Attempting to log in user: {}", loginRequest.getUsername());
         try {
             User user = getUserByUsername(loginRequest.getUsername());
@@ -61,15 +68,15 @@ public class UserServiceImpl implements UserService {
 
             // 使用 BCrypt 验证加密密码
             if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
-                String accessToken = jwtUtil.generateToken(user.getUsername());
-                String refreshToken = jwtUtil.generateRefreshToken(user.getUsername());
+                Long currentTimeMillis = System.currentTimeMillis();
+                // 加入时间戳 timeStamp:value
+                String accessToken = jwtUtil.generateToken(user.getUsername(),deviceId,currentTimeMillis);
+                String refreshToken = jwtUtil.generateRefreshToken(user.getUsername(),deviceId,currentTimeMillis);
 
-                cacheRefreshToken(user.getUsername(), refreshToken);
+                cacheRefreshToken(user.getUsername(),deviceId, refreshToken);
 
                 LoginSuccessData successData = LoginSuccessData.builder()
                         .access_token(accessToken)
-                        .refresh_token(refreshToken)
-                        .expires_in("3600")
                         .build();
 
                 logger.info("User {} logged in successfully", user.getUsername());
@@ -145,42 +152,108 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public GeneralResponse refreshAuth(String refreshToken, String accessToken) {
+    public GeneralResponse refreshAuth(String accessToken) {
+        // 日志记录：开始刷新 token 的操作
         logger.info("Attempting to refresh token for accessToken: {}", accessToken);
-        try {
-            String username = jwtUtil.extractUsername(refreshToken);
-            String cachedRefreshToken = (String) redisUtil.getValue(REFRESH_TOKEN_PREFIX + username);
 
-            if (cachedRefreshToken != null && cachedRefreshToken.equals(refreshToken)) {
-                String newAccessToken = jwtUtil.generateToken(username);
-                String newRefreshToken = jwtUtil.generateRefreshToken(username);
-                cacheRefreshToken(username, newRefreshToken);
+        // 验证 accessToken 是否有效
+        boolean isValid = jwtUtil.validateToken(accessToken);
 
-                LoginSuccessData successData = LoginSuccessData.builder()
-                        .access_token(newAccessToken)
-                        .refresh_token(newRefreshToken)
-                        .expires_in("3600")
-                        .build();
+        // 从 accessToken 中提取 username 和设备ID
+        String username = jwtUtil.getUserNameFromToken(accessToken);
+        String deviceIDFromToken = jwtUtil.getDeviceIDFromToken(accessToken);
 
-                logger.info("Token refreshed successfully for user {}", username);
-                return GeneralResponse.builder()
-                        .code(HttpCode.OK)
-                        .msg(SuccessMessage.OPERATION_SUCCESSFUL)
-                        .data(successData)
-                        .build();
-            } else {
-                logger.warn("Invalid refresh token provided for user {}", username);
-                return new GeneralResponse(HttpCode.UNAUTHORIZED, ErrorMessage.INVALID_CREDENTIALS, null);
-            }
-        } catch (Exception e) {
-            logger.error("Unexpected error during token refresh: {}", e.getMessage(), e);
+        // 从 accessToken 中提取时间戳
+        Long timeStampFromToken = jwtUtil.getTimeStampFromToken(accessToken);
+
+        // 生成 Redis 中存储的 refreshToken 对应的键值，格式为：REFRESH_TOKEN_PREFIX + username + "-" + deviceIDFromToken
+        String refreshTokenKey = REFRESH_TOKEN_PREFIX + username + "-" + deviceIDFromToken;
+
+        // 获取当前系统时间，作为生成新 token 的时间戳
+        Long currentTimeMillis = System.currentTimeMillis();
+
+        // 如果 accessToken 仍然有效
+        if (isValid) {
+            // 日志记录：accessToken 仍然有效
+            logger.info("Access token is valid, generating new tokens.");
+
+            // 调用方法生成新的 accessToken 和 refreshToken 并存储到 Redis
+            return generateAndStoreNewTokens(username, deviceIDFromToken, currentTimeMillis, refreshTokenKey);
+        }
+
+        // 如果 accessToken 无效，尝试从 Redis 中获取对应的 refreshToken
+        String refreshToken = stringRedisTemplate.opsForValue().get(refreshTokenKey);
+
+        // 如果 Redis 中没有对应的 refreshToken，说明已过期或被删除
+        if (refreshToken == null) {
+            // 日志记录：refreshToken 未找到
+            logger.warn("Refresh token not found in Redis for key: {}", refreshTokenKey);
+
+            // 返回响应：刷新 token 失败，因为 refreshToken 已过期或无效
             return GeneralResponse.builder()
-                    .code(HttpCode.INTERNAL_SERVER_ERROR)
-                    .msg(ErrorMessage.OPERATION_FAILED)
+                    .code(HttpCode.FORBIDDEN)
+                    .msg("refreshToken已过期，不要瞎搞哦～")
+                    .data(null)
+                    .build();
+        }
+
+        // 从 Redis 获取的 refreshToken 中提取时间戳
+        Long timeStampFromRefreshToken = jwtUtil.getTimeStampFromToken(refreshToken);
+
+        // 检查 refreshToken 和 accessToken 的时间戳是否相等
+        if (timeStampFromRefreshToken.equals(timeStampFromToken)) {
+            // 日志记录：时间戳一致，表示 refreshToken 有效
+            logger.info("Refresh token is valid, generating new tokens.");
+
+            // 调用方法生成新的 accessToken 和 refreshToken 并存储到 Redis
+            return generateAndStoreNewTokens(username, deviceIDFromToken, currentTimeMillis, refreshTokenKey);
+        } else {
+            // 日志记录：时间戳不一致，说明 refreshToken 已经过期或无效
+            logger.warn("Refresh token has expired or is invalid.");
+
+            // 返回响应：刷新 token 失败，因为 refreshToken 无效
+            return GeneralResponse.builder()
+                    .code(HttpCode.FORBIDDEN)
+                    .msg("refreshToken已过期，不要瞎搞哦～")
                     .data(null)
                     .build();
         }
     }
+
+    /**
+     * 生成新的 accessToken 和 refreshToken，并将 refreshToken 存储到 Redis 中
+     *
+     * @param username 用户名，从 accessToken 中提取
+     * @param deviceIDFromToken 设备ID，从 accessToken 中提取
+     * @param currentTimeMillis 当前时间戳，用于生成新 token
+     * @param refreshTokenKey Redis 中存储 refreshToken 的键值
+     * @return 返回 GeneralResponse，其中包含新的 accessToken
+     */
+    private GeneralResponse generateAndStoreNewTokens(String username, String deviceIDFromToken, Long currentTimeMillis, String refreshTokenKey) {
+        // 生成新的 accessToken
+        String newAccessToken = jwtUtil.generateToken(username, deviceIDFromToken, currentTimeMillis);
+
+        // 生成新的 refreshToken
+        String newRefreshToken = jwtUtil.generateRefreshToken(username, deviceIDFromToken, currentTimeMillis);
+
+        // 日志记录：删除 Redis 中旧的 refreshToken
+        logger.info("Deleting old refresh token for key: {}", refreshTokenKey);
+
+        // 从 Redis 中删除旧的 refreshToken
+        stringRedisTemplate.delete(refreshTokenKey);
+
+        // 将新的 refreshToken 存储到 Redis 中，键为 refreshTokenKey，值为 newRefreshToken
+        logger.info("Storing new refresh token in Redis for key: {}", refreshTokenKey);
+        stringRedisTemplate.opsForValue().set(refreshTokenKey, newRefreshToken);
+
+        // 返回响应：包含新的 accessToken，刷新操作成功
+        return GeneralResponse.builder()
+                .code(HttpCode.OK)
+                .msg(USER_TOKEN_REFRESH)
+                .data(new RefreshAuthResp(newAccessToken))
+                .build();
+    }
+
 
     @Override
     public GeneralResponse checkUsernameAvailability(UsernameCheckRequest usernameCheckRequest) {
@@ -204,25 +277,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public GeneralResponse quit(String refreshToken, String accessToken) {
-        logger.info("User logout process initiated");
-        try {
-            String username = jwtUtil.extractUsername(refreshToken);
-            redisUtil.deleteValue(REFRESH_TOKEN_PREFIX + username);
-            logger.info("User {} logged out successfully", username);
-            return GeneralResponse.builder()
-                    .code(HttpCode.OK)
-                    .msg(SuccessMessage.USER_LOGGED_OUT)
-                    .data(null)
-                    .build();
-        } catch (Exception e) {
-            logger.error("Error during logout process: {}", e.getMessage(), e);
-            return GeneralResponse.builder()
-                    .code(HttpCode.INTERNAL_SERVER_ERROR)
-                    .msg(ErrorMessage.OPERATION_FAILED)
-                    .data(null)
-                    .build();
-        }
+    public GeneralResponse quit(String accessToken) {
+        // 应该就不用判断token是否有效了
+        // 获取username、deviceID
+        String username = jwtUtil.getUserNameFromToken(accessToken);
+        String deviceId = jwtUtil.getDeviceIDFromToken(accessToken);
+        String key = REFRESH_TOKEN_PREFIX + username+"-"+deviceId;
+        stringRedisTemplate.delete(key);
+        return GeneralResponse.builder()
+                .code(HttpCode.OK)
+                .msg(USER_LOGGED_OUT)
+                .data(null)
+                .build();
     }
 
     @Override
@@ -237,8 +303,10 @@ public class UserServiceImpl implements UserService {
     }
 
     // 缓存 refresh token 到 Redis
-    private void cacheRefreshToken(String username, String refreshToken) {
+    private void cacheRefreshToken(String username, String deviceId,String refreshToken) {
         logger.info("Caching refresh token for user {}", username);
-        redisUtil.setValue(REFRESH_TOKEN_PREFIX + username, refreshToken, 30, TimeUnit.DAYS);
+        String key = REFRESH_TOKEN_PREFIX + username+"-"+deviceId;
+        stringRedisTemplate.opsForValue().set(key, refreshToken);
+        stringRedisTemplate.expire(key,30L, TimeUnit.DAYS);
     }
 }

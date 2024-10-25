@@ -3,7 +3,6 @@ package com.creamakers.usersystem.controller;
 import com.creamakers.usersystem.dto.request.*;
 import com.creamakers.usersystem.dto.response.GeneralResponse;
 import com.creamakers.usersystem.service.UserService;
-import io.swagger.v3.oas.annotations.headers.Header;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,7 +22,7 @@ public class AuthController {
      * @return com.creamakers.usersystem.dto.response.GeneralResponse
      * @author yuxialuozi
      **/
-    @PostMapping("")
+    @PostMapping("/register")
     public GeneralResponse register(@RequestBody RegisterRequest registerRequest) {
         return userService.register(registerRequest);
     }
@@ -54,26 +53,21 @@ public class AuthController {
      **/
     
     @DeleteMapping("/session")
-    public GeneralResponse quit(@RequestHeader(value = "Authorization") String accessToken,
-                                @RequestHeader(value = "Refresh-Token") String refreshToken) {
-        return userService.quit(refreshToken, accessToken);
+    public GeneralResponse quit(@RequestHeader(value = "Authorization") String accessToken) {
+        return userService.quit(accessToken);
     }
 
     /**
      * 方法描述:
-     *
      * 刷新token
-     * 
- * @param accessToken
- * @param refreshToken
+     * @param accessToken
      * @return com.creamakers.usersystem.dto.response.GeneralResponse
      * @author yuxialuozi
      **/
     
     @PutMapping("/me/token")
-    public GeneralResponse refreshAuth(@RequestHeader(value = "Authorization") String accessToken,
-                                       @RequestHeader(value = "Refresh-Token") String refreshToken) {
-        return userService.refreshAuth(refreshToken, accessToken);
+    public GeneralResponse refreshAuth(@RequestBody AccessTokenRequest accessTokenRequest) {
+        return userService.refreshAuth(accessTokenRequest.getAccessToken());
     }
 
 
