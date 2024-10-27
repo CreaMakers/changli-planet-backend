@@ -2,7 +2,10 @@ package com.creamakers.usersystem.controller;
 
 import com.creamakers.usersystem.dto.request.*;
 import com.creamakers.usersystem.dto.response.GeneralResponse;
+import com.creamakers.usersystem.po.UserProfile;
+import com.creamakers.usersystem.service.UserProfileService;
 import com.creamakers.usersystem.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,6 +16,9 @@ public class AuthController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private UserProfileService userProfileService;
+
     /**
      * 方法描述:
      *
@@ -20,7 +26,7 @@ public class AuthController {
      *
      * @param registerRequest
      * @return com.creamakers.usersystem.dto.response.GeneralResponse
-     * @author yuxialuozi
+     * @author Hayaizo
      **/
     @PostMapping("/register")
     public GeneralResponse register(@RequestBody RegisterRequest registerRequest) {
@@ -34,7 +40,7 @@ public class AuthController {
      *
      * @param loginRequest
      * @return com.creamakers.usersystem.dto.response.GeneralResponse
-     * @author yuxialuozi
+     * @author Hayaizo
      **/
     @PostMapping("/session")
     public GeneralResponse login(@RequestBody LoginRequest loginRequest) {
@@ -45,11 +51,8 @@ public class AuthController {
      * 方法描述:
      *
      * 用户退出
-     * 
- * @param accessToken
- * @param refreshToken
      * @return com.creamakers.usersystem.dto.response.GeneralResponse
-     * @author yuxialuozi
+     * @author Hayaizo
      **/
     
     @DeleteMapping("/session")
@@ -60,16 +63,14 @@ public class AuthController {
     /**
      * 方法描述:
      * 刷新token
-     * @param accessToken
      * @return com.creamakers.usersystem.dto.response.GeneralResponse
-     * @author yuxialuozi
+     * @author Hayaizo
      **/
     
     @PutMapping("/me/token")
     public GeneralResponse refreshAuth(@RequestBody AccessTokenRequest accessTokenRequest) {
         return userService.refreshAuth(accessTokenRequest.getAccessToken());
     }
-
 
     /**
      * 方法描述:
@@ -83,6 +84,12 @@ public class AuthController {
     @GetMapping("/availability")
     public GeneralResponse usernameCheck(@ModelAttribute UsernameCheckRequest usernameCheckRequest) {
         return userService.checkUsernameAvailability(usernameCheckRequest);
+    }
+
+    @GetMapping("/me/profile")
+    public GeneralResponse getProfile(HttpServletRequest request) {
+        String accessToken = request.getHeader("token");
+        return userProfileService.getProfile(accessToken);
     }
 
 }
