@@ -1,6 +1,5 @@
 package com.creamakers.usersystem.util;
 
-
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
@@ -9,9 +8,6 @@ import com.auth0.jwt.interfaces.JWTVerifier;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import java.util.Date;
-
 
 import java.util.Date;
 
@@ -39,10 +35,10 @@ public class JwtUtil {
 
     /**
      * 生成包含设备ID和时间戳的访问Token
-     * @param username
-     * @param deviceID
-     * @param timeStamp
-     * @return
+     * @param username 用户名
+     * @param deviceID 设备ID
+     * @param timeStamp 时间戳
+     * @return 生成的JWT
      */
     public String generateToken(String username, String deviceID, Long timeStamp) {
         try {
@@ -62,8 +58,8 @@ public class JwtUtil {
 
     /**
      * 生成包含较长过期时间的Refresh Token
-     * @param username
-     * @return
+     * @param username 用户名
+     * @return 生成的Refresh Token
      */
     public String generateRefreshToken(String username) {
         Algorithm algorithm = Algorithm.HMAC256(secretKey);
@@ -76,10 +72,10 @@ public class JwtUtil {
 
     /**
      * 生成包含设备ID和时间戳的Refresh Token
-     * @param username
-     * @param deviceID
-     * @param timeStamp
-     * @return
+     * @param username 用户名
+     * @param deviceID 设备ID
+     * @param timeStamp 时间戳
+     * @return 生成的Refresh Token
      */
     public String generateRefreshToken(String username, String deviceID, Long timeStamp) {
         try {
@@ -99,7 +95,7 @@ public class JwtUtil {
 
     /**
      * 验证JWT是否有效（只验证签名和过期时间）
-     * @param token
+     * @param token JWT令牌
      * @return true 如果JWT有效，false 否则
      */
     public boolean validateToken(String token) {
@@ -123,59 +119,61 @@ public class JwtUtil {
     }
 
     /**
-     * 从JWT中提取设备ID
-     * @param token
+     * 解码JWT而不进行验证
+     * @param token JWT令牌
+     * @return DecodedJWT对象 或 null
+     */
+    public DecodedJWT decodeTokenWithoutVerification(String token) {
+        try {
+            return JWT.decode(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * 从JWT中提取设备ID，无论是否过期
+     * @param token JWT令牌
      * @return deviceID 或 null
      */
     public String getDeviceIDFromToken(String token) {
-        try {
-            Algorithm algorithm = Algorithm.HMAC256(secretKey);
-            JWTVerifier verifier = JWT.require(algorithm).build();
-            DecodedJWT jwt = verifier.verify(token);
+        DecodedJWT jwt = decodeTokenWithoutVerification(token);
+        if (jwt != null) {
             return jwt.getClaim("deviceID").asString();
-        } catch (JWTVerificationException exception) {
-            exception.printStackTrace();
-            return null;
         }
+        return null;
     }
 
     /**
-     * 从JWT中提取用户名
-     * @param token
+     * 从JWT中提取用户名，无论是否过期
+     * @param token JWT令牌
      * @return username 或 null
      */
     public String getUserNameFromToken(String token) {
-        try {
-            Algorithm algorithm = Algorithm.HMAC256(secretKey);
-            JWTVerifier verifier = JWT.require(algorithm).build();
-            DecodedJWT jwt = verifier.verify(token);
+        DecodedJWT jwt = decodeTokenWithoutVerification(token);
+        if (jwt != null) {
             return jwt.getClaim("username").asString();
-        } catch (JWTVerificationException exception) {
-            exception.printStackTrace();
-            return null;
         }
+        throw new JWTVerificationException("无效凭证");
     }
 
     /**
-     * 从JWT中提取时间戳
-     * @param token
+     * 从JWT中提取时间戳，无论是否过期
+     * @param token JWT令牌
      * @return 时间戳 或 null
      */
     public Long getTimeStampFromToken(String token) {
-        try {
-            Algorithm algorithm = Algorithm.HMAC256(secretKey);
-            JWTVerifier verifier = JWT.require(algorithm).build();
-            DecodedJWT jwt = verifier.verify(token);
+        DecodedJWT jwt = decodeTokenWithoutVerification(token);
+        if (jwt != null) {
             return jwt.getClaim("timeStamp").asLong();
-        } catch (JWTVerificationException exception) {
-            exception.printStackTrace();
-            return null;
         }
+        return null;
     }
 
     /**
      * 检查JWT是否过期
-     * @param decodedJWT
+     * @param decodedJWT 解码后的JWT
      * @return true 如果已过期，false 否则
      */
     private boolean isTokenExpired(DecodedJWT decodedJWT) {
@@ -184,7 +182,7 @@ public class JwtUtil {
 
     /**
      * 解码JWT并返回DecodedJWT对象
-     * @param token
+     * @param token JWT令牌
      * @return DecodedJWT对象 或 null
      */
     private DecodedJWT decodeToken(String token) {

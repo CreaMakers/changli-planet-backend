@@ -1,5 +1,7 @@
 package com.creamakers.usersystem.exception;
 
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.creamakers.usersystem.consts.ErrorMessage;
 import com.creamakers.usersystem.consts.HttpCode;
 import com.creamakers.usersystem.dto.response.GeneralResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +31,14 @@ public class GlobalExceptionHandler {
         return GeneralResponse.builder()
                 .data("全局异常错误")
                 .code(HttpCode.INTERNAL_SERVER_ERROR)
+                .build();
+    }
+
+    @ExceptionHandler(value = JWTVerificationException.class)
+    public GeneralResponse<?> jwtVerificationException(JWTVerificationException ex) {
+        return GeneralResponse.builder()
+                .code(HttpCode.UNAUTHORIZED)
+                .msg(ErrorMessage.INVALID_CREDENTIALS)
                 .build();
     }
 

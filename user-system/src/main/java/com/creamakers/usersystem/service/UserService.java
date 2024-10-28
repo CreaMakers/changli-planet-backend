@@ -18,4 +18,6 @@ public interface UserService {
     GeneralResponse quit(String accessToken);
 
     GeneralResponse refreshAuth(String accessToken);
+
+    GeneralResponse updatePassword(PasswordUpdateRequest request, String accessToken);
 }
