@@ -16,8 +16,10 @@ import com.creamakers.usersystem.exception.UserServiceException;
 import com.creamakers.usersystem.mapper.UserMapper;
 import com.creamakers.usersystem.po.User;
 import com.creamakers.usersystem.po.UserProfile;
+import com.creamakers.usersystem.po.UserStats;
 import com.creamakers.usersystem.service.UserProfileService;
 import com.creamakers.usersystem.service.UserService;
+import com.creamakers.usersystem.service.UserStatsService;
 import com.creamakers.usersystem.util.JwtUtil;
 import com.creamakers.usersystem.util.RedisUtil;
 import org.mybatis.spring.MyBatisSystemException;
@@ -56,6 +58,8 @@ public class UserServiceImpl implements UserService {
     private StringRedisTemplate stringRedisTemplate;
     @Autowired
     private UserProfileService userProfileService;
+    @Autowired
+    private UserStatsService userStatsService;
 
     @Override
     public GeneralResponse login(LoginRequest loginRequest) {
@@ -146,6 +150,21 @@ public class UserServiceImpl implements UserService {
                         .birthDate(new Date())
                         .build();
                 userProfileService.save(userProfile);
+
+                // 初始化用户状态信息
+                UserStats userStats = UserStats.builder()
+                        .userId(user.getUserId())
+                        .studentNumber("")
+                        .articleCount(0)
+                        .commentCount(0)
+                        .statementCount(0)
+                        .likedCount(0)
+                        .coinCount(0)
+                        .xp(0)
+                        .quizType(0)
+                        .build();
+                userStatsService.save(userStats);
+
                 logger.info("User registered successfully: {}", newUser.getUsername());
                 return GeneralResponse.builder()
                         .code(HttpCode.CREATED)
