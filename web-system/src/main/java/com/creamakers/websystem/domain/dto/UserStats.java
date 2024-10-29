@@ -1,24 +1,24 @@
 package com.creamakers.websystem.domain.dto;
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
+import java.time.LocalDateTime;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * 用户展示信息实体类
+ * 用户动态数据实体类
  *
- * @author YourName
- * @since 2023-XX-XX
+ * @author dcelysia
+ * @since 2024-10-28
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("user_profile")
-public class UserProfile implements Serializable {
+@TableName("user_stats")
+public class UserStats implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -29,52 +29,58 @@ public class UserProfile implements Serializable {
     private Integer userId;
 
     /**
-     * 用户头像URL
+     * 学号，唯一
      */
-    @TableField("avatar_url")
-    private String avatarUrl;
+    @TableField("student_number")
+    private String studentNumber;
 
     /**
-     * 个性标签/个人描述
+     * 发表文章数
      */
-    @TableField("bio")
-    private String bio;
+    @TableField("article_count")
+    private Integer articleCount;
 
     /**
-     * 用户等级
+     * 评论次数
      */
-    @TableField("user_level")
-    private Integer userLevel;
+    @TableField("comment_count")
+    private Integer commentCount;
 
     /**
-     * 性别: 0-男, 1-女, 2-其他
+     * 发言次数
      */
-    @TableField("gender")
-    private Integer gender;
+    @TableField("statement_count")
+    private Integer statementCount;
 
     /**
-     * 年级
+     * 收到点赞次数
      */
-    @TableField("grade")
-    private String grade;
+    @TableField("liked_count")
+    private Integer likedCount;
 
     /**
-     * 出生日期
+     * 硬币数量
      */
-    @TableField("birth_date")
-    private LocalDate birthDate;
+    @TableField("coin_count")
+    private Integer coinCount;
 
     /**
-     * 所在地
+     * 经验值
      */
-    @TableField("location")
-    private String location;
+    @TableField("xp")
+    private Integer xp;
 
     /**
-     * 个人网站或社交链接
+     * 考核通过状态
      */
-    @TableField("website")
-    private String website;
+    @TableField("quiz_type")
+    private Integer quizType;
+
+    /**
+     * 最近登录时间
+     */
+    @TableField("last_login_time")
+    private LocalDateTime lastLoginTime;
 
     /**
      * 记录创建时间
@@ -96,7 +102,7 @@ public class UserProfile implements Serializable {
     private Integer isDeleted;
 
     /**
-     * 用户展示信息描述
+     * 用户动态数据描述
      */
     @TableField("description")
     private String description;

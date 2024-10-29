@@ -62,13 +62,13 @@ public class User implements Serializable {
      */
     @TableLogic(value = "0", delval = "1")
     @TableField("is_deleted")
-    private boolean isDeleted;
+    private Integer isDeleted;
 
     /**
      * 是否封禁: 0-未封禁，1-已封禁
      */
     @TableField("is_banned")
-    private boolean isBanned;
+    private Integer isBanned;
 
     /**
      * 用户描述

@@ -1,60 +1,69 @@
 package com.creamakers.websystem.domain.vo.response;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+
+/**
+ * 用户动态数据响应类
+ *
+ * @author dcelysia
+ * @since 2024-10-28
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserProfileResp {
+public class UserStatsResp {
     /**
      * 用户ID
      */
     private Long userId;
 
     /**
-     * 用户头像URL
+     * 学号，唯一
      */
-    private String avatarUrl;
+    private String studentNumber;
 
     /**
-     * 个性标签/个人描述
+     * 发表文章数
      */
-    private String bio;
+    private Integer articleCount;
 
     /**
-     * 用户等级
+     * 评论次数
      */
-    private Integer userLevel;
+    private Integer commentCount;
 
     /**
-     * 性别: 0-男, 1-女, 2-其他
+     * 发言次数
      */
-    private Integer gender;
+    private Integer statementCount;
 
     /**
-     * 年级
+     * 收到点赞次数
      */
-    private String grade;
+    private Integer likedCount;
 
     /**
-     * 出生日期
+     * 硬币数量
      */
-    private LocalDate birthDate;
+    private Integer coinCount;
 
     /**
-     * 所在地
+     * 经验值
      */
-    private String location;
+    private Integer xp;
 
     /**
-     * 个人网站或社交链接
+     * 考核通过状态
      */
-    private String website;
+    private Integer quizType;
+
+    /**
+     * 最近登录时间
+     */
+    private LocalDateTime lastLoginTime;
 
     /**
      * 记录创建时间
@@ -74,7 +83,7 @@ public class UserProfileResp {
     private Integer isDeleted;
 
     /**
-     * 用户展示信息描述
+     * 用户动态数据描述
      */
     private String description;
 }
