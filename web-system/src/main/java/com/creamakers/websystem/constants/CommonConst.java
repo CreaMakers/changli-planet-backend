@@ -7,6 +7,8 @@ public class CommonConst {
 
     public final static String RESULT_FAILURE_CODE = "500";
 
+    public final static String BAD_REQUEST_CODE = "400";
+
     public final static String RESULT_FAILURE_MSG = "failure";
 
     public static final String CRYPOT_KEY = "changli-planetchangli-planet";
@@ -23,8 +25,15 @@ public class CommonConst {
 
     public final static String ACCOUNT_DISABLED_OR_BANNED = "账号异常，已被删除或封禁";
 
+    public final static String BAD_USERINFO_QUERY = "查询用户ID无效，请重新输入";
+
+    public final static String BAD_UPDATE_USER = "更新用户信息失败";
+
     public final static String REFRESH_TOKEN_PREFIX = "web:refresh_token:";
+
     public final static String ACCESS_TOKEN_PREFIX = "web:access_token:";
+
+    public final static String BLACKLIST_TOKEN_PREFIX = "web:blacklist:token:";
 
     public final static String TOKEN_EXPIRATION_TIME = "7200";
 

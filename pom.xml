@@ -53,7 +53,6 @@
     <!-- 依赖管理 -->
     <dependencyManagement>
         <dependencies>
-
             <!-- Spring Boot 核心依赖 -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>

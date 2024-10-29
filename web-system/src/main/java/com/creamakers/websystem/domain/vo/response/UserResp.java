@@ -1,60 +1,51 @@
 package com.creamakers.websystem.domain.vo.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+
+/**
+ * 用户基础信息响应类
+ *
+ * @author dcelysia
+ * @since 2024-10-24
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserProfileResp {
+public class UserResp {
     /**
      * 用户ID
      */
     private Long userId;
 
     /**
-     * 用户头像URL
+     * 用户名
      */
-    private String avatarUrl;
+    private String username;
 
     /**
-     * 个性标签/个人描述
+     * 密码，经过加密存储
      */
-    private String bio;
+    private String password;
 
     /**
-     * 用户等级
+     * 管理员权限: 0-普通用户, 1-运营组，2-开发组
      */
-    private Integer userLevel;
+    private Integer isAdmin;
 
     /**
-     * 性别: 0-男, 1-女, 2-其他
+     * 是否删除: 0-未删除，1-已删除
      */
-    private Integer gender;
+    private Boolean isDeleted;
 
     /**
-     * 年级
+     * 是否封禁: 0-未封禁，1-已封禁
      */
-    private String grade;
-
-    /**
-     * 出生日期
-     */
-    private LocalDate birthDate;
-
-    /**
-     * 所在地
-     */
-    private String location;
-
-    /**
-     * 个人网站或社交链接
-     */
-    private String website;
+    private Boolean isBanned;
 
     /**
      * 记录创建时间
@@ -69,12 +60,7 @@ public class UserProfileResp {
     private LocalDateTime updateTime;
 
     /**
-     * 是否删除: 0-未删除，1-已删除
-     */
-    private Integer isDeleted;
-
-    /**
-     * 用户展示信息描述
+     * 用户描述
      */
     private String description;
 }

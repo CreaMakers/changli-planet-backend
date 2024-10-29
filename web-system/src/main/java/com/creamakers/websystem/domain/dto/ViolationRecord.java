@@ -84,21 +84,21 @@ public class ViolationRecord implements Serializable {
     /**
      * 记录创建时间
      */
-    @TableField(value = "create_time", fill = FieldFill.INSERT)
+    @TableField(value = "create_time")
     private LocalDateTime createTime;
 
     /**
      * 记录更新时间
      */
-    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
+    @TableField(value = "update_time")
     private LocalDateTime updateTime;
 
     /**
      * 是否删除: 0-未删除，1-已删除
      */
-    @TableLogic
+    @TableLogic(value = "0", delval = "1")
     @TableField("is_deleted")
-    private Byte isDeleted;
+    private Integer isDeleted;
 
     /**
      * 违规行为描述

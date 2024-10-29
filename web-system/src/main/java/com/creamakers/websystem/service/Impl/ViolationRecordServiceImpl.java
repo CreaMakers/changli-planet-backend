@@ -31,7 +31,7 @@ public class ViolationRecordServiceImpl implements ViolationRecordService {
     }
 
     @Override
-    public ResultVo<List<ViolationRecordResp>> findAllViolationsById(Long userId, Integer page, Integer pageSize) {
+    public ResultVo<List<ViolationRecordResp>>  findAllViolationsById(Long userId, Integer page, Integer pageSize) {
         Page<ViolationRecord> pageParam = new Page<>(page, pageSize);
         Page<ViolationRecord> violationPage = violationRecordMapper.selectPage(pageParam,
                 Wrappers.<ViolationRecord>lambdaQuery().eq(ViolationRecord::getUserId, userId));

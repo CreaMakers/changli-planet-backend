@@ -27,7 +27,7 @@ public class ViolationRecordController {
     public ResultVo<List<ViolationRecordResp>> findAllViolationsById(
             @PathVariable(value = "userId") Long userId,
             @RequestParam(value = "page") Integer page,
-            @RequestParam(value = "page_size") Integer pageSize
+            @RequestParam(value = "pageSize") Integer pageSize
             ) {
 
         return violationRecordService.findAllViolationsById(userId, page, pageSize);

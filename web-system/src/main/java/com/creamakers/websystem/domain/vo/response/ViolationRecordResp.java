@@ -1,6 +1,7 @@
 package com.creamakers.websystem.domain.vo.response;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -61,11 +62,13 @@ public class ViolationRecordResp implements Serializable {
     /**
      * 记录创建时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
     private LocalDateTime createTime;
 
     /**
      * 记录更新时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
     private LocalDateTime updateTime;
 
     /**

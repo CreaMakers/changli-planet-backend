@@ -1,6 +1,6 @@
-package com.creamakers.websystem.domain.vo.response;
+package com.creamakers.websystem.domain.vo.request;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserProfileResp {
+public class UserProfileReq {
     /**
      * 用户ID
      */
@@ -56,25 +56,15 @@ public class UserProfileResp {
      */
     private String website;
 
-    /**
-     * 记录创建时间
-     */
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
-    private LocalDateTime createTime;
 
     /**
      * 记录更新时间
      */
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
     private LocalDateTime updateTime;
-
-    /**
-     * 是否删除: 0-未删除，1-已删除
-     */
-    private Integer isDeleted;
 
     /**
      * 用户展示信息描述
      */
     private String description;
 }
+

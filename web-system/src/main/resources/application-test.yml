@@ -1,11 +1,11 @@
 planet:
   mysql:
-    ip: 47.115.224.40 # 服务器ip
+    ip: localhost # 服务器ip
     port: 3306
     db: changli-planet # database名
     username: root
-    password: ILoveGenshin_impact #密码
+    password: 1234 #密码
   redis:
-    host: 47.115.224.40
+    host: localhost
     port: 6379
-    password: ILoveGenshin_impact
+    password: 1234
