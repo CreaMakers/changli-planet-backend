@@ -6,14 +6,12 @@ import com.creamakers.websystem.domain.vo.request.PasswordChangeReq;
 import com.creamakers.websystem.domain.vo.request.UserAllInfoReq;
 import com.creamakers.websystem.domain.vo.request.UserInfoReq;
 import com.creamakers.websystem.domain.vo.response.LoginTokenResp;
-import com.creamakers.websystem.domain.vo.response.UserAllInfoResp;
-import com.creamakers.websystem.domain.vo.response.UserProfileResp;
 import com.creamakers.websystem.service.UserService;
-import org.apache.ibatis.annotations.ResultMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
+import javax.validation.Valid;
+
 
 
 // 用户登录

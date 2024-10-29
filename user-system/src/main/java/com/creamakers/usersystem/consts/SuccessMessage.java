@@ -15,6 +15,7 @@ public class SuccessMessage {
     public static final String USER_LOGGED_IN = "用户登录成功";
     public static final String USER_UPDATED = "用户信息更新成功";
     public static final String USER_LOGGED_OUT = "用户注销成功";
+    public static final String USER_TOKEN_REFRESH = "用户Token刷新成功";
 
     // 群聊相关成功信息
     public static final String GROUP_CREATED = "群聊创建成功";
@@ -34,4 +35,5 @@ public class SuccessMessage {
     // 通用成功信息
     public static final String OPERATION_SUCCESSFUL = "操作成功";
     public static final String DATA_RETRIEVED = "数据获取成功";
+    public static final String NO_VIOLATION_INFO = "没有违规记录哦";
 }

@@ -19,10 +19,4 @@ public class LoginSuccessData {
 
     @ApiModelProperty(value = "访问令牌")
     private String access_token;
-
-    @ApiModelProperty(value = "刷新令牌")
-    private String refresh_token;
-
-    @ApiModelProperty(value = "令牌有效期（秒）")
-    private String expires_in;
 }

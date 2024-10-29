@@ -14,6 +14,7 @@ public class ErrorMessage {
     public static final String INVALID_CREDENTIALS = "无效的凭证";
     public static final String USERNAME_TOO_SHORT = "用户名过短，至少需要 3 个字符";
     public static final String PASSWORD_TOO_WEAK = "密码强度不足，至少需要 8 个字符，包含字母和数字";
+    public static final String PASSWORD_NOT_SAME = "两次密码不一致";
 
     // 群聊相关错误
     public static final String GROUP_NOT_FOUND = "群聊未找到";
@@ -42,10 +43,14 @@ public class ErrorMessage {
     public static final String DATABASE_ERROR = "数据库操作失败，请稍后重试";
     public static final String DATA_NOT_FOUND = "请求的数据未找到";
 
+    // Redis相关错误
+    public static final String REDIS_ERROR = "Redis操作失败，请稍后重试";
+
     // 通用错误
     public static final String UNKNOWN_ERROR = "未知错误，请稍后再试";
     public static final String OPERATION_FAILED = "操作失败，请重试";
     public static final String UNAUTHORIZED_ACCESS = "未经授权的访问";
+    public static final String SYSTEM_ERROR = "系统错误";
 
 
 }
