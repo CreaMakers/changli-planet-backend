@@ -12,6 +12,7 @@ import com.creamakers.usersystem.mapper.UserMapper;
 import com.creamakers.usersystem.mapper.UserStatsMapper;
 import com.creamakers.usersystem.po.User;
 import com.creamakers.usersystem.po.UserStats;
+import com.creamakers.usersystem.service.UserService;
 import com.creamakers.usersystem.service.UserStatsService;
 import com.creamakers.usersystem.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +25,7 @@ public class UserStatsServiceImpl extends ServiceImpl<UserStatsMapper, UserStats
 
     private final JwtUtil jwtUtil;
     @Autowired
-    private UserMapper userMapper;
+    private UserService userService;
 
     public UserStatsServiceImpl(JwtUtil jwtUtil) {
         this.jwtUtil = jwtUtil;
@@ -33,7 +34,7 @@ public class UserStatsServiceImpl extends ServiceImpl<UserStatsMapper, UserStats
     @Override
     public GeneralResponse getStats(String accessToken) {
         String username = jwtUtil.getUserNameFromToken(accessToken);
-        User user = userMapper.findUserByUsername(username);
+        User user = userService.getUserByUsername(username);
         Integer userId = user.getUserId();
         LambdaQueryWrapper<UserStats> queryWrapper = Wrappers.lambdaQuery(UserStats.class)
                 .eq(UserStats::getUserId, userId);
@@ -67,7 +68,7 @@ public class UserStatsServiceImpl extends ServiceImpl<UserStatsMapper, UserStats
     @Override
     public GeneralResponse setStudentNumber(String studentNumber,String accessToken) {
         String username = jwtUtil.getUserNameFromToken(accessToken);
-        User user = userMapper.findUserByUsername(username);
+        User user = userService.getUserByUsername(username);
         Integer userId = user.getUserId();
         lambdaUpdate()
                 .eq(UserStats::getUserId, userId)

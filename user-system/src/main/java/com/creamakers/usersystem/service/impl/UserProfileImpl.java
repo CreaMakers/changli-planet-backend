@@ -13,6 +13,7 @@ import com.creamakers.usersystem.mapper.UserProfileMapper;
 import com.creamakers.usersystem.po.User;
 import com.creamakers.usersystem.po.UserProfile;
 import com.creamakers.usersystem.service.UserProfileService;
+import com.creamakers.usersystem.service.UserService;
 import com.creamakers.usersystem.util.JwtUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,13 +25,13 @@ public class UserProfileImpl extends ServiceImpl<UserProfileMapper, UserProfile>
     @Autowired
     private JwtUtil jwtUtil;
     @Autowired
-    private UserMapper userMapper;
+    private UserService userService;
 
     @Override
     public GeneralResponse getProfile(String accessToken) {
         String username = jwtUtil.getUserNameFromToken(accessToken);
 
-        User user = userMapper.findUserByUsername(username);
+        User user = userService.getUserByUsername(username);
 
         LambdaQueryWrapper<UserProfile> lambdaQueryWrapper = Wrappers.lambdaQuery(UserProfile.class)
                 .eq(UserProfile::getUserId, user.getUserId())
@@ -60,7 +61,7 @@ public class UserProfileImpl extends ServiceImpl<UserProfileMapper, UserProfile>
     @Override
     public GeneralResponse updateInfo(UserProfileRequest request,String accessToken) {
         String userNameFromToken = jwtUtil.getUserNameFromToken(accessToken);
-        User user = userMapper.findUserByUsername(userNameFromToken);
+        User user = userService.getUserByUsername(userNameFromToken);
         user.getUserId();
         UserProfile userProfile = new UserProfile();
         BeanUtils.copyProperties(request, userProfile);

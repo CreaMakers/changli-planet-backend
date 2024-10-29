@@ -10,6 +10,9 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Component
 public class TokenInterceptor implements HandlerInterceptor {
 
@@ -24,8 +27,22 @@ public class TokenInterceptor implements HandlerInterceptor {
         this.stringRedisTemplate = stringRedisTemplate;
     }
 
+    // 白名单路径列表
+    private static final List<String> WHITE_LIST = Arrays.asList(
+            "/app/users/session",   // 登录接口
+            "/app/users" // 注册接口
+    );
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        String requestURI = request.getRequestURI();
+
+        // 判断是否在白名单内
+        if (WHITE_LIST.contains(requestURI)) {
+            return true; // 白名单路径直接放行
+        }
+
+
         String accessToken = request.getHeader("token");
 
         // 判断Token时间戳

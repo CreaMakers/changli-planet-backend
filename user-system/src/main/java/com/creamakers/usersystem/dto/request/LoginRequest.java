@@ -25,7 +25,4 @@ public class LoginRequest {
     @NotBlank(message = "密码不能为空")
     @ApiModelProperty(value = "密码", required = true)
     private String password;
-
-    @ApiModelProperty(value = "设备ID")
-    private String deviceId;
 }

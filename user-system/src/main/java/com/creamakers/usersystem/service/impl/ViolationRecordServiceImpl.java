@@ -10,6 +10,7 @@ import com.creamakers.usersystem.mapper.UserMapper;
 import com.creamakers.usersystem.mapper.ViolationRecordMapper;
 import com.creamakers.usersystem.po.User;
 import com.creamakers.usersystem.po.ViolationRecord;
+import com.creamakers.usersystem.service.UserService;
 import com.creamakers.usersystem.service.ViolationRecordService;
 import com.creamakers.usersystem.util.JwtUtil;
 import org.springframework.stereotype.Service;
@@ -19,17 +20,17 @@ import java.util.Objects;
 @Service
 public class ViolationRecordServiceImpl extends ServiceImpl<ViolationRecordMapper, ViolationRecord> implements ViolationRecordService {
     private final JwtUtil jwtUtil;
-    private final UserMapper userMapper;
+    private final UserService userService;
 
-    public ViolationRecordServiceImpl(JwtUtil jwtUtil, UserMapper userMapper) {
+    public ViolationRecordServiceImpl(JwtUtil jwtUtil, UserService userService) {
         this.jwtUtil = jwtUtil;
-        this.userMapper = userMapper;
+        this.userService = userService;
     }
 
     @Override
     public GeneralResponse getViolations(String accessToken) {
         String username = jwtUtil.getUserNameFromToken(accessToken);
-        User user = userMapper.findUserByUsername(username);
+        User user = userService.getUserByUsername(username);
         Integer userId = user.getUserId();
         return getViolationsByUserId(userId);
     }
