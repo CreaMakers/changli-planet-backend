@@ -36,4 +36,5 @@ public class SuccessMessage {
     public static final String OPERATION_SUCCESSFUL = "操作成功";
     public static final String DATA_RETRIEVED = "数据获取成功";
     public static final String NO_VIOLATION_INFO = "没有违规记录哦";
+    public static final String TOKEN_REFRESHED = "Token已经刷新完毕";
 }

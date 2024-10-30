@@ -12,4 +12,5 @@ public interface UserStatsService extends IService<UserStats> {
 
     GeneralResponse setStudentNumber(String studentNumber,String accessToken);
 
+    Boolean initializeUserStats(Integer userId);
 }

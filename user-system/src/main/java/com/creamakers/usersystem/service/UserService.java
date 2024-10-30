@@ -1,6 +1,7 @@
 package com.creamakers.usersystem.service;
 
 
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.creamakers.usersystem.dto.request.*;
 import com.creamakers.usersystem.dto.response.GeneralResponse;
 import com.creamakers.usersystem.po.User;
@@ -14,4 +15,14 @@ public interface UserService {
     User getUserByUsername(String username);
 
     void cacheRefreshToken(String username, String deviceId, String refreshToken);
+
+    void deleteRefreshToken(String username, String deviceId);
+
+    User createUser(RegisterRequest registerRequest, String encodedPassword);
+
+    boolean updateUser(User user);
+
+    int saveUser(User newUser);
+
+    void addAccessToBlacklist(String accessToken);
 }

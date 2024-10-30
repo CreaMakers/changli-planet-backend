@@ -1,7 +1,9 @@
 package com.creamakers.usersystem.util;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
@@ -9,29 +11,47 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class RedisUtil {
 
+    @Value("${REFRESH_TOKEN_PREFIX}")
+    private String refreshTokenPrefix;
+
+    @Value("${BLACKLIST_TOKEN_PREFIX}")
+    private String blackListTokenPrefix;
+
+
+    @Value("${JWT_REFRESH_TOKEN_EXPIRATION_TIME}")
+    private Long jwtRefreshTokenExpirationTime;
+
     @Autowired
-    private RedisTemplate redisTemplate;
+    private StringRedisTemplate redisTemplate;
 
 
 
-    public void setValue(String key, Object value, long timeout, TimeUnit unit) {
-        redisTemplate.opsForValue().set(key, value, timeout, unit);
+    public void storeRefreshToken(String username,String deviceId, String refreshToken) {
+        String key = refreshTokenPrefix + username + "-" + deviceId;
+        redisTemplate.opsForValue().set(key, refreshToken, jwtRefreshTokenExpirationTime, TimeUnit.MILLISECONDS);
     }
 
-    public Object getValue(String key) {
+
+    public String getRefreshToken(String username,String deviceId) {
+        String key = refreshTokenPrefix + username + "-" + deviceId;
         return redisTemplate.opsForValue().get(key);
     }
 
-    public void setHashValue(String key, String hashKey, Object value, long timeout, TimeUnit unit) {
-        redisTemplate.opsForHash().put(key, hashKey, value);
-        redisTemplate.expire(key, timeout, unit);
+
+    public void deleteRefreshToken(String username,String deviceId) {
+        String key = refreshTokenPrefix + username + "-" + deviceId;
+        redisTemplate.delete(key);
     }
 
-    public Object getHashValue(String key, String hashKey) {
-        return redisTemplate.opsForHash().get(key, hashKey);
+
+    public boolean refreshTokenExists(String username,String deviceId) {
+        String key = refreshTokenPrefix + username + "-" + deviceId;
+        return redisTemplate.hasKey(key);
     }
 
-    public void deleteValue(String s) {
+    public void addAccessToBlacklist(String accessToken) {
+        String key = blackListTokenPrefix + accessToken;
+        redisTemplate.opsForSet().add(key, accessToken);
     }
 
 }

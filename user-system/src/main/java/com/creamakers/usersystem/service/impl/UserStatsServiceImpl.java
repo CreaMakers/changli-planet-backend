@@ -1,6 +1,5 @@
 package com.creamakers.usersystem.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -8,7 +7,6 @@ import com.creamakers.usersystem.consts.ErrorMessage;
 import com.creamakers.usersystem.consts.HttpCode;
 import com.creamakers.usersystem.consts.SuccessMessage;
 import com.creamakers.usersystem.dto.response.GeneralResponse;
-import com.creamakers.usersystem.mapper.UserMapper;
 import com.creamakers.usersystem.mapper.UserStatsMapper;
 import com.creamakers.usersystem.po.User;
 import com.creamakers.usersystem.po.UserStats;
@@ -78,5 +76,21 @@ public class UserStatsServiceImpl extends ServiceImpl<UserStatsMapper, UserStats
                 .msg(SuccessMessage.USER_UPDATED)
                 .data(true)
                 .build();
+    }
+
+    @Override
+    public Boolean initializeUserStats(Integer userId) {
+        UserStats userStats = UserStats.builder()
+                .userId(userId)
+                .studentNumber("")
+                .articleCount(0)
+                .commentCount(0)
+                .statementCount(0)
+                .likedCount(0)
+                .coinCount(0)
+                .xp(0)
+                .quizType(0)
+                .build();
+       return save(userStats);
     }
 }

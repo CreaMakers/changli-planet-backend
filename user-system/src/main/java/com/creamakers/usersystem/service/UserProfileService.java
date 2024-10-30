@@ -12,4 +12,5 @@ public interface UserProfileService extends IService<UserProfile> {
 
     GeneralResponse updateInfo(UserProfileRequest request,String accessToken);
 
+    Boolean initializeUserProfile(Integer userId);
 }

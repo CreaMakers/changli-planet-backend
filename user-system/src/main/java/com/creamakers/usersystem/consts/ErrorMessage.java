@@ -53,4 +53,6 @@ public class ErrorMessage {
     public static final String SYSTEM_ERROR = "系统错误";
 
 
+    public static final String INVALID_TOKEN = "提供的令牌无效或已过期";
+
 }

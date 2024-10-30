@@ -1,5 +1,6 @@
 package com.creamakers.usersystem.po;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -14,6 +15,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
+import nonapi.io.github.classgraph.json.Id;
 
 import java.util.Date;
 
@@ -29,8 +31,9 @@ public class User {
 
     @ApiModelProperty(value = "用户ID", example = "1")
     @NotNull(message = "用户ID不能为空")
-    @TableId
+    @TableId(type = IdType.AUTO)
     private Integer userId;
+
 
     @NotBlank(message = "用户名不能为空")
     @Size(min = 3, max = 255, message = "用户名长度应在3到255之间")

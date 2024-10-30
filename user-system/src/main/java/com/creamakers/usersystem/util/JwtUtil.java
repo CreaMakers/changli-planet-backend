@@ -5,7 +5,6 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -14,38 +13,24 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret}")
-    private String secretKey;
+    @Value("${JWT_SECRET}")
+    private String jwtSecret;
 
-    @Value("${jwt.expiration_time}")
-    private long expirationTime;
+    @Value("${JWT_ACCESS_TOKEN_EXPIRATION_TIME}")
+    private Long jwtAccessTokenExpirationTime;
 
-    @Value("${jwt.refresh_token_expiration_time}")
-    private long refreshTokenExpirationTime;
-
-    // 生成简单的访问JWT
-    public String generateToken(String username) {
-        Algorithm algorithm = Algorithm.HMAC256(secretKey);
-        return JWT.create()
-                .withSubject(username)
-                .withIssuedAt(new Date())
-                .withExpiresAt(new Date(System.currentTimeMillis() + expirationTime))
-                .sign(algorithm);
-    }
+    @Value("${JWT_REFRESH_TOKEN_EXPIRATION_TIME}")
+    private Long jwtRefreshTokenExpirationTime;
 
     /**
-     * 生成包含设备ID和时间戳的访问Token
-     * @param username 用户名
-     * @param deviceID 设备ID
-     * @param timeStamp 时间戳
-     * @return 生成的JWT
+     * 生成普通JWT令牌
      */
-    public String generateToken(String username, String deviceID, Long timeStamp) {
+    public String generateAccessToken(String username, String deviceID, Long timeStamp) {
         try {
-            Algorithm algorithm = Algorithm.HMAC256(secretKey);
+            Algorithm algorithm = Algorithm.HMAC256(jwtSecret);
             return JWT.create()
                     .withIssuedAt(new Date())
-                    .withExpiresAt(new Date(System.currentTimeMillis() + expirationTime))
+                    .withExpiresAt(new Date(System.currentTimeMillis() + jwtAccessTokenExpirationTime))
                     .withClaim("username", username)
                     .withClaim("deviceID", deviceID)
                     .withClaim("timeStamp", timeStamp)
@@ -56,33 +41,16 @@ public class JwtUtil {
         }
     }
 
-    /**
-     * 生成包含较长过期时间的Refresh Token
-     * @param username 用户名
-     * @return 生成的Refresh Token
-     */
-    public String generateRefreshToken(String username) {
-        Algorithm algorithm = Algorithm.HMAC256(secretKey);
-        return JWT.create()
-                .withSubject(username)
-                .withIssuedAt(new Date())
-                .withExpiresAt(new Date(System.currentTimeMillis() + refreshTokenExpirationTime))
-                .sign(algorithm);
-    }
 
     /**
-     * 生成包含设备ID和时间戳的Refresh Token
-     * @param username 用户名
-     * @param deviceID 设备ID
-     * @param timeStamp 时间戳
-     * @return 生成的Refresh Token
+     * 生成刷新令牌
      */
     public String generateRefreshToken(String username, String deviceID, Long timeStamp) {
         try {
-            Algorithm algorithm = Algorithm.HMAC256(secretKey);
+            Algorithm algorithm = Algorithm.HMAC256(jwtSecret);
             return JWT.create()
                     .withIssuedAt(new Date())
-                    .withExpiresAt(new Date(System.currentTimeMillis() + refreshTokenExpirationTime))
+                    .withExpiresAt(new Date(System.currentTimeMillis() + jwtRefreshTokenExpirationTime))
                     .withClaim("username", username)
                     .withClaim("deviceID", deviceID)
                     .withClaim("timeStamp", timeStamp)
@@ -94,13 +62,11 @@ public class JwtUtil {
     }
 
     /**
-     * 验证JWT是否有效（只验证签名和过期时间）
-     * @param token JWT令牌
-     * @return true 如果JWT有效，false 否则
+     * 验证JWT令牌的有效性
      */
     public boolean validateToken(String token) {
         try {
-            Algorithm algorithm = Algorithm.HMAC256(secretKey);
+            Algorithm algorithm = Algorithm.HMAC256(jwtSecret);
             JWTVerifier verifier = JWT.require(algorithm).build();
             DecodedJWT decodedJWT = verifier.verify(token);
 
@@ -119,9 +85,7 @@ public class JwtUtil {
     }
 
     /**
-     * 解码JWT而不进行验证
-     * @param token JWT令牌
-     * @return DecodedJWT对象 或 null
+     * 解码JWT令牌但不进行验证
      */
     public DecodedJWT decodeTokenWithoutVerification(String token) {
         try {
@@ -133,9 +97,7 @@ public class JwtUtil {
     }
 
     /**
-     * 从JWT中提取设备ID，无论是否过期
-     * @param token JWT令牌
-     * @return deviceID 或 null
+     * 从JWT令牌中获取设备ID
      */
     public String getDeviceIDFromToken(String token) {
         DecodedJWT jwt = decodeTokenWithoutVerification(token);
@@ -146,9 +108,7 @@ public class JwtUtil {
     }
 
     /**
-     * 从JWT中提取用户名，无论是否过期
-     * @param token JWT令牌
-     * @return username 或 null
+     * 从JWT令牌中获取用户名
      */
     public String getUserNameFromToken(String token) {
         DecodedJWT jwt = decodeTokenWithoutVerification(token);
@@ -159,9 +119,7 @@ public class JwtUtil {
     }
 
     /**
-     * 从JWT中提取时间戳，无论是否过期
-     * @param token JWT令牌
-     * @return 时间戳 或 null
+     * 从JWT令牌中获取时间戳
      */
     public Long getTimeStampFromToken(String token) {
         DecodedJWT jwt = decodeTokenWithoutVerification(token);
@@ -172,22 +130,18 @@ public class JwtUtil {
     }
 
     /**
-     * 检查JWT是否过期
-     * @param decodedJWT 解码后的JWT
-     * @return true 如果已过期，false 否则
+     * 检查JWT令牌是否过期
      */
     private boolean isTokenExpired(DecodedJWT decodedJWT) {
         return decodedJWT.getExpiresAt().before(new Date());
     }
 
     /**
-     * 解码JWT并返回DecodedJWT对象
-     * @param token JWT令牌
-     * @return DecodedJWT对象 或 null
+     * 解码JWT令牌并进行验证
      */
     private DecodedJWT decodeToken(String token) {
         try {
-            Algorithm algorithm = Algorithm.HMAC256(secretKey);
+            Algorithm algorithm = Algorithm.HMAC256(jwtSecret);
             JWTVerifier verifier = JWT.require(algorithm).build();
             return verifier.verify(token);
         } catch (Exception e) {
@@ -195,4 +149,5 @@ public class JwtUtil {
             return null;
         }
     }
+
 }
