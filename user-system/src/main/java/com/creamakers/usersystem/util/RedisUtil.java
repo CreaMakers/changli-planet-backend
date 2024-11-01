@@ -1,11 +1,11 @@
 package com.creamakers.usersystem.util;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -31,6 +31,10 @@ public class RedisUtil {
         redisTemplate.opsForValue().set(key, refreshToken, jwtRefreshTokenExpirationTime, TimeUnit.MILLISECONDS);
     }
 
+    public boolean isRefreshTokenExpired(String username, String deviceId) {
+        String key = refreshTokenPrefix + username + "-" + deviceId;
+        return redisTemplate.opsForValue().get(key) == null;
+    }
 
     public String getRefreshToken(String username,String deviceId) {
         String key = refreshTokenPrefix + username + "-" + deviceId;
@@ -52,6 +56,16 @@ public class RedisUtil {
     public void addAccessToBlacklist(String accessToken) {
         String key = blackListTokenPrefix + accessToken;
         redisTemplate.opsForSet().add(key, accessToken);
+    }
+
+    public String getCachedAccessTokenFromBlack(String accessToken) {
+        String key = blackListTokenPrefix + accessToken;
+
+        Set<String> tokens = redisTemplate.opsForSet().members(key);
+        if (tokens != null && !tokens.isEmpty()) {
+            return tokens.iterator().next();
+        }
+        return null;
     }
 
 }

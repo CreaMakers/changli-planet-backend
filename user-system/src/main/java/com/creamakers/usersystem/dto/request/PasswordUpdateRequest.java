@@ -4,15 +4,17 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * 密码更新请求体
- */
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class PasswordUpdateRequest {
 
+    @JsonProperty("new_password")
     private String newPassword;
 
+    @JsonProperty("confirm_password")
     private String confirmPassword;
 }

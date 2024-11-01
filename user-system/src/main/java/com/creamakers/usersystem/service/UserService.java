@@ -10,13 +10,17 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 
 public interface UserService {
-    int addUser(User newUser);
 
     User getUserByUsername(String username);
 
+
     void cacheRefreshToken(String username, String deviceId, String refreshToken);
 
+    boolean isRefreshTokenExpired(String username, String deviceId);
+
     void deleteRefreshToken(String username, String deviceId);
+
+    String getCachedAccessTokenFromBlack(String accessToken);
 
     User createUser(RegisterRequest registerRequest, String encodedPassword);
 
@@ -25,4 +29,5 @@ public interface UserService {
     int saveUser(User newUser);
 
     void addAccessToBlacklist(String accessToken);
+
 }

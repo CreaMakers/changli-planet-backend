@@ -24,9 +24,16 @@ public class AuthController {
 
     @PostMapping("/session")
     public ResponseEntity<GeneralResponse> login(
-            @RequestBody LoginRequest loginRequest,
-            @RequestHeader("deviceId") String deviceId) {
-        return userAuthService.login(loginRequest, deviceId);
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestBody(required = false) LoginRequest loginRequest,
+            @RequestHeader(value = "deviceId", required = false) String deviceId) {
+
+        String accessToken = null;
+        if (authorization != null && !authorization.isEmpty()) {
+            accessToken = authorization.substring(7);
+        }
+
+        return userAuthService.login(loginRequest, deviceId, accessToken);
     }
 
 
@@ -52,7 +59,8 @@ public class AuthController {
 
 
     @PutMapping("/me/password")
-    public ResponseEntity<GeneralResponse> updatePassword(@RequestBody PasswordUpdateRequest request, @RequestHeader(value = "accessToken") String accessToken) {
+    public ResponseEntity<GeneralResponse> updatePassword(@RequestBody PasswordUpdateRequest request, @RequestHeader(value = "Authorization") String authorization) {
+        String accessToken = authorization.substring(7);
         return userAuthService.updatePassword(request, accessToken);
     }
 

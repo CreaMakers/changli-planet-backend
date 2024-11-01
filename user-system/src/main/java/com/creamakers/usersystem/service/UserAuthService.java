@@ -25,7 +25,7 @@ public interface UserAuthService {
 
     ResponseEntity<GeneralResponse> refreshAuth(String auth);
 
-    ResponseEntity<GeneralResponse> login(LoginRequest loginRequest, String deviceId);
+    ResponseEntity<GeneralResponse> login(LoginRequest loginRequest, String deviceId,String accessToken);
 
     ResponseEntity<GeneralResponse> updatePassword(PasswordUpdateRequest request, String accessToken);
 

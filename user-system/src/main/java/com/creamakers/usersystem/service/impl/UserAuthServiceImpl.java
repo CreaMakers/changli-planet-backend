@@ -51,7 +51,6 @@ public class UserAuthServiceImpl implements UserAuthService {
     private JwtUtil jwtUtil;
 
 
-
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<GeneralResponse> register(RegisterRequest registerRequest) {
@@ -92,48 +91,57 @@ public class UserAuthServiceImpl implements UserAuthService {
         }
     }
 
-
     @Override
-    public ResponseEntity<GeneralResponse> login(LoginRequest loginRequest, String deviceId) {
-        logger.info("Attempting login for user: {}", loginRequest.getUsername());
+    public ResponseEntity<GeneralResponse> login(LoginRequest loginRequest, String deviceId, String accessToken) {
+        // 检查 deviceId 是否存在
         if (deviceId == null || deviceId.isEmpty()) {
-            logger.warn("Login attempt failed: Missing deviceId for user {}", loginRequest.getUsername());
+            logger.warn("Login attempt failed: Missing deviceId for user {}", loginRequest != null ? loginRequest.getUsername() : "Unknown");
             return createResponseEntity(HttpStatus.BAD_REQUEST, HttpCode.BAD_REQUEST, "Missing device ID", null);
         }
 
-        try {
-            // 获取用户信息
-            User foundUser = userService.getUserByUsername(loginRequest.getUsername());
+        // 检查 accessToken 的状态（是否为空或在黑名单中）
+        String cachedAccessToken = accessToken != null ? userService.getCachedAccessTokenFromBlack(accessToken) : null;
 
+        // 如果 accessToken 存在且不在黑名单，则执行无感刷新
+        if (accessToken != null && cachedAccessToken == null) {
+            // 自动刷新访问令牌
+            logger.info("Token is valid, performing seamless refresh for device: {}", deviceId);
+            String username = jwtUtil.getUserNameFromToken(accessToken);
+            return handleLoginWithNewTokens(username, deviceId); // 生成新的 accessToken 和 refreshToken
+        }
+
+        // 如果 accessToken 不存在或在黑名单中，则检查是否提供了登录请求进行密码登录
+        if (loginRequest != null) {
+            logger.info("Access token is missing or invalid; attempting password login for user: {}", loginRequest.getUsername());
+            User foundUser = userService.getUserByUsername(loginRequest.getUsername());
             if (foundUser == null) {
                 logger.warn("Login attempt failed: User not found for username {}", loginRequest.getUsername());
                 return createResponseEntity(HttpStatus.NOT_FOUND, HttpCode.NOT_FOUND, ErrorMessage.USER_NOT_FOUND, null);
             }
 
-            // 验证密码
+            // 检查密码是否匹配
             if (passwordEncoderUtil.matches(loginRequest.getPassword(), foundUser.getPassword())) {
-                long timestamp = System.currentTimeMillis();
-
-                // 生成访问和刷新令牌
-                String accessToken = jwtUtil.generateAccessToken(foundUser.getUsername(), deviceId, timestamp);
-                String refreshToken = jwtUtil.generateRefreshToken(foundUser.getUsername(), deviceId, timestamp);
-
-                // 将刷新令牌存储到缓存
-                userService.cacheRefreshToken(foundUser.getUsername(), deviceId, refreshToken);
-
-                // 将 accessToken 放入 Authorization 头中
-                return createResponseWithAuthHeader(accessToken, HttpStatus.OK, HttpCode.OK, SuccessMessage.USER_LOGGED_IN, null);
+                return handleLoginWithNewTokens(foundUser.getUsername(), deviceId);
             } else {
                 logger.warn("Login attempt failed: Invalid credentials for user {}", loginRequest.getUsername());
                 return createResponseEntity(HttpStatus.UNAUTHORIZED, HttpCode.UNAUTHORIZED, ErrorMessage.INVALID_CREDENTIALS, null);
             }
-        } catch (DataAccessException dataAccessException) {
-            logger.error("Database error during login for user {}: {}", loginRequest.getUsername(), dataAccessException.getMessage(), dataAccessException);
-            return createResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, HttpCode.INTERNAL_SERVER_ERROR, ErrorMessage.DATABASE_ERROR, null);
-        } catch (Exception generalException) {
-            logger.error("Unexpected error during login for user {}: {}", loginRequest.getUsername(), generalException.getMessage(), generalException);
-            return createResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, HttpCode.INTERNAL_SERVER_ERROR, ErrorMessage.OPERATION_FAILED, null);
         }
+
+        // 如果 accessToken 和 loginRequest 都未提供，返回错误
+        logger.warn("Login attempt failed: Both access token and login request are missing.");
+        return createResponseEntity(HttpStatus.BAD_REQUEST, HttpCode.BAD_REQUEST, "Both access token and login request are missing", null);
+    }
+
+
+
+    private ResponseEntity<GeneralResponse> handleLoginWithNewTokens(String username, String deviceId) {
+        long timestamp = System.currentTimeMillis();
+        String newAccessToken = jwtUtil.generateAccessToken(username, deviceId, timestamp);
+        String newRefreshToken = jwtUtil.generateRefreshToken(username, deviceId, timestamp);
+
+        userService.cacheRefreshToken(username, deviceId, newRefreshToken);
+        return createResponseWithAuthHeader(newAccessToken, HttpStatus.OK, HttpCode.OK, SuccessMessage.USER_LOGGED_IN, null);
     }
 
 
@@ -145,7 +153,6 @@ public class UserAuthServiceImpl implements UserAuthService {
         }
 
         String username = jwtUtil.getUserNameFromToken(accessToken);
-        String deviceIDFromToken = jwtUtil.getDeviceIDFromToken(accessToken);
 
         String encryptedPassword = passwordEncoderUtil.encodePassword(request.getNewPassword());
 
@@ -153,23 +160,14 @@ public class UserAuthServiceImpl implements UserAuthService {
         user.setUsername(username);
         user.setPassword(encryptedPassword);
 
-        // 执行更新操作
         boolean isUpdated = userService.updateUser(user);
 
-        // 检查是否更新成功
         if (!isUpdated) {
             return createResponseEntity(HttpStatus.NOT_FOUND, HttpCode.NOT_FOUND, ErrorMessage.USER_NOT_FOUND, false);
         }
 
-
-        userService.cacheRefreshToken(user.getUsername(), deviceIDFromToken, accessToken);
-
-        PasswordUpdateResp passwordUpdateResp = new PasswordUpdateResp();
-        passwordUpdateResp.setAccessToken(jwtUtil.generateAccessToken(username, deviceIDFromToken, System.currentTimeMillis()));
-
-        return createResponseEntity(HttpStatus.OK, HttpCode.OK, SuccessMessage.USER_UPDATED, passwordUpdateResp);
+        return createResponseEntity(HttpStatus.OK, HttpCode.OK, SuccessMessage.USER_UPDATED, null);
     }
-
 
     @Override
     public ResponseEntity<GeneralResponse> checkUsernameAvailability(UsernameCheckRequest usernameCheckRequest) {
@@ -185,7 +183,7 @@ public class UserAuthServiceImpl implements UserAuthService {
 
             logger.info("Username {} is available", usernameCheckRequest.getUsername());
 
-            return createResponseEntity(HttpStatus.OK, HttpCode.OK, SuccessMessage.OPERATION_SUCCESSFUL, null);
+            return createResponseEntity(HttpStatus.OK, HttpCode.OK, SuccessMessage.USER_NOT_EXITS, null);
         } catch (DataAccessException dae) {
             logger.error("Database error during username availability check: {}", usernameCheckRequest.getUsername(), dae);
 
@@ -194,56 +192,47 @@ public class UserAuthServiceImpl implements UserAuthService {
 
     }
 
-
     @Override
     public ResponseEntity<GeneralResponse> quit(String accessToken, String deviceId) {
-        logger.info("Quit user: {}", accessToken);
-
         String username = jwtUtil.getUserNameFromToken(accessToken);
+
         if (username == null) {
             return createResponseEntity(HttpStatus.UNAUTHORIZED, HttpCode.UNAUTHORIZED, ErrorMessage.UNAUTHORIZED_ACCESS, null);
         }
+        logger.info("Quit user: {}", username);
+
 
         userService.deleteRefreshToken(username, deviceId);
         userService.addAccessToBlacklist(accessToken);
         return createResponseEntity(HttpStatus.OK, HttpCode.OK, SuccessMessage.USER_LOGGED_OUT, null);
     }
 
-
     @Override
     public ResponseEntity<GeneralResponse> refreshAuth(String auth) {
         try {
-            // 获取 accessToken
             String accessToken = auth;
-
-            // 验证 accessToken 的有效性
             if (!jwtUtil.validateToken(accessToken)) {
                 return createResponseEntity(HttpStatus.UNAUTHORIZED, HttpCode.UNAUTHORIZED, ErrorMessage.INVALID_TOKEN, null);
             }
 
-            // 从 accessToken 中提取用户名和设备ID
             String username = jwtUtil.getUserNameFromToken(accessToken);
             String deviceIDFromToken = jwtUtil.getDeviceIDFromToken(accessToken);
 
-            // 获取用户
-            User user = userService.getUserByUsername(username);
-            if (user == null) {
-                return createResponseEntity(HttpStatus.NOT_FOUND, HttpCode.NOT_FOUND, ErrorMessage.USER_NOT_FOUND, null);
+            if (userService.isRefreshTokenExpired(username, deviceIDFromToken)) {
+                return createResponseEntity(HttpStatus.UNAUTHORIZED, HttpCode.UNAUTHORIZED, ErrorMessage.TOKEN_EXPIRED, null);
             }
 
-            // 将 accessToken 缓存
-            userService.cacheRefreshToken(user.getUsername(), deviceIDFromToken, accessToken);
+            long timestamp = System.currentTimeMillis();
+            String newAccessToken = jwtUtil.generateAccessToken(username, deviceIDFromToken, timestamp);
+            String newRefreshToken = jwtUtil.generateRefreshToken(username, deviceIDFromToken, timestamp);
+            userService.cacheRefreshToken(username, deviceIDFromToken, newRefreshToken);
 
-
-
-            // 返回成功响应
-            return createResponseWithAuthHeader(accessToken,HttpStatus.OK, HttpCode.OK, SuccessMessage.TOKEN_REFRESHED, null);
+            return createResponseWithAuthHeader(newAccessToken, HttpStatus.OK, HttpCode.OK, SuccessMessage.TOKEN_REFRESHED, null);
         } catch (Exception e) {
             logger.error("Error refreshing authentication token: {}", e.getMessage(), e);
             return createResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, HttpCode.INTERNAL_SERVER_ERROR, ErrorMessage.OPERATION_FAILED, null);
         }
     }
-
 
     @Override
     public ResponseEntity<GeneralResponse> createResponseEntity(HttpStatus status, String code, String msg, Object data) {

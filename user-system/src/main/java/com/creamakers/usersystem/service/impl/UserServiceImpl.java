@@ -19,7 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Service
-public class UserServiceImpl extends ServiceImpl<UserMapper,User> implements UserService {
+public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Autowired
@@ -27,6 +27,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,User> implements Use
 
     @Autowired
     private UserMapper userMapper;
+
 
 
     public User getUserByUsername(String username) {
@@ -42,6 +43,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,User> implements Use
         }
     }
 
+
     public int addUser(User newUser) {
         logger.info("Inserting new user: {}", newUser);
         try {
@@ -53,20 +55,35 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,User> implements Use
     }
 
 
+    @Override
     public void cacheRefreshToken(String username, String deviceId, String refreshToken) {
         logger.info("Caching refresh token for user {}", username);
         redisUtil.storeRefreshToken(username, deviceId, refreshToken);
     }
 
+
+    @Override
+    public boolean isRefreshTokenExpired(String username, String deviceId){
+        logger.info("Checking if refresh token is expired for user {}", username);
+        return redisUtil.isRefreshTokenExpired(username, deviceId);
+    }
+
+
+    @Override
     public void deleteRefreshToken(String username, String deviceId) {
         logger.info("Deleting refresh token for user {}", username);
-        redisUtil.deleteRefreshToken(username,deviceId);
+        redisUtil.deleteRefreshToken(username, deviceId);
     }
 
     @Override
     public void addAccessToBlacklist(String accessToken) {
-      logger.info("Adding access to blacklist for user {}", accessToken);
-      redisUtil.addAccessToBlacklist(accessToken);
+        logger.info("Adding access to blacklist for user {}", accessToken);
+        redisUtil.addAccessToBlacklist(accessToken);
+    }
+
+    @Override
+    public String getCachedAccessTokenFromBlack(String accessToken) {
+        return redisUtil.getCachedAccessTokenFromBlack(accessToken);
     }
 
 
@@ -84,9 +101,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,User> implements Use
 
     @Override
     public boolean updateUser(User user) {
+        // 创建更新条件
         LambdaUpdateWrapper<User> updateWrapper = Wrappers.lambdaUpdate(User.class)
                 .eq(User::getUsername, user.getUsername())
                 .set(User::getPassword, user.getPassword());
+
+        // 执行更新
         return userMapper.update(null, updateWrapper) > 0;
     }
 
@@ -94,7 +114,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper,User> implements Use
     public int saveUser(User User) {
         return userMapper.insert(User);
     }
-
 
 
 }
