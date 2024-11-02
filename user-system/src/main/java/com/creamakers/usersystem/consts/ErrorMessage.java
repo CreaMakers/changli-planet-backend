@@ -49,7 +49,7 @@ public class ErrorMessage {
     // 通用错误
     public static final String UNKNOWN_ERROR = "未知错误，请稍后再试";
     public static final String OPERATION_FAILED = "操作失败，请重试";
-    public static final String UNAUTHORIZED_ACCESS = "未经授权的访问";
+    public static final String UNAUTHORIZED_ACCESS = "Unauthorized access";
     public static final String SYSTEM_ERROR = "系统错误";
 
 
