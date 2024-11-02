@@ -3,14 +3,18 @@ package com.creamakers.usersystem.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.creamakers.usersystem.dto.response.GeneralResponse;
 import com.creamakers.usersystem.po.UserStats;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 public interface UserStatsService extends IService<UserStats> {
 
-    GeneralResponse getStats(String accessToken);
+    ResponseEntity<GeneralResponse> getStats(String accessToken);
 
-    GeneralResponse getStatsById(String userId);
+    ResponseEntity<GeneralResponse> getStatsById(String userId);
 
-    GeneralResponse setStudentNumber(String studentNumber,String accessToken);
+    ResponseEntity<GeneralResponse> setStudentNumber(String studentNumber,String accessToken);
 
     Boolean initializeUserStats(Integer userId);
+
+    ResponseEntity<GeneralResponse> createResponseEntity(HttpStatus status, String code, String msg, Object data);
 }
