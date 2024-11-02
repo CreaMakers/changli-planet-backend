@@ -1,13 +1,8 @@
 package com.creamakers.usersystem.service;
 
 
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.creamakers.usersystem.dto.request.*;
-import com.creamakers.usersystem.dto.response.GeneralResponse;
 import com.creamakers.usersystem.po.User;
-import com.creamakers.usersystem.po.UserProfile;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.ResponseEntity;
 
 public interface UserService {
 
@@ -30,4 +25,5 @@ public interface UserService {
 
     void addAccessToBlacklist(String accessToken);
 
+    String getFreshTokenByUsernameAndDevicedId(String username, String deviceId);
 }

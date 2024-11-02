@@ -29,7 +29,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private UserMapper userMapper;
 
 
-
     public User getUserByUsername(String username) {
         logger.info("Fetching user by username: {}", username);
         try {
@@ -63,7 +62,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
 
     @Override
-    public boolean isRefreshTokenExpired(String username, String deviceId){
+    public boolean isRefreshTokenExpired(String username, String deviceId) {
         logger.info("Checking if refresh token is expired for user {}", username);
         return redisUtil.isRefreshTokenExpired(username, deviceId);
     }
@@ -79,6 +78,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public void addAccessToBlacklist(String accessToken) {
         logger.info("Adding access to blacklist for user {}", accessToken);
         redisUtil.addAccessToBlacklist(accessToken);
+    }
+
+    @Override
+    public String getFreshTokenByUsernameAndDevicedId(String username, String deviceId) {
+        logger.info("Fetching fresh token for user {} and deviced id {}", username, deviceId);
+        return redisUtil.getFreshTokenByUsernameAndDeviceId(username, deviceId);
     }
 
     @Override

@@ -104,10 +104,23 @@ public class UserAuthServiceImpl implements UserAuthService {
 
         // 如果 accessToken 存在且不在黑名单，则执行无感刷新
         if (accessToken != null && cachedAccessToken == null) {
-            // 自动刷新访问令牌
-            logger.info("Token is valid, performing seamless refresh for device: {}", deviceId);
+            // 获取时间戳
+            Long timeStampFromToken = jwtUtil.getTimeStampFromToken(accessToken);
             String username = jwtUtil.getUserNameFromToken(accessToken);
-            return handleLoginWithNewTokens(username, deviceId); // 生成新的 accessToken 和 refreshToken
+            String deviceIdFromToken = jwtUtil.getDeviceIDFromToken(accessToken);
+
+            // 确保 deviceId 和 username 一致
+            if (deviceIdFromToken.equals(deviceId)) {
+                // 获取与 accessToken 相关联的 refreshToken
+                String refreshToken = userService.getFreshTokenByUsernameAndDevicedId(username,deviceId);
+
+                // 检查 refreshToken 是否存在并且时间戳一致
+                if (refreshToken != null && !userService.isRefreshTokenExpired(username, deviceId) &&
+                        timeStampFromToken != null && jwtUtil.getTimeStampFromToken(refreshToken).equals(timeStampFromToken)) {
+                    logger.info("Token is valid, performing seamless refresh for device: {}", deviceId);
+                    return handleLoginWithNewTokens(username, deviceId); // 生成新的 accessToken 和 refreshToken
+                }
+            }
         }
 
         // 如果 accessToken 不存在或在黑名单中，则检查是否提供了登录请求进行密码登录
