@@ -4,7 +4,7 @@ planet:
     port: 3306
     db: changli-planet # database名
     username: root
-    password: 1234 #密码
+    password: CreaMaker1@
   redis:
     host: localhost
     port: 6379

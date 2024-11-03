@@ -11,9 +11,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 @MapperScan("com.creamakers.usersystem.mapper")
-
-
-
 public class UserSystemApplication {
 
 
