@@ -124,9 +124,9 @@ public class ToolService {
         String msg =  chargeInfo.getMsg();
         // 构建 GeneralResponse 响应对象
         GeneralResponse<Void> response = GeneralResponse.<Void>builder()
-                .code(HttpCode.OK) // 设置状态码
-                .msg(msg)    // 设置消息
-                .data(null)  // 设置数据为 null，因为不需要返回具体数据
+                .code(HttpCode.OK)
+                .msg(msg)
+                .data(null)
                 .build();
 
         return ResponseEntity.ok(response);

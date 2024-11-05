@@ -20,7 +20,7 @@ public class GetCourseInfo {
     private static final String GET_CODE_URL = "http://xk.csust.edu.cn/Logon.do?method=logon&flag=sess";
     // 教务系统课表URL
     private final String url = "http://xk.csust.edu.cn/jsxsd/xskb/xskb_list.do";
-    private  String cookie;
+    private String cookie;
     private Connection con;
     private Connection.Response res;
 
@@ -48,33 +48,33 @@ public class GetCourseInfo {
                 .followRedirects(false)
                 .method(Connection.Method.GET)
                 .header("Content-Type", "application/x-www-form-urlencoded")
-                .header("Cookie", cookie)   // 使用传入的String类型的Cookie
-                .data("zc", week)   // 周次
-                .data("xnxq01id", termId);  // 学年学期ID
+                .header("Cookie", cookie)
+                .data("zc", week)
+                .data("xnxq01id", termId);
 
-        // 发送请求并获取响应
+
         res = con.execute();
-        // 解析HTML
+
         Document doc = Jsoup.parse(res.body());
 //        System.out.println(doc);
-        Elements courseDivs = doc.select("div.kbcontent");// 选择class为kbcontent的<div>元素
+        Elements courseDivs = doc.select("div.kbcontent");
 
 
-        // 检查是否存在数据
-        Element emptyDataElement = doc.selectFirst("td[colspan=10]");  // 查找显示“未查询到数据”的 <td> 元素
+        Element emptyDataElement = doc.selectFirst("td[colspan=10]");
         if (emptyDataElement != null && emptyDataElement.text().contains("未查询到数据")) {
-            // 如果未找到数据，返回空列表或抛出异常
+
             System.out.println("未查询到成绩数据");
 
             return new LinkedList<CourseInfo>();
         }
 
-        // 存储课程信息
+
         List<CourseInfo> courseList = new ArrayList<>();
 
-// 遍历所有找到的课程div元素
+
         for (Element div : courseDivs) {
-            String courseName = div.ownText().trim();  // 提取课程名称
+            // 提取课程名称
+            String courseName = div.ownText().trim();
 
             String teacher = null;
             String weeks = null;
@@ -82,37 +82,36 @@ public class GetCourseInfo {
             String weekday = null;
 
             // 获取div的id并解析出星期和第几节课
-            String divId = div.attr("id");  // 获取div的id
+            String divId = div.attr("id");
             if (divId != null && !divId.isEmpty()) {
                 String[] idParts = divId.split("-");
                 if (idParts.length >= 2) {
-                    weekday = idParts[idParts.length - 2];  // 倒数第二位表示星期
+                    // 倒数第二位表示星期
+                    weekday = idParts[idParts.length - 2];
                 }
             }
 
             // 查找课程的周次、教室、老师等信息
-            Elements fonts = div.select("font");  // 获取所有<font>标签
+            Elements fonts = div.select("font");
             for (Element font : fonts) {
                 String title = font.attr("title");
                 String text = font.text();
 
-                if (title.equals("老师")) {
-                    teacher = text;  // 老师信息
-                } else if (title.equals("周次(节次)")) {
-                    weeks = text;  // 周次节次信息
-                } else if (title.equals("教室")) {
-                    classroom = text;  // 教室信息
+                if ("老师".equals(title)) {
+                    teacher = text;
+                } else if ("周次(节次)".equals(title)) {
+                    weeks = text;
+                } else if ("教室".equals(title)) {
+                    classroom = text;
                 }
             }
 
-            // 如果课程名称不为空，则创建courseInfo对象
+
             if (!courseName.isEmpty()) {
                 CourseInfo course = new CourseInfo(courseName, teacher, weeks, classroom, weekday);
-                courseList.add(course);  // 将课程添加到列表中
+                courseList.add(course);
             }
         }
-
-
 
 
         return courseList;

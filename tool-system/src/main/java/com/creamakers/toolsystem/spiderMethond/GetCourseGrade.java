@@ -17,8 +17,8 @@ public class GetCourseGrade {
     //从教务系统获取code的url
     private static final String GET_CODE_URL = "http://xk.csust.edu.cn/Logon.do?method=logon&flag=sess";
     // 成绩查询的URL
-    private final String url = "http://xk.csust.edu.cn/jsxsd/kscj/cjcx_list";  // 正确的URL地址
-    private final String cookie;  // Cookie 字符串
+    private final String url = "http://xk.csust.edu.cn/jsxsd/kscj/cjcx_list";
+    private final String cookie;
 
     // 构造函数，接受 Cookie 作为 String 类型
     public GetCourseGrade(String cookie) {
@@ -42,43 +42,42 @@ public class GetCourseGrade {
         // 使用 Jsoup 连接请求，设置 Cookie 和查询参数
         Connection.Response res = Jsoup.connect(url)
                 .followRedirects(false)
-                .method(Connection.Method.POST)  // 使用POST方法
+                .method(Connection.Method.POST)
                 .header("Content-Type", "application/x-www-form-urlencoded")
-                .header("Cookie", cookie)   // 使用传入的 String 类型的 Cookie
+                .header("Cookie", cookie)
                 // 表单数据提交
-                .data("kksj", term)  // 传递学期参数
-                .data("kcxz", "")  // 课程性质为空
-                .data("kcmc", "")  // 课程名称为空
-                .data("xsfs", "all")  // 修读方式为 all
-                .data("fxkc", "2")  // 课程类型
+                .data("kksj", term)
+                .data("kcxz", "")
+                .data("kcmc", "")
+                .data("xsfs", "all")
+                .data("fxkc", "2")
                 .execute();
 
-        // 检查响应状态码是否为 200
+
         if (res.statusCode() != 200) {
             throw new IOException("获取成绩数据失败，HTTP 状态码: " + res.statusCode());
         }
 
-        // 解析 HTML 响应
+
         Document doc = Jsoup.parse(res.body());
 
-        Elements rows = doc.select("#dataList > tbody > tr");  // 选择成绩表格中的每一行
+        Elements rows = doc.select("#dataList > tbody > tr");
 
-        // 存储成绩信息
+
         List<CourseGrade> gradeList = new ArrayList<>();
 
-        // 遍历所有行
+
         for (Element row : rows) {
-            Elements cols = row.select("td");  // 选择行中的所有单元格
+            Elements cols = row.select("td");
 
             if (cols.size() < 13) {
-                // 如果某行的数据不完整，跳过该行
                 continue;
             }
 
-            // 提取成绩字段，有些可能是链接
+
             String score = cols.get(5).select("a").isEmpty() ? cols.get(5).text() : cols.get(5).select("a").text();
 
-            // 解析一行的数据并绑定到 CourseGrade
+
             CourseGrade grade = new CourseGrade(
                     cols.get(0).text(),  // 序号
                     cols.get(1).text(),  // 开课学期

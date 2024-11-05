@@ -15,7 +15,12 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @ApiModel(description = "电量请求实体类")
 public class ElectricityChargeRequest {
-    private String address;  // 校区地址，如“金盆岭校区”
-    private String buildId;  // 楼栋名称，如“西苑9栋”
-    private String nod;      // 宿舍号，如“521”
+    // 校区地址，如“金盆岭校区”
+    private String address;
+
+    // 楼栋名称，如“西苑9栋”
+    private String buildId;
+
+    // 宿舍号，如“521”
+    private String nod;
 }
