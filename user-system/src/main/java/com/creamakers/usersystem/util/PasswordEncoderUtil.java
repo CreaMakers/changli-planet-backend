@@ -14,7 +14,7 @@ public class PasswordEncoderUtil {
      * 加密原始密码
      */
     public String encodePassword(String rawPassword) {
-        return passwordEncoder.encode(rawPassword); // 调用一次加密方法
+        return passwordEncoder.encode(rawPassword);
     }
 
     /**

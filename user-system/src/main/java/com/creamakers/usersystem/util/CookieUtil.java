@@ -15,9 +15,9 @@ public class CookieUtil {
 
     public Cookie createAccessTokenCookie(String accessToken) {
         Cookie cookie = new Cookie("accessToken", accessToken);
-        cookie.setPath("/"); // 设置 cookie 的路径
-        cookie.setMaxAge(jwtAccessTokenExpirationTime / 1000); // 设置 cookie 过期时间，单位为秒
-        cookie.setHttpOnly(true); // 设置 HttpOnly
+        cookie.setPath("/");
+        cookie.setMaxAge(jwtAccessTokenExpirationTime / 1000);
+        cookie.setHttpOnly(true);
         return cookie;
     }
 

@@ -5,6 +5,8 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +15,7 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
+    private static final Logger log = LoggerFactory.getLogger(JwtUtil.class);
     @Value("${JWT_SECRET}")
     private String jwtSecret;
 
@@ -64,14 +67,14 @@ public class JwtUtil {
 
             // 检查是否过期
             if (isTokenExpired(decodedJWT)) {
-                System.out.println("JWT已过期");
+                log.info("Token is expired");
                 return false;
             }
 
             return true;
         } catch (JWTVerificationException e) {
             e.printStackTrace();
-            System.out.println("JWT验证失败");
+            log.info("Token is not valid");
             return false;
         }
     }

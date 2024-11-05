@@ -28,11 +28,11 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/swagger-ui.html","/app/users/register", "/app/users/login", "/app/users/**").permitAll()  // 允许注册和登录端点
-                        .anyRequest().authenticated()  // 其他请求需要认证
+                        .anyRequest().authenticated()
                 )
-                .csrf(csrf -> csrf.disable())  // 禁用 CSRF，适用于无状态 API
-                .formLogin(withDefaults())  // 启用表单登录
-                .httpBasic(withDefaults()); // 启用 HTTP Basic 认证
+                .csrf(csrf -> csrf.disable())
+                .formLogin(withDefaults())
+                .httpBasic(withDefaults());
 
         return http.build();
     }

@@ -64,12 +64,12 @@ public class TokenInterceptor implements HandlerInterceptor {
             return true;
         } catch (JWTVerificationException e) {
             writeResponse(response, createResponseEntity(HttpStatus.UNAUTHORIZED, HttpCode.UNAUTHORIZED, ErrorMessage.UNAUTHORIZED_ACCESS, null));
-            return false; // 返回未授权状态
+            return false;
         }
     }
 
     private void writeResponse(HttpServletResponse response, ResponseEntity<GeneralResponse> responseEntity) throws Exception {
-        response.setStatus(responseEntity.getStatusCodeValue());
+        response.setStatus(responseEntity.getStatusCode().value());
         response.setContentType("application/json");
         response.getWriter().write(new ObjectMapper().writeValueAsString(responseEntity.getBody()));
     }

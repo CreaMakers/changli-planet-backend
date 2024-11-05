@@ -42,9 +42,7 @@ public class UserProfileImpl extends ServiceImpl<UserProfileMapper, UserProfile>
         return createResponseEntity(HttpStatus.OK,HttpCode.OK,SuccessMessage.DATA_RETRIEVED,userProfile);
     }
 
-    /**
-     * 根据ID来获取用户展示信息
-     */
+    @Override
     public  ResponseEntity<GeneralResponse> getProfileByID(String userID) {
         LambdaQueryWrapper<UserProfile> queryWrapper = Wrappers.lambdaQuery(UserProfile.class)
                 .eq(UserProfile::getUserId, userID);

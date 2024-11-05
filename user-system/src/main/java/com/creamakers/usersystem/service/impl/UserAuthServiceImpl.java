@@ -118,7 +118,7 @@ public class UserAuthServiceImpl implements UserAuthService {
                 if (refreshToken != null && !userService.isRefreshTokenExpired(username, deviceId) &&
                         timeStampFromToken != null && jwtUtil.getTimeStampFromToken(refreshToken).equals(timeStampFromToken)) {
                     logger.info("Token is valid, performing seamless refresh for device: {}", deviceId);
-                    return handleLoginWithNewTokens(username, deviceId); // 生成新的 accessToken 和 refreshToken
+                    return handleLoginWithNewTokens(username, deviceId);
                 }
             }
         }

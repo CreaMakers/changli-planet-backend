@@ -29,16 +29,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private UserMapper userMapper;
 
 
+    @Override
     public User getUserByUsername(String username) {
         logger.info("Fetching user by username: {}", username);
         try {
             LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(User::getUsername, username); // 假设 User 类中有 getUsername 方法
+            queryWrapper.eq(User::getUsername, username);
 
-            return userMapper.selectOne(queryWrapper); // 返回符合条件的单个用户
+            return userMapper.selectOne(queryWrapper);
         } catch (DataAccessException dae) {
             logger.error("Database error fetching user: {}", username, dae);
-            throw new MyBatisSystemException(dae); // 转换为 MyBatis 特定异常
+            throw new MyBatisSystemException(dae);
         }
     }
 
@@ -46,10 +47,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public int addUser(User newUser) {
         logger.info("Inserting new user: {}", newUser);
         try {
-            return userMapper.insert(newUser); // 使用 MyBatis Plus 的 insert 方法
+            return userMapper.insert(newUser);
         } catch (DataAccessException dae) {
             logger.error("Database error inserting user: {}", newUser.getUsername(), dae);
-            throw new MyBatisSystemException(dae); // 转换为 MyBatis 特定异常
+            throw new MyBatisSystemException(dae);
         }
     }
 
@@ -97,9 +98,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return User.builder()
                 .username(registerRequest.getUsername())
                 .password(encodedPassword)
-                .isAdmin((byte) 0) // 默认不是管理员
-                .isDeleted((byte) 0) // 默认未删除
-                .isBanned((byte) 0) // 默认未禁止
+                .isAdmin((byte) 0)
+                .isDeleted((byte) 0)
+                .isBanned((byte) 0)
                 .build();
     }
 
