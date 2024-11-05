@@ -28,8 +28,4 @@ public interface UserAuthService {
     ResponseEntity<GeneralResponse> login(LoginRequest loginRequest, String deviceId,String accessToken);
 
     ResponseEntity<GeneralResponse> updatePassword(PasswordUpdateRequest request, String accessToken);
-
-    ResponseEntity<GeneralResponse> createResponseEntity(HttpStatus status, String code, String msg, Object data);
-
-    ResponseEntity<GeneralResponse> createResponseWithAuthHeader(String accessToken, HttpStatus httpStatus, String ok, String userLoggedIn, Object o);
 }

@@ -17,7 +17,9 @@ public interface UserService {
 
     String getCachedAccessTokenFromBlack(String accessToken);
 
-    User createUser(RegisterRequest registerRequest, String encodedPassword);
+    int addUser(User newUser);
+
+    User createUserAndInsert(RegisterRequest registerRequest, String encodedPassword);
 
     boolean updateUser(User user);
 
