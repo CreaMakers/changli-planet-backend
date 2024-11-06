@@ -11,14 +11,16 @@ public class InterceptorConfig implements WebMvcConfigurer {
     @Autowired
     private TokenInterceptor tokenInterceptor;
 
+    private static final String[] EXCLUDE_PATHS = {
+            "/app/users/session",
+            "/app/users",
+            "/app/users/availability",
+    };
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(tokenInterceptor)
-                .excludePathPatterns("/app/users/session",
-                        "/app/users/register",
-                        "/app/users/*/profile",
-                        "/app/users/*/stats",
-                        "/app/users/*/violations")
+                .excludePathPatterns(EXCLUDE_PATHS)
                 .addPathPatterns("/**")
                 .order(10);
     }

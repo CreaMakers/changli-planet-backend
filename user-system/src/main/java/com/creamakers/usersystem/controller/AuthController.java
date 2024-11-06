@@ -24,33 +24,43 @@ public class AuthController {
 
     @PostMapping("/session")
     public ResponseEntity<GeneralResponse> login(
-            @RequestBody LoginRequest loginRequest,
-            @RequestHeader("deviceId") String deviceId,
-            HttpServletResponse response) {
-        return userAuthService.login(loginRequest, deviceId, response); // 将 deviceId 和 response 传递给服务层
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestBody(required = false) LoginRequest loginRequest,
+            @RequestHeader(value = "deviceId", required = false) String deviceId) {
+
+        String accessToken = null;
+        if (authorization != null && !authorization.isEmpty()) {
+            accessToken = authorization.substring(7);
+        }
+
+        return userAuthService.login(loginRequest, deviceId, accessToken);
     }
 
 
     @DeleteMapping("/session")
-    public GeneralResponse quit(@RequestHeader(value = "Authorization") String accessToken) {
-        return userAuthService.quit(accessToken);
+    public ResponseEntity<GeneralResponse> quit(@RequestHeader(value = "Authorization") String authorization,
+                                                @RequestHeader("deviceId") String deviceId) {
+        String accessToken = authorization.substring(7);
+        return userAuthService.quit(accessToken,deviceId);
     }
 
 
     @PutMapping("/me/token")
-    public GeneralResponse refreshAuth(@RequestBody AccessTokenRequest accessTokenRequest) {
-        return userAuthService.refreshAuth(accessTokenRequest.getAccessToken());
+    public ResponseEntity<GeneralResponse> refreshAuth(@RequestHeader(value = "Authorization") String authorization) {
+        String accessToken = authorization.substring(7);
+        return userAuthService.refreshAuth(accessToken);
     }
 
 
     @GetMapping("/availability")
-    public GeneralResponse usernameCheck(@ModelAttribute UsernameCheckRequest usernameCheckRequest) {
+    public ResponseEntity<GeneralResponse> usernameCheck(@RequestBody UsernameCheckRequest usernameCheckRequest) {
         return userAuthService.checkUsernameAvailability(usernameCheckRequest);
     }
 
+
     @PutMapping("/me/password")
-    public GeneralResponse updatePassword(@RequestBody PasswordUpdateRequest request, HttpServletRequest httpServletRequest) {
-        String accessToken = httpServletRequest.getHeader("token");
+    public ResponseEntity<GeneralResponse> updatePassword(@RequestBody PasswordUpdateRequest request, @RequestHeader(value = "Authorization") String authorization) {
+        String accessToken = authorization.substring(7);
         return userAuthService.updatePassword(request, accessToken);
     }
 

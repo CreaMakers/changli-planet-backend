@@ -6,6 +6,8 @@ import com.creamakers.usersystem.dto.request.RegisterRequest;
 import com.creamakers.usersystem.dto.request.UsernameCheckRequest;
 import com.creamakers.usersystem.dto.response.GeneralResponse;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 /**
@@ -15,16 +17,15 @@ import org.springframework.http.ResponseEntity;
  */
 public interface UserAuthService {
 
-    ResponseEntity<GeneralResponse> login(LoginRequest loginRequest, String deviceId, HttpServletResponse response);
-
     ResponseEntity<GeneralResponse> register(RegisterRequest registerRequest);
 
-    GeneralResponse checkUsernameAvailability(UsernameCheckRequest usernameCheckRequest);
+    ResponseEntity<GeneralResponse> checkUsernameAvailability(UsernameCheckRequest usernameCheckRequest);
 
-    GeneralResponse quit(String accessToken);
+    ResponseEntity<GeneralResponse> quit(String accessToken, String deviceId);
 
-    GeneralResponse refreshAuth(String accessToken);
+    ResponseEntity<GeneralResponse> refreshAuth(String auth);
 
-    GeneralResponse updatePassword(PasswordUpdateRequest request, String accessToken);
+    ResponseEntity<GeneralResponse> login(LoginRequest loginRequest, String deviceId,String accessToken);
 
+    ResponseEntity<GeneralResponse> updatePassword(PasswordUpdateRequest request, String accessToken);
 }

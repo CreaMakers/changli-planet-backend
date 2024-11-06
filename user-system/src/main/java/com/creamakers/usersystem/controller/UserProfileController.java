@@ -6,6 +6,7 @@ import com.creamakers.usersystem.dto.response.GeneralResponse;
 import com.creamakers.usersystem.service.UserProfileService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,20 +16,21 @@ public class UserProfileController {
     private UserProfileService userProfileService;
 
     @GetMapping("/me/profile")
-    public GeneralResponse getProfile(HttpServletRequest request) {
-        String accessToken = request.getHeader("token");
+    public ResponseEntity<GeneralResponse> getProfile(@RequestHeader(value = "Authorization") String authorization) {
+        String accessToken = authorization.substring(7);
         return userProfileService.getProfile(accessToken);
     }
 
 
     @GetMapping("/{user_id}/profile")
-    public GeneralResponse getProfileByUserId(@PathVariable("user_id") String userId) {
+    public ResponseEntity<GeneralResponse> getProfileByUserId(@PathVariable("user_id") String userId) {
         return userProfileService.getProfileByID(userId);
     }
 
     @PutMapping("/me/profile")
-    public GeneralResponse updateProfile(@RequestBody UserProfileRequest request, HttpServletRequest httpServletRequest) {
-        String accessToken = httpServletRequest.getHeader("token");
+    public ResponseEntity<GeneralResponse> updateProfile(@RequestBody UserProfileRequest request,
+                                                         @RequestHeader(value = "Authorization") String authorization) {
+        String accessToken = authorization.substring(7);
         return userProfileService.updateInfo(request, accessToken);
     }
 
