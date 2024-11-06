@@ -15,6 +15,4 @@ public interface UserProfileService extends IService<UserProfile> {
     ResponseEntity<GeneralResponse> updateInfo(UserProfileRequest request,String accessToken);
 
     Boolean initializeUserProfile(Integer userId);
-
-    ResponseEntity<GeneralResponse> createResponseEntity(HttpStatus status, String code, String msg, Object data);
 }

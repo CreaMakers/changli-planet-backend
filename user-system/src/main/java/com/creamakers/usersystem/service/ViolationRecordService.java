@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 
 public interface ViolationRecordService extends IService<ViolationRecord> {
 
-    ResponseEntity<GeneralResponse>  getViolations(String accessToken);
+    ResponseEntity<GeneralResponse>   getViolations(String accessToken);
 
     ResponseEntity<GeneralResponse> getViolationsByUserId(Integer userId);
 
