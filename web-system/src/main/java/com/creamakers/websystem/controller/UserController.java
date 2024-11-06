@@ -6,6 +6,7 @@ import com.creamakers.websystem.domain.vo.request.PasswordChangeReq;
 import com.creamakers.websystem.domain.vo.request.UserAllInfoReq;
 import com.creamakers.websystem.domain.vo.request.UserInfoReq;
 import com.creamakers.websystem.domain.vo.response.LoginTokenResp;
+import com.creamakers.websystem.domain.vo.response.UserAllInfoResp;
 import com.creamakers.websystem.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
