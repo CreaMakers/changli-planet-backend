@@ -19,6 +19,7 @@ import com.creamakers.websystem.domain.vo.response.*;
 import com.creamakers.websystem.enums.ErrorEnums;
 import com.creamakers.websystem.service.UserService;
 import com.creamakers.websystem.utils.JwtUtils;
+import com.creamakers.websystem.utils.PasswordEncoderUtil;
 import com.creamakers.websystem.utils.RedisUtil;
 import io.netty.util.internal.StringUtil;
 import io.swagger.models.auth.In;
@@ -46,10 +47,10 @@ public class UserServiceImpl implements UserService {
     private JwtUtils jwtUtils;
     @Autowired
     private RedisUtil redisUtil;
-
+    @Autowired
+    private PasswordEncoderUtil passwordEncoderUtil;
     @Override
     public ResultVo<LoginTokenResp> login(UserInfoReq userInfoReq) {
-        String password = new String(DigestUtils.md5DigestAsHex(userInfoReq.getPassword().getBytes()));
         User user = Optional.ofNullable(userMapper.selectOne(Wrappers.<User>lambdaQuery()
                 .eq(User::getUsername, userInfoReq.getUsername())
         )).orElse(null);
@@ -66,8 +67,8 @@ public class UserServiceImpl implements UserService {
         /*
         * 密码错误
         * */
-        if( !password.equals(user.getPassword()) ) {
-            return ResultVo.fail(CommonConst.PASSWORD_ERROR);
+        if( !passwordEncoderUtil.matches(userInfoReq.getPassword(), user.getPassword()) ) {
+            return ResultVo.fail(CommonConst.BAD_REQUEST_CODE, CommonConst.PASSWORD_ERROR);
         }
         /*
         * 权限不足
@@ -151,10 +152,11 @@ public class UserServiceImpl implements UserService {
         Long userId = UserIdContext.getCurrentId();
         User user = userMapper.selectById(userId);
         // 老密码错误
-        if(user.getPassword().equals(passwordChangeReq.getOldPassword())) {
+        if(!passwordEncoderUtil.matches(passwordChangeReq.getOldPassword(), user.getPassword())) {
             return ResultVo.fail(ErrorEnums.UNAUTHORIZED.getCode(), ErrorEnums.UNAUTHORIZED.getMsg());
         }
-        String encryptedPassword = DigestUtils.md5DigestAsHex(passwordChangeReq.getNewPassword().getBytes());
+
+        String encryptedPassword = passwordEncoderUtil.encodePassword(passwordChangeReq.getNewPassword());
         user.setPassword(encryptedPassword);
         userMapper.updateById(user);
         /*
@@ -229,7 +231,8 @@ public class UserServiceImpl implements UserService {
 
             // 如果密码和数据库中的不一样，说明修改了密码，需要加密
             if (!dbUser.getPassword().equals(userReq.getPassword())) {
-                String encryptedPassword = DigestUtils.md5DigestAsHex(userReq.getPassword().getBytes());
+                String encryptedPassword = passwordEncoderUtil.encodePassword(userReq.getPassword());
+
                 if(user.getUserId() == UserIdContext.getCurrentId()) {
                     addBlackListToken();
                 }

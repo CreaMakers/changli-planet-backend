@@ -40,14 +40,14 @@ public class    AuthenticationInterceptor implements HandlerInterceptor {
         }
         // 获取token
         String token = Optional.ofNullable(request.getHeader("token"))
-                .orElseThrow(() -> new RuntimeException(CommonConst.TOKEN_NOT_FOUND));
+                .orElseThrow(() -> new UserServiceException(CommonConst.TOKEN_NOT_FOUND));
 
         String userName = Optional.ofNullable(jwtUtils.getUserNameOrNull(token))
-                .orElseThrow(() -> new RuntimeException(CommonConst.ACCOUNT_NOT_FOUND));
+                .orElseThrow(() -> new UserServiceException(CommonConst.ACCOUNT_NOT_FOUND));
 
         User user = Optional.ofNullable(userMapper.selectOne(Wrappers.<User>lambdaQuery()
                         .eq(User::getUsername, userName)))
-                .orElseThrow(() -> new RuntimeException(CommonConst.TOKEN_INVALID));
+                .orElseThrow(() -> new UserServiceException(CommonConst.TOKEN_INVALID));
 
         /*
         * 保存三个上下文

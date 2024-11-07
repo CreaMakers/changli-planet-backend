@@ -14,6 +14,7 @@
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
     <data-source source="LOCAL" name="aly123" uuid="4989c8b2-7d6b-45be-9aa1-47e0e0560818">
+      <driver-ref>mysql_aurora.aws_wrapper</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>software.amazon.jdbc.Driver</jdbc-driver>
       <jdbc-url>jdbc:aws-wrapper:mysql://47.115.224.40:3306?allowPublicKeyRetrieval=true</jdbc-url>

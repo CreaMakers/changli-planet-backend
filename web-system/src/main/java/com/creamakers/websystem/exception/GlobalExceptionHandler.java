@@ -32,14 +32,14 @@ public class GlobalExceptionHandler {
     }
     @ExceptionHandler(UserServiceException.class)
     public ResponseEntity<String> handleRuntimeException(UserServiceException ex) {
-        log.info("用户的异常错误是{}", ex.getMessage());
+        log.info("用户的异常错误是: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(JSONUtil.toJsonStr(ResultVo.fail(CommonConst.RESULT_FAILURE_CODE, ex.getMessage())));
     }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
-        log.info("不知道是什么错误是{}", ex.getMessage());
+        log.info("不知道是什么错误是: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(JSONUtil.toJsonStr(ResultVo.fail(CommonConst.RESULT_FAILURE_CODE, ex.getMessage())));
     }

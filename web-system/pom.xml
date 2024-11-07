@@ -24,6 +24,12 @@
     <!-- 依赖管理 -->
     <dependencies>
 
+        <!-- Spring Boot security 测试依赖 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
         <!-- Spring Boot 核心依赖 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
