@@ -44,20 +44,21 @@ public class GetCookies {
 
         // 将所有的响应头名称和值添加到 headerValues 列表中
         for (int i = 0; i < headers.size(); i++) {
-            headerValues.add(headers.name(i));  // 添加键
-            headerValues.add(headers.value(i));  // 添加值
+            headerValues.add(headers.name(i));
+            headerValues.add(headers.value(i));
         }
 
-        // 获取 JSESSIONID 的值，假设它在 headerValues 中的索引 1 处
-        String fullCookie = headerValues.get(1);  // 获取 JSESSIONID 的完整字符串
+        // 获取 JSESSIONID 的完整字符串
+        String fullCookie = headerValues.get(1);
         if (fullCookie.startsWith("JSESSIONID=")) {
             result[0] = fullCookie.split("=")[1].split(";")[0];
-            result[2] = headerValues.get(19);// 按照分号分隔，并只保留第一个部分
+            // 按照分号分隔，并只保留第一个部分
+            result[2] = headerValues.get(19);
         }
 
         // 获取响应体内容（dataStr）
         if (response.body() != null) {
-            result[1] = response.body().string(); // 获取页面数据
+            result[1] = response.body().string();
             response.body().close();
         }
 
@@ -98,14 +99,15 @@ public class GetCookies {
             FormBody formBody = new FormBody.Builder()
 //                    .add("userAccount", stuNum)
 //                    .add("userPassword", password)
-                    .add("encoded", encoded).build();  //加密之后的密码 2S0g012198A20481QX05i10D0Q331172157X5%d%g80%V5C6h56fe9nlg00F123!
+                    //加密之后的密码 2S0g012198A20481QX05i10D0Q331172157X5%d%g80%V5C6h56fe9nlg00F123!
+                    .add("encoded", encoded).build();
             //Request{method=POST, url=http://xk.csust.edu.cn/Logon.do?method=logon, headers=[Cookie:JSESSIONID=D45529F57ADB0287E43350D531DD3EB7, Host:xk.csust.edu.cn, Origin:http://xk.csust.edu.cn, Referer:http://xk.csust.edu.cn/]}
             Request jwLoginRequest = new Request.Builder()
                     .header("Cookie", "JSESSIONID=" + jwCode[0] + ";" + jwCode[2])
                     .header("Host", "xk.csust.edu.cn")
                     .header("Origin", "http://xk.csust.edu.cn")
                     .header("Referer", "http://xk.csust.edu.cn/")
-                    .url(LOGIN_URL) //http://xk.csust.edu.cn/Logon.do?method=logon
+                    .url(LOGIN_URL)
                     .post(formBody)
                     .build();
             response = okHttpClient.newCall(jwLoginRequest).execute();
@@ -140,7 +142,7 @@ public class GetCookies {
 
             OkHttpClient updateCookieClient = new OkHttpClient.Builder().followRedirects(false).build();
             Request updateCookieRequest = new Request.Builder()
-                    .header("Cookie", "JSESSIONID=" + jwCode[0] + ";" + jwCode[2]) //3671960E207E0379E35A75699C898405
+                    .header("Cookie", "JSESSIONID=" + jwCode[0] + ";" + jwCode[2])
                     .header("Referer", "http://xk.csust.edu.cn/")
                     .url(updateCookieUrl)
                     .build();
@@ -156,8 +158,8 @@ public class GetCookies {
 
             // 将所有的响应头名称和值添加到 headerValues 列表中
             for (int i = 0; i < headers.size(); i++) {
-                headerValues.add(headers.name(i));  // 添加键
-                headerValues.add(headers.value(i));  // 添加值
+                headerValues.add(headers.name(i));
+                headerValues.add(headers.value(i));
             }
 
             String cookie = headerValues.get(3) + ";" + jwCode[2];

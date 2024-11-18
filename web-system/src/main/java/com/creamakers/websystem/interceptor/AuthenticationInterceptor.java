@@ -8,6 +8,7 @@ import com.creamakers.websystem.context.UserNameContext;
 import com.creamakers.websystem.domain.dto.User;
 import com.creamakers.websystem.dao.UserMapper;
 import com.creamakers.websystem.enums.CommonEnums;
+import com.creamakers.websystem.exception.UserServiceException;
 import com.creamakers.websystem.utils.JwtUtils;
 import com.creamakers.websystem.utils.RedisUtil;
 import io.netty.util.internal.StringUtil;
@@ -39,14 +40,14 @@ public class    AuthenticationInterceptor implements HandlerInterceptor {
         }
         // 获取token
         String token = Optional.ofNullable(request.getHeader("token"))
-                .orElseThrow(() -> new RuntimeException(CommonConst.TOKEN_NOT_FOUND));
+                .orElseThrow(() -> new UserServiceException(CommonConst.TOKEN_NOT_FOUND));
 
         String userName = Optional.ofNullable(jwtUtils.getUserNameOrNull(token))
-                .orElseThrow(() -> new RuntimeException(CommonConst.ACCOUNT_NOT_FOUND));
+                .orElseThrow(() -> new UserServiceException(CommonConst.ACCOUNT_NOT_FOUND));
 
         User user = Optional.ofNullable(userMapper.selectOne(Wrappers.<User>lambdaQuery()
                         .eq(User::getUsername, userName)))
-                .orElseThrow(() -> new RuntimeException(CommonConst.TOKEN_INVALID));
+                .orElseThrow(() -> new UserServiceException(CommonConst.TOKEN_INVALID));
 
         /*
         * 保存三个上下文
@@ -61,13 +62,13 @@ public class    AuthenticationInterceptor implements HandlerInterceptor {
         String redisToken = redisUtil.getValue(CommonConst.BLACKLIST_TOKEN_PREFIX + token);
         log.info("redis黑名单里存的token：{}", redisToken);
         if(!StringUtil.isNullOrEmpty(redisToken)) {
-            throw new RuntimeException(CommonConst.TOKEN_INVALID);
+            throw new UserServiceException(CommonConst.TOKEN_INVALID);
         }
         if(user.getIsAdmin() == CommonEnums.USER_TYPE_USER.getCode()) {
-            throw new RuntimeException(CommonConst.INSUFFICIENT_PERMISSION);
+            throw new UserServiceException(CommonConst.INSUFFICIENT_PERMISSION);
         }
         if(user.getIsBanned() == 1 || user.getIsDeleted() == 1 ) {
-            throw new RuntimeException(CommonConst.ACCOUNT_DISABLED_OR_BANNED);
+            throw new UserServiceException(CommonConst.ACCOUNT_DISABLED_OR_BANNED);
         }
         return true;
     }

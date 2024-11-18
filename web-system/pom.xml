@@ -24,6 +24,12 @@
     <!-- 依赖管理 -->
     <dependencies>
 
+        <!-- Spring Boot security 测试依赖 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
         <!-- Spring Boot 核心依赖 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -53,11 +59,6 @@
             <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
         </dependency>
 
-        <!-- Redis Support - Spring Boot 集成 Redis -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
-        </dependency>
 
         <!-- MySQL 数据库连接器 -->
         <dependency>
@@ -147,10 +148,24 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+
+
+                <configuration>
+                    <mainClass>com.creamakers.websystem.WebSystemApplication</mainClass> <!-- 使用全限定类名 -->
+                </configuration>
+            </plugin>
+
+            <!-- Maven Compiler Plugin -->
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
+
+
+
 
 </project>

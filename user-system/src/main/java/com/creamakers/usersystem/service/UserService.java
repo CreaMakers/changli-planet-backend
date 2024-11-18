@@ -2,22 +2,30 @@ package com.creamakers.usersystem.service;
 
 
 import com.creamakers.usersystem.dto.request.*;
-import com.creamakers.usersystem.dto.response.GeneralResponse;
 import com.creamakers.usersystem.po.User;
-import com.creamakers.usersystem.po.UserProfile;
 
 public interface UserService {
-    GeneralResponse login(LoginRequest loginRequest);
 
-    User getUserByUsername(String username); // 根据用户名获取用户
+    User getUserByUsername(String username);
 
-    GeneralResponse register(RegisterRequest registerRequest);
 
-    GeneralResponse checkUsernameAvailability(UsernameCheckRequest usernameCheckRequest);
+    void cacheRefreshToken(String username, String deviceId, String refreshToken);
 
-    GeneralResponse quit(String accessToken);
+    boolean isRefreshTokenExpired(String username, String deviceId);
 
-    GeneralResponse refreshAuth(String accessToken);
+    void deleteRefreshToken(String username, String deviceId);
 
-    GeneralResponse updatePassword(PasswordUpdateRequest request, String accessToken);
+    String getCachedAccessTokenFromBlack(String accessToken);
+
+    int addUser(User newUser);
+
+    User createUserAndInsert(RegisterRequest registerRequest, String encodedPassword);
+
+    boolean updateUser(User user);
+
+    int saveUser(User newUser);
+
+    void addAccessToBlacklist(String accessToken);
+
+    String getFreshTokenByUsernameAndDevicedId(String username, String deviceId);
 }

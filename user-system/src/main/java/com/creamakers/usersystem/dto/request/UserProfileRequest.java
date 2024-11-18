@@ -18,7 +18,7 @@ public class UserProfileRequest implements Serializable {
     private int userLevel;
     private int gender;
     private int grade;
-    private String birthdate; // 可以使用 LocalDate 类型更精确
+    private String birthdate;
     private String location;
     private String website;
 }

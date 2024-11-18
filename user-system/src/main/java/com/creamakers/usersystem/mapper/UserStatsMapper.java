@@ -5,4 +5,6 @@ import com.creamakers.usersystem.po.UserStats;
 
 public interface UserStatsMapper extends BaseMapper<UserStats> {
 
+
+
 }

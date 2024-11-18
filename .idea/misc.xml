@@ -8,8 +8,17 @@
         <option value="$PROJECT_DIR$/user-system/pom.xml" />
         <option value="$PROJECT_DIR$/tool-system/pom.xml" />
         <option value="$PROJECT_DIR$/web-system/pom.xml" />
+        <option value="$PROJECT_DIR$/test/pom.xml" />
       </list>
     </option>
+    <option name="ignoredFiles">
+      <set>
+        <option value="$PROJECT_DIR$/test/pom.xml" />
+      </set>
+    </option>
+  </component>
+  <component name="PDMPlugin">
+    <option name="skipTestSources" value="false" />
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_22" default="true" project-jdk-name="22" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />

@@ -37,6 +37,8 @@ public class CommonConst {
 
     public final static String TOKEN_EXPIRATION_TIME = "7200";
 
+    public final static String DATABASE_OPERATION_ERROR = "与数据库交互失败，请检查配置";
+
     public final static Integer REGULAR_USER = 0;
 
     public final static Integer OPERATIONS_TEAM = 1;

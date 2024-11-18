@@ -1,4 +1,4 @@
-package com.creamakers.usersystem.config;
+package com.creamakers.websystem.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,7 +27,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/swagger-ui.html","/app/users/register", "/app/users/login", "/app/users/**").permitAll()  // 允许注册和登录端点
+                        .requestMatchers("/swagger-ui.html","/web/users/register", "/web/users/login", "/web/users/**").permitAll()  // 允许注册和登录端点
                         .anyRequest().authenticated()
                 )
                 .csrf(csrf -> csrf.disable())
