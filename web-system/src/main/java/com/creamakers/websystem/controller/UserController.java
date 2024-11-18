@@ -1,6 +1,5 @@
 package com.creamakers.websystem.controller;
 
-import com.creamakers.websystem.domain.dto.UserProfile;
 import com.creamakers.websystem.domain.vo.ResultVo;
 import com.creamakers.websystem.domain.vo.request.PasswordChangeReq;
 import com.creamakers.websystem.domain.vo.request.UserAllInfoReq;
@@ -11,8 +10,6 @@ import com.creamakers.websystem.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-import javax.validation.Valid;
-
 
 
 // 用户登录
@@ -61,7 +58,7 @@ public class UserController {
     * */
     @GetMapping
     public ResultVo<List<UserAllInfoResp>> getAllUsersInfos(
-            @RequestParam(value = "username", required = false) String username,
+            @RequestParam(value = "userName", required = false) String username,
             @RequestParam(value = "isAdmin", required = false) Integer isAdmin,
             @RequestParam(value = "isDeleted", required = false) Integer isDeleted,
             @RequestParam(value = "isBanned", required = false) Integer isBanned,

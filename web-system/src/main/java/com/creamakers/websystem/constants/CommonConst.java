@@ -45,4 +45,6 @@ public class CommonConst {
 
     public final static Integer DEVELOPMENT_TEAM = 2;
 
+    public final static String VIOLATION_RECORD_NOT_SUPPORTED = "未找到对应的违规记录";
+
 }

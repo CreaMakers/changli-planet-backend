@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.creamakers.websystem.constants.CommonConst;
 import com.creamakers.websystem.context.TokenContext;
+import com.creamakers.websystem.context.UserContext;
 import com.creamakers.websystem.context.UserIdContext;
 import com.creamakers.websystem.context.UserNameContext;
 import com.creamakers.websystem.dao.UserMapper;
@@ -24,7 +25,6 @@ import com.creamakers.websystem.utils.RedisUtil;
 import io.netty.util.internal.StringUtil;
 import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
@@ -51,6 +51,8 @@ public class UserServiceImpl implements UserService {
     private PasswordEncoderUtil passwordEncoderUtil;
     @Override
     public ResultVo<LoginTokenResp> login(UserInfoReq userInfoReq) {
+        String password = new String(DigestUtils.md5DigestAsHex(userInfoReq.getPassword().getBytes()));
+
         User user = Optional.ofNullable(userMapper.selectOne(Wrappers.<User>lambdaQuery()
                 .eq(User::getUsername, userInfoReq.getUsername())
         )).orElse(null);
@@ -76,9 +78,10 @@ public class UserServiceImpl implements UserService {
         if(user.getIsAdmin() == 0) {
             return ResultVo.fail(ErrorEnums.FORBIDDEN.getCode(), ErrorEnums.FORBIDDEN.getMsg());
         }
+        String[] token = jwtUtils.createAccessTokenAndRefreshToken(user.getUsername());
 
-        String accessToken = jwtUtils.createAccessToken(user.getUsername());
-        String refreshToken = jwtUtils.createRefreshToken(user.getUsername());
+        String accessToken = token[0];
+        String refreshToken = token[1];
 
         // 缓存刷新 token
         cacheRefreshToken(user.getUsername(), refreshToken);
@@ -104,8 +107,12 @@ public class UserServiceImpl implements UserService {
         // 判断是不是最新的accessToken
         if(cachedRefreshToken != null && jwtUtils.compareAccessTokenWithRefreshToken(token, cachedRefreshToken)) {
             // 获取新的token和refreshToken
-            String newAccessToken = jwtUtils.createAccessToken(username);
-            String newRefreshToken = jwtUtils.createRefreshToken(username);
+            /*
+            保证时间戳一样
+             */
+            String[] tokens = jwtUtils.createAccessTokenAndRefreshToken(username);
+            String newAccessToken = tokens[0];
+            String newRefreshToken = tokens[1];
             // 自动刷新refresh_token过期时间，和刷新accessToken
             cacheRefreshToken(username, newRefreshToken);
 
@@ -135,21 +142,19 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResultVo<UserAllInfoResp> getCurrentUserProfile() {
-        Long userId = UserIdContext.getCurrentId();
+        Long userId = UserContext.getUserId();
         if(userId == null) {
             return ResultVo.fail(CommonConst.ACCOUNT_NOT_FOUND);
         }
         UserProfileResp userProfileResp = BeanUtil.copyProperties(userProfileMapper.selectById(userId), UserProfileResp.class);
         UserResp userResp = BeanUtil.copyProperties(userMapper.selectById(userId), UserResp.class);
         UserStatsResp userStatsResp = BeanUtil.copyProperties(userStatsMapper.selectById(userId), UserStatsResp.class);
-
-
         return ResultVo.success(new UserAllInfoResp(userResp, userProfileResp, userStatsResp));
     }
 
     @Override
     public ResultVo<Void> modifyCurrentUserPassword(PasswordChangeReq passwordChangeReq) {
-        Long userId = UserIdContext.getCurrentId();
+        Long userId = UserContext.getUserId();
         User user = userMapper.selectById(userId);
         // 老密码错误
         if(!passwordEncoderUtil.matches(passwordChangeReq.getOldPassword(), user.getPassword())) {
