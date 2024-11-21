@@ -22,11 +22,11 @@ public class ViolationRecordReq {
     private Integer penaltyStatus;
 
     @JsonProperty("violation_time")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     private LocalDateTime violationTime;
 
     @JsonProperty("penalty_time")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     private LocalDateTime penaltyTime;
 
     @JsonProperty("mute_duration")

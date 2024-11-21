@@ -3,6 +3,7 @@ package com.creamakers.websystem.interceptor;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.creamakers.websystem.constants.CommonConst;
 import com.creamakers.websystem.context.TokenContext;
+import com.creamakers.websystem.context.UserContext;
 import com.creamakers.websystem.context.UserIdContext;
 import com.creamakers.websystem.context.UserNameContext;
 import com.creamakers.websystem.domain.dto.User;
@@ -53,9 +54,10 @@ public class    AuthenticationInterceptor implements HandlerInterceptor {
         * 保存三个上下文
         * */
         // TODO 可以优化成一个，懒~之后改
-        UserIdContext.set(user.getUserId());
-        UserNameContext.set(user.getUsername());
-        TokenContext.set(token);
+//        UserIdContext.set(user.getUserId());
+//        UserNameContext.set(user.getUsername());
+//        TokenContext.set(token);
+        UserContext.set(user.getUserId(), user.getUsername(), token);
         /*
         * 判断有无加入黑名单
         * */

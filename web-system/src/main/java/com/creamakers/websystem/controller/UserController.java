@@ -11,8 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
-
-// 用户登录
 @RestController
 @RequestMapping("/web/users")
 public class UserController {
@@ -62,8 +60,8 @@ public class UserController {
             @RequestParam(value = "isAdmin", required = false) Integer isAdmin,
             @RequestParam(value = "isDeleted", required = false) Integer isDeleted,
             @RequestParam(value = "isBanned", required = false) Integer isBanned,
-            @RequestParam(value = "page", required = false) Integer page,
-            @RequestParam(value = "pageSize", required = false) Integer pageSize
+            @RequestParam(value = "page", required = false,defaultValue = "1") Integer page,
+            @RequestParam(value = "pageSize", required = false,defaultValue = "10") Integer pageSize
             ) {
         return userService.findAllUsersInFos(username, isAdmin, isDeleted, isBanned, page, pageSize);
     }
@@ -79,5 +77,12 @@ public class UserController {
     @PutMapping
     public ResultVo<UserAllInfoResp> updateUserInfos(@RequestBody UserAllInfoReq userAllInfoReq) {
         return userService.updateUserInfos(userAllInfoReq);
+    }
+    /*
+    刷新token
+     */
+    @PutMapping("/me/token")
+    public ResultVo<LoginTokenResp> refreshToken(String token) {
+        return userService.refreshToken(token);
     }
 }

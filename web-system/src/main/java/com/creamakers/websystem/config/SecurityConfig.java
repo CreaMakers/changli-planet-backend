@@ -27,7 +27,11 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/swagger-ui.html","/web/users/register", "/web/users/login", "/web/users/**").permitAll()  // 允许注册和登录端点
+                        .requestMatchers("/swagger-ui.html","/web/users/register", "/web/users/login", "/web/users/**","/web/users/users/me/**",
+                                "/web/violations","/users/{userId}/violations","/web/violation/**","/web/violation/search",
+                                "/web/violations/{violationId}/punishments","/web/violations/{violationId}",
+                                "/web/permissions","/web/users/{userId}/permissions"
+                        ).permitAll()  // 允许注册和登录端点
                         .anyRequest().authenticated()
                 )
                 .csrf(csrf -> csrf.disable())

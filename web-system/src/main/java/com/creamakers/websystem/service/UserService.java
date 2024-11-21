@@ -25,4 +25,6 @@ public interface UserService {
     ResultVo<List<UserAllInfoResp>> findAllUsersInFos(String username, Integer isAdmin, Integer isDeleted, Integer isBanned, Integer page, Integer pageSize);
 
     ResultVo<UserAllInfoResp> updateUserInfos(UserAllInfoReq userAllInfoReq);
+
+    ResultVo<LoginTokenResp> refreshToken(String token);
 }
