@@ -11,10 +11,7 @@ import com.creamakers.toolsystem.entity.ExamArrange;
 import com.creamakers.toolsystem.service.ToolService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -28,22 +25,71 @@ public class ToolController {
    private ToolService toolService;
 
     @GetMapping("/courses")
-    public ResponseEntity<GeneralResponse<List<CourseInfo>>> GetCourseInfo(@RequestBody CourseInfoRequest courseInfoRequest) throws IOException {
+    public ResponseEntity<GeneralResponse<List<CourseInfo>>> GetCourseInfo(@RequestParam(value = "stuNum") String stuNum,
+                                                                           @RequestParam(value = "password") String password,
+                                                                           @RequestParam(value = "week") String week,
+                                                                           @RequestParam(value = "termId") String termId) throws IOException {
+
+        // 创建 CourseInfoRequest 对象，并设置从查询参数中获得的值
+        CourseInfoRequest courseInfoRequest = new CourseInfoRequest();
+        courseInfoRequest.setStuNum(stuNum);
+        courseInfoRequest.setPassword(password);
+        courseInfoRequest.setWeek(week);
+        courseInfoRequest.setTermId(termId);
         return toolService.GetCourseInfo(courseInfoRequest);
     }
 
-    @GetMapping("/grades")
-    public ResponseEntity<GeneralResponse<List<CourseGrade>>> GetGradesInfo(@RequestBody GradesInfoRequest gradesInfoRequest) throws IOException {
-        return toolService.GetGradesInfo(gradesInfoRequest);
+
+
+        @GetMapping("/grades")
+        public ResponseEntity<GeneralResponse<List<CourseGrade>>> getGradesInfo(
+                @RequestParam(value = "stuNum") String stuNum,
+                @RequestParam(value = "password") String password,
+                @RequestParam(value = "term") String term) throws IOException {
+
+            // 创建 GradesInfoRequest 对象，并设置从查询参数中获得的值
+            GradesInfoRequest gradesInfoRequest = new GradesInfoRequest();
+            gradesInfoRequest.setStuNum(stuNum);
+            gradesInfoRequest.setPassword(password);
+            gradesInfoRequest.setTerm(term);
+
+            // 调用服务方法，并返回响应
+            return toolService.GetGradesInfo(gradesInfoRequest);
+        }
+
+
+
+    @RestController
+    public class ExamController {
+
+        @GetMapping("/exams")
+        public ResponseEntity<GeneralResponse<List<ExamArrange>>> getExamArrangeInfo(
+                @RequestParam(value = "stuNum") String stuNum,
+                @RequestParam(value = "password") String password,
+                @RequestParam(value = "term") String term,
+                @RequestParam(value = "examType") String examType) throws IOException {
+
+            // 创建 ExamArrangeInfoRequest 对象，并设置从查询参数中获得的值
+            ExamArrangeInfoRequest examArrangeInfoRequest = new ExamArrangeInfoRequest();
+            examArrangeInfoRequest.setStuNum(stuNum);
+            examArrangeInfoRequest.setPassword(password);
+            examArrangeInfoRequest.setTerm(term);
+            examArrangeInfoRequest.setExamType(examType);
+
+            // 调用服务方法，并返回响应
+            return toolService.GetExamArrangeInfo(examArrangeInfoRequest);
+        }
     }
 
-    @GetMapping("/exams")
-    public ResponseEntity<GeneralResponse<List<ExamArrange>>> GetExamArrangeInfo(@RequestBody ExamArrangeInfoRequest examArrangeInfoRequest) throws IOException {
-        return toolService.GetExamArrangeInfo(examArrangeInfoRequest);
-    }
 
     @GetMapping("/dormitory-electricity")
-    public ResponseEntity<GeneralResponse> GetElectricityChargeInfo(@RequestBody ElectricityChargeRequest electricityChargeRequest) throws IOException {
+    public ResponseEntity<GeneralResponse> GetElectricityChargeInfo( @RequestParam(value = "address") String address,
+                                                                     @RequestParam(value = "buildId") String buildId,
+                                                                     @RequestParam(value = "nod") String nod) throws IOException {
+        ElectricityChargeRequest electricityChargeRequest=new ElectricityChargeRequest();
+        electricityChargeRequest.setAddress(address);
+        electricityChargeRequest.setBuildId(buildId);
+        electricityChargeRequest.setNod(nod);
         return toolService.GetElectricityChargeInfo(electricityChargeRequest);
     }
 
