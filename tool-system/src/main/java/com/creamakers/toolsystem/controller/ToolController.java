@@ -59,9 +59,6 @@ public class ToolController {
 
 
 
-    @RestController
-    public class ExamController {
-
         @GetMapping("/exams")
         public ResponseEntity<GeneralResponse<List<ExamArrange>>> getExamArrangeInfo(
                 @RequestParam(value = "stuNum") String stuNum,
@@ -79,7 +76,6 @@ public class ToolController {
             // 调用服务方法，并返回响应
             return toolService.GetExamArrangeInfo(examArrangeInfoRequest);
         }
-    }
 
 
     @GetMapping("/dormitory-electricity")
@@ -92,7 +88,5 @@ public class ToolController {
         electricityChargeRequest.setNod(nod);
         return toolService.GetElectricityChargeInfo(electricityChargeRequest);
     }
-
-
 
 }
