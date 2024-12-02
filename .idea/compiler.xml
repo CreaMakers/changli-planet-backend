@@ -9,6 +9,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="web-system" />
         <module name="tool-system" />
+        <module name="chat-system" />
         <module name="user-system" />
       </profile>
     </annotationProcessing>
@@ -20,6 +21,7 @@
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="changli-planet-backend" options="-parameters" />
       <module name="changli-plant-backend" options="-parameters" />
+      <module name="chat-system" options="-parameters" />
       <module name="tool-system" options="-parameters" />
       <module name="user-system" options="-parameters" />
       <module name="web-system" options="-parameters" />

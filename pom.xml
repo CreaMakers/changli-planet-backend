@@ -23,6 +23,7 @@
         <module>user-system</module>
         <module>tool-system</module>
         <module>web-system</module>
+        <module>chat-system</module>
     </modules>
 
     <!-- 属性配置 -->
