@@ -160,7 +160,6 @@ public class UserServiceImpl implements UserService {
         if(!passwordEncoderUtil.matches(passwordChangeReq.getOldPassword(), user.getPassword())) {
             return ResultVo.fail(ErrorEnums.UNAUTHORIZED.getCode(), ErrorEnums.UNAUTHORIZED.getMsg());
         }
-
         String encryptedPassword = passwordEncoderUtil.encodePassword(passwordChangeReq.getNewPassword());
         user.setPassword(encryptedPassword);
         userMapper.updateById(user);
@@ -220,11 +219,21 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResultVo<UserAllInfoResp> updateUserInfos(UserAllInfoReq userAllInfoReq) {
-
+        if(userAllInfoReq != null) {
+            System.out.println(userAllInfoReq);
+        }
         UserReq userReq = userAllInfoReq.getUserReq();
         UserProfileReq userProfileReq = userAllInfoReq.getUserProfileReq();
         UserStatsReq userStatsReq = userAllInfoReq.getUserStatsReq();
-
+        if(userReq == null) {
+            System.out.println("1");
+        }
+        if(userProfileReq == null) {
+            System.out.println("2");
+        }
+        if(userStatsReq == null) {
+            System.out.println("3");
+        }
         if (userReq != null && userReq.getUserId() != null) {
             // 先查询原用户信息
             User dbUser = userMapper.selectById(userReq.getUserId());

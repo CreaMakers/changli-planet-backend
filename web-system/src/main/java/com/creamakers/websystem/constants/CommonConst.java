@@ -47,4 +47,6 @@ public class CommonConst {
 
     public final static String VIOLATION_RECORD_NOT_SUPPORTED = "未找到对应的违规记录";
 
+    public final static String DATA_DELETE_FAILED_NOT_FOUND = "数据删除失败，未找到该条记录";
+
 }
