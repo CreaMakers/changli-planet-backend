@@ -1,6 +1,5 @@
 package com.creamakers.websystem.service.Impl;
 import cn.hutool.core.bean.BeanUtil;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.creamakers.websystem.constants.CommonConst;
@@ -23,12 +22,10 @@ import com.creamakers.websystem.utils.JwtUtils;
 import com.creamakers.websystem.utils.PasswordEncoderUtil;
 import com.creamakers.websystem.utils.RedisUtil;
 import io.netty.util.internal.StringUtil;
-import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
