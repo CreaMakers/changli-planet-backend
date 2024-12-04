@@ -1,7 +1,9 @@
 package com.creamakers.websystem.service;
 
 import com.creamakers.websystem.domain.vo.ResultVo;
+import com.creamakers.websystem.domain.vo.response.PostCommentResp;
 import com.creamakers.websystem.domain.vo.response.PostResp;
+import com.creamakers.websystem.domain.vo.response.ReportPostResp;
 
 import java.util.List;
 
@@ -12,4 +14,8 @@ public interface PostService {
 
 
     ResultVo<Void> deletePostById(Long postId);
+
+    ResultVo<List<ReportPostResp>> getAllReportedPosts(Integer page, Integer pageSize);
+
+    ResultVo<List<PostCommentResp>> getAllCommentsByPostId(Long postId, Integer page, Integer pageSize);
 }
