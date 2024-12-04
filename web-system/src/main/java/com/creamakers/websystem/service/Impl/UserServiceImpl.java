@@ -1,6 +1,5 @@
 package com.creamakers.websystem.service.Impl;
 import cn.hutool.core.bean.BeanUtil;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.creamakers.websystem.constants.CommonConst;
@@ -23,12 +22,10 @@ import com.creamakers.websystem.utils.JwtUtils;
 import com.creamakers.websystem.utils.PasswordEncoderUtil;
 import com.creamakers.websystem.utils.RedisUtil;
 import io.netty.util.internal.StringUtil;
-import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -160,7 +157,6 @@ public class UserServiceImpl implements UserService {
         if(!passwordEncoderUtil.matches(passwordChangeReq.getOldPassword(), user.getPassword())) {
             return ResultVo.fail(ErrorEnums.UNAUTHORIZED.getCode(), ErrorEnums.UNAUTHORIZED.getMsg());
         }
-
         String encryptedPassword = passwordEncoderUtil.encodePassword(passwordChangeReq.getNewPassword());
         user.setPassword(encryptedPassword);
         userMapper.updateById(user);
@@ -220,11 +216,21 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResultVo<UserAllInfoResp> updateUserInfos(UserAllInfoReq userAllInfoReq) {
-
+        if(userAllInfoReq != null) {
+            System.out.println(userAllInfoReq);
+        }
         UserReq userReq = userAllInfoReq.getUserReq();
         UserProfileReq userProfileReq = userAllInfoReq.getUserProfileReq();
         UserStatsReq userStatsReq = userAllInfoReq.getUserStatsReq();
-
+        if(userReq == null) {
+            System.out.println("1");
+        }
+        if(userProfileReq == null) {
+            System.out.println("2");
+        }
+        if(userStatsReq == null) {
+            System.out.println("3");
+        }
         if (userReq != null && userReq.getUserId() != null) {
             // 先查询原用户信息
             User dbUser = userMapper.selectById(userReq.getUserId());

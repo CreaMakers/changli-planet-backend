@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.creamakers.websystem.constants.CommonConst.DATA_DELETE_FAILED_NOT_FOUND;
 import static com.creamakers.websystem.constants.CommonConst.VIOLATION_RECORD_NOT_SUPPORTED;
 
 @Service
@@ -62,7 +63,6 @@ public class ViolationRecordServiceImpl implements ViolationRecordService {
     /*
     更新用户的违规信息
      */
-
     @Override
     public ResultVo<ViolationRecordResp> updateViolationRecord(Long violationId, ViolationRecordReq violationRecordRep) {
         QueryWrapper<ViolationRecord> queryWrapper = new QueryWrapper<>();
@@ -80,7 +80,8 @@ public class ViolationRecordServiceImpl implements ViolationRecordService {
      */
     @Override
     public ResultVo<Void> deleteViolationRecord(Long violationId) {
-        violationRecordMapper.deleteById(violationId);
+        int i = violationRecordMapper.deleteById(violationId);
+        if(i<1) return ResultVo.fail(DATA_DELETE_FAILED_NOT_FOUND);
         return ResultVo.success();
     }
 /*

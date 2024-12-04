@@ -9,6 +9,7 @@
         <option value="$PROJECT_DIR$/tool-system/pom.xml" />
         <option value="$PROJECT_DIR$/web-system/pom.xml" />
         <option value="$PROJECT_DIR$/test/pom.xml" />
+        <option value="$PROJECT_DIR$/chat-system/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">
