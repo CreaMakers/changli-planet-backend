@@ -18,4 +18,8 @@ public interface PostService {
     ResultVo<List<ReportPostResp>> getAllReportedPosts(Integer page, Integer pageSize);
 
     ResultVo<List<PostCommentResp>> getAllCommentsByPostId(Long postId, Integer page, Integer pageSize);
+
+    ResultVo<List<PostCommentResp>> searchCommentsByKeyWord(Long postId, String keyWord, Integer page, Integer pageSize);
+
+    ResultVo<Void> deleteCommentByPostIdAndCommentId(Long postId, Long commentId);
 }

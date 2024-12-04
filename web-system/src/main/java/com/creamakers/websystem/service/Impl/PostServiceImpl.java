@@ -3,6 +3,7 @@ package com.creamakers.websystem.service.Impl;
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.creamakers.websystem.constants.CommonConst;
 import com.creamakers.websystem.dao.PostCommentMapper;
@@ -26,6 +27,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.creamakers.websystem.constants.CommonConst.DATA_DELETE_FAILED_NOT_FOUND;
+import static com.creamakers.websystem.constants.CommonConst.EMPTY_SEARCH_KEYWORD;
 
 @Service
 public class PostServiceImpl implements PostService {
@@ -67,7 +69,7 @@ public class PostServiceImpl implements PostService {
 
         QueryWrapper<ReportPost> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("status", 0);
-        IPage<ReportPost> reportPostsPage = reportPostMapper.selectPage(reportPostPage, queryWrapper);
+        Page<ReportPost> reportPostsPage = reportPostMapper.selectPage(reportPostPage, queryWrapper);
 
         List<ReportPost> reportPosts = reportPostsPage.getRecords();
         // 如果没有未处理的举报记录，直接返回空列表
@@ -95,6 +97,32 @@ public class PostServiceImpl implements PostService {
                 .map(this::convertToPostCommentResp)
                 .collect(Collectors.toList());
         return ResultVo.success(commentRespList);
+    }
+
+    @Override
+    public ResultVo<List<PostCommentResp>> searchCommentsByKeyWord(Long postId, String keyWord, Integer page, Integer pageSize) {
+        if (StringUtils.isBlank(keyWord)) {
+            return ResultVo.fail(EMPTY_SEARCH_KEYWORD);
+        }
+        Page<PostComment> commentPage = new Page<>(page, pageSize);
+        QueryWrapper<PostComment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("post_id", postId)
+                .eq("is_deleted", 0)
+                .like("content", keyWord)      // 在评论内容中进行模糊搜索
+                .orderByDesc("create_time");
+        Page<PostComment> resultPage = postCommentMapper.selectPage(commentPage, queryWrapper);
+        List<PostCommentResp> commentRespList = resultPage.getRecords()
+                .stream()
+                .map(this::convertToPostCommentResp)
+                .collect(Collectors.toList());
+        return ResultVo.success(commentRespList);
+    }
+
+    @Override
+    public ResultVo<Void> deleteCommentByPostIdAndCommentId(Long postId, Long commentId) {
+            int i = postMapper.deleteCommentByPostIdAndCommentId(postId, commentId);
+            if(i<1) return ResultVo.fail(DATA_DELETE_FAILED_NOT_FOUND);
+            return ResultVo.success();
     }
 
 

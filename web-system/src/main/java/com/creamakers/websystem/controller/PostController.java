@@ -46,5 +46,19 @@ public class PostController {
                                                                  @RequestParam(value = "pageSize", defaultValue = "10")  Integer pageSize){
         return postService.getAllCommentsByPostId(postId,page,pageSize);
     }
+    //搜索某个评论
+    @GetMapping("/{post_id}/comments/search")
+    public ResultVo<List<PostCommentResp>> searchCommentsByKeyWord(@PathVariable("post_id") Long postId,
+                                                                   @RequestParam(value = "keyword") String keyWord,
+                                                                   @RequestParam(value = "page",defaultValue = "1") Integer page,
+                                                                   @RequestParam(value = "pageSize", defaultValue = "10")  Integer pageSize){
+        return postService.searchCommentsByKeyWord(postId,keyWord,page,pageSize);
+    }
+    //删除特定评论
+    @DeleteMapping("/{post_id}/comments/{comment_id}")
+    public ResultVo<Void> deleteCommentByPostIdAndCommentId(@PathVariable("post_id") Long postId,
+                                                            @PathVariable("comment_id")Long commentId){
+        return postService.deleteCommentByPostIdAndCommentId(postId,commentId);
+    }
 }
 
