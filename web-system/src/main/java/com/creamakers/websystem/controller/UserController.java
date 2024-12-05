@@ -2,6 +2,7 @@ package com.creamakers.websystem.controller;
 
 import com.creamakers.websystem.domain.vo.ResultVo;
 import com.creamakers.websystem.domain.vo.request.PasswordChangeReq;
+import com.creamakers.websystem.domain.vo.request.RefreshTokenReq;
 import com.creamakers.websystem.domain.vo.request.UserAllInfoReq;
 import com.creamakers.websystem.domain.vo.request.UserInfoReq;
 import com.creamakers.websystem.domain.vo.response.LoginTokenResp;
@@ -82,7 +83,8 @@ public class UserController {
     刷新token
      */
     @PutMapping("/me/token")
-    public ResultVo<LoginTokenResp> refreshToken(String token) {
-        return userService.refreshToken(token);
+    public ResultVo<LoginTokenResp> refreshToken(@RequestBody RefreshTokenReq refreshTokenReq) {
+        String accessToken = refreshTokenReq.getAccessToken();
+        return userService.refreshToken(accessToken);
     }
 }

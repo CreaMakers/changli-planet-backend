@@ -42,13 +42,14 @@ public class JwtUtil {
     public boolean verify(String token) {
         // Token校验
         boolean validateToken = validateToken(token);
-        if(validateToken){
+        if(!validateToken){
             return false;
         }
+
         String username = getUserNameFromToken(token);
         String deviceID = getDeviceIDFromToken(token);
         Long timeStampFromToken = getTimeStampFromToken(token);
-        String key = TOKEN_PREFIX+username+deviceID;
+        String key = TOKEN_PREFIX+username+"-"+deviceID;
         String refresh_token = stringRedisTemplate.opsForValue().get(key);
         Long timeStampFromToken1 = getTimeStampFromToken(refresh_token);
         if(timeStampFromToken.equals(timeStampFromToken1)){

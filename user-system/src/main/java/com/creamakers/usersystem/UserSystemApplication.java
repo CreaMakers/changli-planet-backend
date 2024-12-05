@@ -1,7 +1,5 @@
 package com.creamakers.usersystem;
 
-
-
 import org.mybatis.spring.annotation.MapperScan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
