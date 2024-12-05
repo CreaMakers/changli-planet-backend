@@ -144,17 +144,7 @@
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
-
-
-        <!-- Spring Boot security 测试依赖 -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-        </dependency>
-
-
     </dependencies>
-
 
     <build>
         <plugins>
