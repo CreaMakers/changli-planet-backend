@@ -27,10 +27,12 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/swagger-ui.html","/web/users/register", "/web/users/login", "/web/users/**","/web/users/users/me/**",
-                                "/web/violations","/users/{userId}/violations","/web/violation/**","/web/violation/search",
-                                "/web/violations/{violationId}/punishments","/web/violations/{violationId}",
-                                "/web/permissions","/web/users/{userId}/permissions"
+                        .requestMatchers("/web/users/login","/web/users/{userId}/groups","/web/users/me","/web/users/me/token",
+                                "/web/violations","/web/users/{userId}/violations","/web/violations","/web/violations/{violationId}",
+                                "/web/violation/search","/web/users/{userId}/violations/statistics","/web/violations/statistics","/web/violations/statistics",
+                                "/web/users/{userId}/permissions","/web/groups/{groupId}/messages","/web/posts","/web/posts/{post_id}","/web/users/{userId}",
+                                "/web/users","/web/permissions","/web/posts/reported","/web/posts/{post_id}/comments","/web/posts/{post_id}/comments/{comment_id}",
+                                "/web/posts/{post_id}/comments/search"
                         ).permitAll()  // 允许注册和登录端点
                         .anyRequest().authenticated()
                 )

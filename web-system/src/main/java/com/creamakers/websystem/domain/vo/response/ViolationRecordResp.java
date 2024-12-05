@@ -8,6 +8,10 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+/**
+ * 违规记录响应类
+ */
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

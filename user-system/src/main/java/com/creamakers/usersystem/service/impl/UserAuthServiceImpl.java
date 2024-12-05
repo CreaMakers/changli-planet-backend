@@ -118,6 +118,8 @@ public class UserAuthServiceImpl implements UserAuthService {
         String newRefreshToken = jwtUtil.generateRefreshToken(username, deviceId, timestamp);
         userService.cacheRefreshToken(username, deviceId, newRefreshToken);
 
+        System.out.println("newAccessToken: " + newAccessToken);
+
         return responseWithAuthHeader(newAccessToken, HttpStatus.OK, HttpCode.OK, SuccessMessage.USER_LOGGED_IN);
     }
 
