@@ -216,22 +216,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResultVo<UserAllInfoResp> updateUserInfos(UserAllInfoReq userAllInfoReq) {
-        if(userAllInfoReq != null) {
-            System.out.println(userAllInfoReq);
-        }
+
         UserReq userReq = userAllInfoReq.getUserReq();
         UserProfileReq userProfileReq = userAllInfoReq.getUserProfileReq();
         UserStatsReq userStatsReq = userAllInfoReq.getUserStatsReq();
-        if(userReq == null) {
-            System.out.println("1");
-        }
-        if(userProfileReq == null) {
-            System.out.println("2");
-        }
-        if(userStatsReq == null) {
-            System.out.println("3");
-        }
+        Long userId = Long.valueOf(0);
         if (userReq != null && userReq.getUserId() != null) {
+            userId = userReq.getUserId();
             // 先查询原用户信息
             User dbUser = userMapper.selectById(userReq.getUserId());
             if (dbUser == null) {
@@ -244,7 +235,7 @@ public class UserServiceImpl implements UserService {
             if (!dbUser.getPassword().equals(userReq.getPassword())) {
                 String encryptedPassword = passwordEncoderUtil.encodePassword(userReq.getPassword());
 
-                if(user.getUserId() == UserIdContext.getCurrentId()) {
+                if(user.getUserId().equals(UserIdContext.getCurrentId()) ) {
                     addBlackListToken();
                 }
                 user.setPassword(encryptedPassword);
@@ -257,7 +248,7 @@ public class UserServiceImpl implements UserService {
         }
 
         if(userProfileReq != null && userProfileReq.getUserId() != null) {
-
+            userId =userProfileReq.getUserId();
             UserProfile dbUserProfile = userProfileMapper.selectById(userProfileReq.getUserId());
             if(dbUserProfile == null) {
                 return ResultVo.fail(CommonConst.BAD_REQUEST_CODE, CommonConst.BAD_USERINFO_QUERY);
@@ -270,7 +261,7 @@ public class UserServiceImpl implements UserService {
         }
 
         if(userStatsReq != null && userStatsReq.getUserId() != null) {
-
+            userId = userStatsReq.getUserId();
             UserStats dbUserStats = userStatsMapper.selectById(userStatsReq.getUserId());
             if(dbUserStats == null) {
                 return ResultVo.fail(CommonConst.BAD_REQUEST_CODE, CommonConst.BAD_USERINFO_QUERY);
@@ -282,7 +273,7 @@ public class UserServiceImpl implements UserService {
                 return ResultVo.fail(CommonConst.RESULT_FAILURE_CODE, CommonConst.BAD_UPDATE_USER);
             }
         }
-        return ResultVo.success();
+       return findUserById(userId);
     }
 
     private void addBlackListToken() {

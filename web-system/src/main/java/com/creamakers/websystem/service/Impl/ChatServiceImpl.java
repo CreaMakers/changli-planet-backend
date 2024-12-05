@@ -36,7 +36,7 @@ public class ChatServiceImpl implements ChatService {
     public ResultVo<List<GroupUserResp>> getGroupsByUserId(Long userId, Integer page, Integer pageSize) {
         User user = userMapper.selectById(userId);
         if(user == null) {
-            return ResultVo.fail(CommonConst.ACCOUNT_NOT_FOUND);
+            return ResultVo.fail(CommonConst.BAD_REQUEST_CODE, CommonConst.BAD_USERINFO_QUERY);
         }
         /*
          * 权限不足
