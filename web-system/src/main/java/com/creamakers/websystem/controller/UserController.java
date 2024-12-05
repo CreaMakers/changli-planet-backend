@@ -85,4 +85,9 @@ public class UserController {
     public ResultVo<LoginTokenResp> refreshToken(String token) {
         return userService.refreshToken(token);
     }
+
+    @GetMapping("/count")
+    public ResultVo<Long> getAllUserCount() {
+        return userService.getAllUserCount();
+    }
 }

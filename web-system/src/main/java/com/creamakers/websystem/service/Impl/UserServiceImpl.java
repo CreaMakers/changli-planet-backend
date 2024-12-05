@@ -1,5 +1,6 @@
 package com.creamakers.websystem.service.Impl;
 import cn.hutool.core.bean.BeanUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -122,6 +123,12 @@ public class UserServiceImpl implements UserService {
             return ResultVo.fail(ErrorEnums.UNAUTHORIZED.getCode(), ErrorEnums.UNAUTHORIZED.getMsg());
         }
     }
+
+    @Override
+    public ResultVo<Long> getAllUserCount() {
+        return ResultVo.success(userMapper.selectCount(Wrappers.lambdaQuery()));
+    }
+
     /*
     * 通过用户名去删除redis中的refreshToken
     * */
