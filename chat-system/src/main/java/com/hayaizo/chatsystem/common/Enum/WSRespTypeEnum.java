@@ -12,8 +12,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Getter
 public enum WSRespTypeEnum {
-    LOGIN_URL(1, "登录二维码返回", WSLoginUrl.class),
-    LOGIN_SCAN_SUCCESS(2, "用户扫描成功等待授权", null),
+
     LOGIN_SUCCESS(3, "用户登录成功返回用户信息", WSLoginSuccess.class),
     //MESSAGE(4, "新消息", WSMessage.class),
     ONLINE_OFFLINE_NOTIFY(5, "上下线通知", WSOnlineOfflineNotify.class),

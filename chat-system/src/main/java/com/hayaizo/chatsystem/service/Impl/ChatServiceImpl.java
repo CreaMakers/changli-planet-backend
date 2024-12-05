@@ -1,5 +1,6 @@
 package com.hayaizo.chatsystem.service.Impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -15,6 +16,7 @@ import com.hayaizo.chatsystem.po.ChatGroupUser;
 import com.hayaizo.chatsystem.service.ChatService;
 import com.hayaizo.chatsystem.service.WebSocketService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,16 +36,34 @@ public class ChatServiceImpl implements ChatService {
     private WebSocketService webSocketService;
 
     @Override
-    public void sendMsg(ChatMessageReq request, Integer uid) {
+    public Integer sendMsg(ChatMessageReq request, Integer uid) {
         // 首先判断是否拥有房间的权限
         if(!check(uid,request.getRoomId())){
             // 出错了
+            return -1;
         }
         // 用户在群里
         AbstractMsgHandler<?> msgHandler = MsgHandlerFactory.get(request.getMsgType());
         Integer msgID = msgHandler.checkAndSaveMsg(request, uid);
         // TODO 开始推送消息，后面要改成异步的（RocketMQ）
         onMessage(msgID);
+
+        return msgID;
+    }
+
+    @Override
+    public ChatMessageResp getMsgResp(Integer msgID) {
+        ChatGroupMessage chatGroupMessage = chatGroupMessageMapper.selectById(msgID);
+        ChatMessageResp resp = new ChatMessageResp();
+        resp.setFromUser(chatGroupMessage.getSenderId());
+        ChatMessageResp.Message message = new ChatMessageResp.Message();
+        message.setId(chatGroupMessage.getMessageId());
+        message.setGroupID(chatGroupMessage.getGroupId());
+        message.setType(chatGroupMessage.getMessageType());
+        message.setBody(chatGroupMessage.getMessageContent());
+        message.setSendTime(new Date());
+        resp.setMessage(message);
+        return resp;
     }
 
     private void onMessage(Integer msgID) {

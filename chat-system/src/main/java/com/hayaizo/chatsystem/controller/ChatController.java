@@ -1,5 +1,6 @@
 package com.hayaizo.chatsystem.controller;
 
+import com.hayaizo.chatsystem.common.constant.HttpCode;
 import com.hayaizo.chatsystem.dto.request.ChatMessageReq;
 import com.hayaizo.chatsystem.dto.response.ChatMessageResp;
 import com.hayaizo.chatsystem.dto.response.GeneralResponse;
@@ -11,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+
+import static com.hayaizo.chatsystem.common.constant.ErrorMessage.USER_ROO_ERROR;
 
 @Slf4j
 @RestController
@@ -24,14 +27,17 @@ public class ChatController {
     @PostMapping("/msg")
     @ApiOperation("发送消息")
     public GeneralResponse<ChatMessageResp> sendMsg(@Valid @RequestBody ChatMessageReq request) {
-        chatService.sendMsg(request, request.getUid());
+        Integer msgID = chatService.sendMsg(request, request.getUid());
         // 返回完整消息格式，方便前端展示
-        return null;
+        GeneralResponse<ChatMessageResp> response = new GeneralResponse<>();
+        if(msgID == -1) {
+            response.setCode(HttpCode.FORBIDDEN);
+            response.setMsg(USER_ROO_ERROR);
+            return response;
+        }
+        response.setData(chatService.getMsgResp(msgID));
+        response.setCode(HttpCode.OK);
+        response.setMsg("发送成功");
+        return response;
     }
-
-    @GetMapping("")
-    public String test(){
-        return "test";
-    }
-
 }
