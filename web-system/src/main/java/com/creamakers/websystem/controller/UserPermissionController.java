@@ -31,7 +31,7 @@ public class UserPermissionController {
     文档中请求体和前面的UserResp是一样的
      */
     @PutMapping("/users/{userId}/permissions")
-    public ResultVo<UserPermissionResp> updateUserPermissions(@PathVariable("userId") Long userId, UserResp userResp){
+    public ResultVo<UserPermissionResp> updateUserPermissions(@PathVariable("userId") Long userId, @RequestBody UserResp userResp){
         return userPermissionService.updateUserPermissions(userId,userResp);
     }
 }

@@ -16,7 +16,7 @@ public class ChatController {
     private ChatService chatService;
     @GetMapping("/users/{userId}/groups")
     public ResultVo<List<GroupUserResp>> getGroupsByUserId(@PathVariable("userId") Long userId,
-                                                                @RequestParam(value = "page",defaultValue = "1") Integer page,
+                                                                   @RequestParam(value = "page",defaultValue = "1") Integer page,
                                                                 @RequestParam(value = "pageSize", defaultValue = "10")  Integer pageSize) {
         return chatService.getGroupsByUserId(userId,page,pageSize);
     }
