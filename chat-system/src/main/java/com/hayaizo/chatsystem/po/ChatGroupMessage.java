@@ -2,6 +2,7 @@ package com.hayaizo.chatsystem.po;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,6 +17,7 @@ import java.util.Date;
 @Data
 @Builder
 @AllArgsConstructor
+@TableName("chat_group_message")
 public class ChatGroupMessage {
 
     @TableId(type = IdType.AUTO)
@@ -48,6 +50,11 @@ public class ChatGroupMessage {
      * 文件存储的url路径
      */
     private String fileUrl;
+
+    /**
+     * 消息类型: 1-正常文本消息， 2-撤回类型消息
+     */
+    private Integer messageType;
 
     /**
      * 文件类型: 1-图片， 2-文档， 3-视频， 4-音频， 5-其他

@@ -2,6 +2,7 @@ package com.hayaizo.chatsystem.po;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -13,6 +14,7 @@ import java.util.Date;
  * @date 2024-11-27
  */
 @Data
+@TableName("chat_group_announcement")
 public class ChatGroupAnnouncement implements Serializable {
 
     private static final long serialVersionUID = 1L;

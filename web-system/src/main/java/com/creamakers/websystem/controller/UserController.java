@@ -87,4 +87,9 @@ public class UserController {
         String accessToken = refreshTokenReq.getAccessToken();
         return userService.refreshToken(accessToken);
     }
+
+    @GetMapping("/count")
+    public ResultVo<Long> getAllUserCount() {
+        return userService.getAllUserCount();
+    }
 }
