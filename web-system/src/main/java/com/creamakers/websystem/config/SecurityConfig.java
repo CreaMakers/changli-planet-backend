@@ -32,7 +32,8 @@ public class SecurityConfig {
                                 "/web/violation/search","/web/users/{userId}/violations/statistics","/web/violations/statistics","/web/violations/statistics",
                                 "/web/users/{userId}/permissions","/web/groups/{groupId}/messages","/web/posts","/web/posts/{post_id}","/web/users/{userId}",
                                 "/web/users","/web/permissions","/web/posts/reported","/web/posts/{post_id}/comments","/web/posts/{post_id}/comments/{comment_id}",
-                                "/web/posts/{post_id}/comments/search","web/reports/users","web/reports/posts/{reportId}"
+                                "/web/posts/{post_id}/comments/search", "/web/announcements", "/web/announcements/{announcement_id}", "/web/files", "/web/files/{fileId}",
+                                "/web/reports/users","/web/reports/posts/{reportId}","/web/reports/user/penalties"
                         ).permitAll()  // 允许注册和登录端点
                         .anyRequest().authenticated()
                 )
