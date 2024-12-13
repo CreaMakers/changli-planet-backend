@@ -34,6 +34,14 @@ public class ReportController {
   public ResultVo<ReportUser>  updateReportById(@PathVariable String reportId, @RequestBody ReportUserReq reportUserReq){
     return reportService.updateReportById(reportId,reportUserReq);
   }
+/**
+ * 强制禁言或者封号
+ */
+@PostMapping("/user/penalties")
+public ResultVo forcedBan(@RequestBody UserPunishmentReq userPunishmentReq){
+  return reportService.forceBanById(userPunishmentReq);
+
+}
 
 
 }
