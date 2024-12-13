@@ -13,7 +13,6 @@ spring:
     redis:
       host: ${planet.redis.host}
       port: ${planet.redis.port}
-      password: ${planet.redis.password}
       lettuce:
         pool:
           max-active: 10
