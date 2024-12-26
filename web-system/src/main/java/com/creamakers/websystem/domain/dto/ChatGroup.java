@@ -68,5 +68,4 @@ public class ChatGroup {
     @TableField(value = "description")
     private String description;
 
-
 }
