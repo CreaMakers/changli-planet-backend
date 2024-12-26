@@ -38,6 +38,14 @@ public class GetExamArrange {
     public List<ExamArrange> getData(String term, String examType) throws IOException {
 
 //String xqlb = examType.equals("期末") ? "3" : "2";
+        String xqlb = null;
+        if(examType.equals("期中")) {
+            xqlb = "2";
+        } else if(examType.equals("期末")) {
+            xqlb = "3";
+        } else {
+            xqlb = "";
+        }
         Connection con = Jsoup.connect(url)
                 .followRedirects(false)
                 .method(Connection.Method.POST)
@@ -45,7 +53,7 @@ public class GetExamArrange {
                 .header("Cookie", cookies)
                 .data("xqlbmc", examType)
                 .data("xnxqid", term)
-                .data("xqlb", "");
+                .data("xqlb", xqlb);
 
 
         Connection.Response res = con.execute();
