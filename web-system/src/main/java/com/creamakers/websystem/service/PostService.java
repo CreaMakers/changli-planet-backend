@@ -1,6 +1,8 @@
 package com.creamakers.websystem.service;
 
+import com.creamakers.websystem.domain.dto.ReportPost;
 import com.creamakers.websystem.domain.vo.ResultVo;
+import com.creamakers.websystem.domain.vo.request.ReviewPostReq;
 import com.creamakers.websystem.domain.vo.response.PostCommentResp;
 import com.creamakers.websystem.domain.vo.response.PostResp;
 import com.creamakers.websystem.domain.vo.response.ReportPostResp;
@@ -22,4 +24,6 @@ public interface PostService {
     ResultVo<List<PostCommentResp>> searchCommentsByKeyWord(Long postId, String keyWord, Integer page, Integer pageSize);
 
     ResultVo<Void> deleteCommentByPostIdAndCommentId(Long postId, Long commentId);
+
+    ResultVo<ReportPost> reviewReportPostByPostId(Long postId, ReviewPostReq reviewPostReq);
 }
