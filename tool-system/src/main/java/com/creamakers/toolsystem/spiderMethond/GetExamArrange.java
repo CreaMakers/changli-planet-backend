@@ -37,7 +37,7 @@ public class GetExamArrange {
 
     public List<ExamArrange> getData(String term, String examType) throws IOException {
 
-/
+
         Connection con = Jsoup.connect(url)
                 .followRedirects(false)
                 .method(Connection.Method.POST)
