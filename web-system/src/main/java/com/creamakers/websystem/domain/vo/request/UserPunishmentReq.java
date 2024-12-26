@@ -13,14 +13,11 @@ import java.time.ZonedDateTime;
 @NoArgsConstructor
 public class UserPunishmentReq {
 
-    private int reportedUserId;
+    private Integer UserId;
 
-    private int punishmentType;
+    private  Integer penaltyType;
 
-    private String processDescription;
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
-    private LocalDateTime handleTime;
-    @JsonFormat(pattern = "HH:mm:ss")
 
-    private int punishmentDuration;
+   private Integer mutedTime;
+
 }

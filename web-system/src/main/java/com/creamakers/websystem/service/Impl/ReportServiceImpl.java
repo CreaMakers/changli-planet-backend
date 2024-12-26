@@ -79,6 +79,34 @@ public class ReportServiceImpl implements ReportService {
         return ResultVo.success(reportUser);
     }
 
+    @Override
+    public ResultVo forceBanById(UserPunishmentReq userPunishmentReq) {
+        ViolationRecord violationRecord = new ViolationRecord();
+        violationRecord.setUserId(userPunishmentReq.getUserId());
+        violationRecord.setPenaltyType(userPunishmentReq.getPenaltyType());
+        violationRecord.setPenaltyTime(LocalDateTime.now());
+        violationRecord.setViolationTime(LocalDateTime.now());
+        violationRecord.setViolationType(3);
+        int penaltyType = userPunishmentReq.getPenaltyType();
+        switch (penaltyType) {
+            case 1: // 警告
+                violationRecord.setPenaltyStatus(0);
+                break;
+            case 2: // 封禁
+                violationRecord.setPenaltyStatus(1);
+                violationRecord.setBanDuration(userPunishmentReq.getMutedTime());
+                break;
+            default: // 禁言
+                violationRecord.setPenaltyStatus(1);
+                violationRecord.setMuteDuration(userPunishmentReq.getMutedTime());
+                break;
+        }
+
+        violationRecordMapper.insert(violationRecord);
+        return ResultVo.success();
+    }
+
+
     private void updateReportUser(ReportUser reportUser, String processDescription) {
         reportUser.setStatus(1);
         reportUser.setProcessDescription(processDescription);

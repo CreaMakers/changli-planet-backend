@@ -37,6 +37,7 @@ public class GetExamArrange {
 
     public List<ExamArrange> getData(String term, String examType) throws IOException {
 
+
         String xqlb = null;
         if(examType.equals("期中")) {
             xqlb = "2";
