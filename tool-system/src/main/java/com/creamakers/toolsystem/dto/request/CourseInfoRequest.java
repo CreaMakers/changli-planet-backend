@@ -19,4 +19,5 @@ public class CourseInfoRequest {
   private String password;
   private String week;
   public String termId;
+  public String data;
 }

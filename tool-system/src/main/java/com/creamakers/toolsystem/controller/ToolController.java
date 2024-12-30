@@ -41,6 +41,21 @@ public class ToolController {
         return toolService.GetCourseInfo(courseInfoRequest);
     }
 
+    @GetMapping("/courses/data")
+    public ResponseEntity<GeneralResponse<List<CourseInfo>>> GetCourseInfo(@RequestParam(value = "stuNum") String stuNum,
+                                                                           @RequestParam(value = "password") String password,
+                                                                           @RequestParam(value = "data") String data) throws IOException {
+
+        // 创建 CourseInfoRequest 对象，并设置从查询参数中获得的值
+        CourseInfoRequest courseInfoRequest = new CourseInfoRequest();
+        courseInfoRequest.setStuNum(stuNum);
+        courseInfoRequest.setPassword(password);
+        courseInfoRequest.setData(data);
+        return toolService.GetCourseInfoByData(courseInfoRequest);
+    }
+
+
+
 
     @GetMapping("/grades")
     public ResponseEntity<GeneralResponse<List<CourseGrade>>> getGradesInfo(
