@@ -29,7 +29,7 @@ public class GlobalExceptionHandler {
     public GeneralResponse<?> throwable(Throwable e) {
         log.error("system exception! The reason is: {}",e.getMessage(),e);
         return GeneralResponse.builder()
-                .data("全局异常错误")
+                .msg("全局异常错误")
                 .code(HttpCode.INTERNAL_SERVER_ERROR)
                 .build();
     }
