@@ -1,13 +1,16 @@
 package com.hayaizo.chatsystem.controller;
 
 import com.hayaizo.chatsystem.common.constant.HttpCode;
+import com.hayaizo.chatsystem.dto.request.ChatMessagePageReq;
 import com.hayaizo.chatsystem.dto.request.ChatMessageReq;
 import com.hayaizo.chatsystem.dto.response.ChatMessageResp;
+import com.hayaizo.chatsystem.dto.response.CursorPageBaseResp;
 import com.hayaizo.chatsystem.dto.response.GeneralResponse;
 import com.hayaizo.chatsystem.service.ChatService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,4 +43,13 @@ public class ChatController {
         response.setMsg("发送成功");
         return response;
     }
+
+    @GetMapping("/msg/page")
+    @ApiOperation("消息列表")
+    public GeneralResponse<CursorPageBaseResp<ChatMessageResp>> getMsgPage(@Valid ChatMessagePageReq request) {
+        CursorPageBaseResp<ChatMessageResp> msgPage = chatService.getMsgPage(request);
+
+        return null;
+    }
+
 }
