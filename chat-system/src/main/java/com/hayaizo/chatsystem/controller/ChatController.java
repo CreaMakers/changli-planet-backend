@@ -46,10 +46,23 @@ public class ChatController {
 
     @GetMapping("/msg/page")
     @ApiOperation("消息列表")
-    public GeneralResponse<CursorPageBaseResp<ChatMessageResp>> getMsgPage(@Valid ChatMessagePageReq request) {
-        CursorPageBaseResp<ChatMessageResp> msgPage = chatService.getMsgPage(request);
+    public GeneralResponse<CursorPageBaseResp<ChatMessageResp>> getMsgPage(
+            @RequestParam Long roomId,
+            @RequestParam Integer pageSize,
+            @RequestParam(required = false) String cursor) {
+        // 构建 ChatMessagePageReq 请求对象
+        ChatMessagePageReq request = new ChatMessagePageReq();
+        request.setRoomId(roomId);
+        request.setPageSize(pageSize);
+        request.setCursor(cursor);
 
-        return null;
+        CursorPageBaseResp<ChatMessageResp> msgPage = chatService.getMsgPage(request);
+        GeneralResponse<CursorPageBaseResp<ChatMessageResp>> response = new GeneralResponse<>();
+        response.setData(msgPage);
+        response.setCode(HttpCode.OK);
+        response.setMsg("发送成功");
+        return response;
     }
+
 
 }

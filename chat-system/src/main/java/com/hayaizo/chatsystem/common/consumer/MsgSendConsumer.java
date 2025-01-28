@@ -3,6 +3,8 @@ package com.hayaizo.chatsystem.common.consumer;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.hayaizo.chatsystem.common.constant.MQConstant;
+import com.hayaizo.chatsystem.common.strategy.AbstractMsgHandler;
+import com.hayaizo.chatsystem.common.strategy.MsgHandlerFactory;
 import com.hayaizo.chatsystem.dto.MsgSendMessageDTO;
 import com.hayaizo.chatsystem.dto.response.ChatMessageResp;
 import com.hayaizo.chatsystem.dto.response.WSBaseResp;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
@@ -47,21 +50,23 @@ public class MsgSendConsumer implements RocketMQListener<MsgSendMessageDTO> {
                 .collect(Collectors.toList());
         // TODO 获取房间信息 后期改成缓存
         // 构建前端响应对象
+        ChatMessageResp chatMessageResp = new ChatMessageResp();
+        chatMessageResp.setUid(chatGroupMessage.getSenderId());
         ChatMessageResp.Message message = new ChatMessageResp.Message();
-        message.setId(msgID);
-        message.setGroupID(chatGroupMessage.getGroupId());
-        message.setSendTime(new Date());
-        message.setType(message.getType());
-        message.setBody(chatGroupMessage.getMessageContent());
-
-        ChatMessageResp chatMessageResp = ChatMessageResp.builder()
-                .fromUser(chatGroupMessage.getSenderId())
-                .message(message)
-                .build();
+        message.setId(chatGroupMessage.getMessageId());
+        message.setRoomId(chatGroupMessage.getGroupId());
+        message.setSendTime(chatGroupMessage.getCreateTime());
+        message.setType(chatGroupMessage.getMessageType());
+        AbstractMsgHandler msgHandler = MsgHandlerFactory.get(chatGroupMessage.getMessageType());
+        Object object = msgHandler.showMsg(chatGroupMessage);
+        if(Objects.nonNull(object)){
+            message.setBody(object);
+        }
+        chatMessageResp.setMessage(message);
 
         // 发送给所有在线用户
         WSBaseResp<ChatMessageResp> objectWSBaseResp = new WSBaseResp<>();
-        objectWSBaseResp.setType(message.getType());
+        objectWSBaseResp.setType(chatGroupMessage.getMessageType());
         objectWSBaseResp.setData(chatMessageResp);
 
         // 丢给线程池去消费
