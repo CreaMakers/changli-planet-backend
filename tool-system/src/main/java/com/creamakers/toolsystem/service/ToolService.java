@@ -31,6 +31,14 @@ public class ToolService {
         GetCookies getCookies = new GetCookies();
         String cook = getCookies.getHeaderFromJW(courseInfoRequest.getStuNum(), courseInfoRequest.getPassword());
 
+        if (cook == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(GeneralResponse.<List<CourseInfo>>builder()
+                            .code(HttpCode.FORBIDDEN)
+                            .msg(ErrorMessage.INCORRECT_USER)
+                            .data(null)
+                            .build());
+        }
         GetCourseInfo getCourseInfo = new GetCourseInfo(cook);
 
         // 获取课程信息，通过链式调用设置cookie
@@ -56,9 +64,55 @@ public class ToolService {
         );
     }
 
+    public ResponseEntity<GeneralResponse<List<CourseInfo>>> GetCourseInfoByData(CourseInfoRequest courseInfoRequest) throws IOException {
+
+        GetCookies getCookies = new GetCookies();
+        String cook = getCookies.getHeaderFromJW(courseInfoRequest.getStuNum(), courseInfoRequest.getPassword());
+        if (cook == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(GeneralResponse.<List<CourseInfo>>builder()
+                            .code(HttpCode.FORBIDDEN)
+                            .msg(ErrorMessage.INCORRECT_USER)
+                            .data(null)
+                            .build());
+        }
+        GetCourseInfoByData getCourseInfo = new GetCourseInfoByData(cook);
+
+        // 获取课程信息，通过链式调用设置cookie
+        List<CourseInfo> courses = getCourseInfo.getData(courseInfoRequest.data);
+
+        if (courses == null || courses.isEmpty()) {
+            // 如果课程列表为空，返回404
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(GeneralResponse.<List<CourseInfo>>builder()
+                            .code(HttpCode.NOT_FOUND)
+                            .msg(ErrorMessage.INCORRECT_DATA)
+                            .data(null)
+                            .build());
+        }
+
+        // 返回成功响应
+        return ResponseEntity.ok(
+                GeneralResponse.<List<CourseInfo>>builder()
+                        .code(HttpCode.OK)
+                        .msg(SuccessMessage.COURSES_RETRIEVED_SUCCESSFULLY)
+                        .data(courses)
+                        .build()
+        );
+    }
+
     public ResponseEntity<GeneralResponse<List<CourseGrade>>> GetGradesInfo(GradesInfoRequest gradesInfoRequest) throws IOException {
         GetCookies getCookies = new GetCookies();
         String cook = getCookies.getHeaderFromJW(gradesInfoRequest.getStuNum(), gradesInfoRequest.getPassword());
+
+        if (cook == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(GeneralResponse.<List<CourseGrade>>builder()
+                            .code(HttpCode.FORBIDDEN)
+                            .msg(ErrorMessage.INCORRECT_USER)
+                            .data(null)
+                            .build());
+        }
 
         GetCourseGrade getCourseGrade = new GetCourseGrade(cook);
 
@@ -87,6 +141,15 @@ public class ToolService {
     public ResponseEntity<GeneralResponse<List<ExamArrange>>> GetExamArrangeInfo(ExamArrangeInfoRequest examArrangeRequest) throws IOException {
         GetCookies getCookies = new GetCookies();
         String cook = getCookies.getHeaderFromJW(examArrangeRequest.getStuNum(), examArrangeRequest.getPassword());
+
+        if (cook == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(GeneralResponse.<List<ExamArrange>>builder()
+                            .code(HttpCode.FORBIDDEN)
+                            .msg(ErrorMessage.INCORRECT_USER)
+                            .data(null)
+                            .build());
+        }
 
         GetExamArrange getExamArrange = new GetExamArrange(cook);
         List<ExamArrange> examArranges = getExamArrange.getData(examArrangeRequest.getTerm(), examArrangeRequest.getExamType());
@@ -121,7 +184,7 @@ public class ToolService {
         );
 
         // 获取电量查询的消息
-        String msg =  chargeInfo.getMsg();
+        String msg = chargeInfo.getMsg();
         // 构建 GeneralResponse 响应对象
         GeneralResponse<Void> response = GeneralResponse.<Void>builder()
                 .code(HttpCode.OK)

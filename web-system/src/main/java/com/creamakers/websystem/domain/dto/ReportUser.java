@@ -5,24 +5,28 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("report_post")
-public class ReportPost {
+@TableName("report_user")
+public class ReportUser {
+
+
+
     // 举报ID
     @TableId(value = "report_id", type = IdType.AUTO)
-    private Long reportId;
+    private Integer reportId;
 
-    // 被举报的帖子ID
-    @TableField(value = "post_id")
-    private Long postId;
+    // 被举报的用户ID
+    @TableField(value = "reported_user_id")
+    private Integer reportedUserId;
 
     // 举报者的用户ID
     @TableField(value = "reporter_id")
-    private Long reporterId;
+    private Integer reporterId;
 
     // 举报原因
     @TableField(value = "reason")
@@ -53,7 +57,7 @@ public class ReportPost {
     @TableField(value = "update_time")
     private LocalDateTime updateTime;
 
-    // 帖子举报表描述
+    // 举报用户表描述
     @TableField(value = "description")
     private String description;
 }

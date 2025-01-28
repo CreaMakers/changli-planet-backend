@@ -25,4 +25,6 @@ public interface UserService {
     ResultVo<UserAllInfoResp> updateUserInfos(UserAllInfoReq userAllInfoReq);
 
     ResultVo<LoginTokenResp> refreshToken(String token);
+
+    ResultVo<Long> getAllUserCount();
 }

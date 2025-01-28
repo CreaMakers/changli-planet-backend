@@ -2,7 +2,7 @@ package com.creamakers.websystem.service.Impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.ObjectUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.creamakers.websystem.constants.CommonConst;
@@ -13,6 +13,7 @@ import com.creamakers.websystem.domain.dto.Post;
 import com.creamakers.websystem.domain.dto.PostComment;
 import com.creamakers.websystem.domain.dto.ReportPost;
 import com.creamakers.websystem.domain.vo.ResultVo;
+import com.creamakers.websystem.domain.vo.request.ReviewPostReq;
 import com.creamakers.websystem.domain.vo.response.PostCommentResp;
 import com.creamakers.websystem.domain.vo.response.PostResp;
 import com.creamakers.websystem.domain.vo.response.ReportPostResp;
@@ -21,9 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.creamakers.websystem.constants.CommonConst.DATA_DELETE_FAILED_NOT_FOUND;
@@ -123,6 +122,30 @@ public class PostServiceImpl implements PostService {
             int i = postMapper.deleteCommentByPostIdAndCommentId(postId, commentId);
             if(i<1) return ResultVo.fail(DATA_DELETE_FAILED_NOT_FOUND);
             return ResultVo.success();
+    }
+
+    @Override
+    public ResultVo<ReportPost> reviewReportPostByPostId(Long postId, ReviewPostReq reviewPostReq) {
+        QueryWrapper<ReportPost> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("post_id",postId).eq("is_deleted",0);
+           ReportPost reportPost=reportPostMapper.selectOne(queryWrapper);
+           if(ObjectUtils.isEmpty(reportPost)){
+               return ResultVo.fail("没有该条审核记录");
+           }
+           Integer action=reviewPostReq.getAction();
+           String reason=reviewPostReq.getReason();
+           reportPost.setStatus(1);
+           reportPost.setProcessDescription(reason);
+
+           reportPostMapper.updateById(reportPost);
+           if(action==1){
+               reportPost.setIsDeleted(1);
+               reportPostMapper.deleteById(reportPost);
+           }
+
+         return  ResultVo.success(reportPost);
+
+
     }
 
 

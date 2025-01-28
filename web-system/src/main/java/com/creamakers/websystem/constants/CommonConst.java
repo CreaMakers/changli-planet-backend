@@ -48,6 +48,9 @@ public class CommonConst {
     public final static String VIOLATION_RECORD_NOT_SUPPORTED = "未找到对应的违规记录";
 
     public final static String DATA_DELETE_FAILED_NOT_FOUND = "数据删除失败，未找到该条记录";
+
     public final static String EMPTY_SEARCH_KEYWORD = "搜索关键词为空,无法查询";
+    public final static String GROUP_BULLETIN_ID_NOT_EXIST = "群聊公告Id不存在，查询失败";
+    public static final String UPDATE_GROUP_ANNOUNCEMENT_FAILED = "更新群聊公告表失败";
 
 }

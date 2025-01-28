@@ -1,5 +1,7 @@
 package com.creamakers.websystem.service.Impl;
 import cn.hutool.core.bean.BeanUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.creamakers.websystem.constants.CommonConst;
@@ -22,10 +24,12 @@ import com.creamakers.websystem.utils.JwtUtils;
 import com.creamakers.websystem.utils.PasswordEncoderUtil;
 import com.creamakers.websystem.utils.RedisUtil;
 import io.netty.util.internal.StringUtil;
+import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -119,6 +123,12 @@ public class UserServiceImpl implements UserService {
             return ResultVo.fail(ErrorEnums.UNAUTHORIZED.getCode(), ErrorEnums.UNAUTHORIZED.getMsg());
         }
     }
+
+    @Override
+    public ResultVo<Long> getAllUserCount() {
+        return ResultVo.success(userMapper.selectCount(Wrappers.lambdaQuery()));
+    }
+
     /*
     * 通过用户名去删除redis中的refreshToken
     * */
@@ -157,6 +167,7 @@ public class UserServiceImpl implements UserService {
         if(!passwordEncoderUtil.matches(passwordChangeReq.getOldPassword(), user.getPassword())) {
             return ResultVo.fail(ErrorEnums.UNAUTHORIZED.getCode(), ErrorEnums.UNAUTHORIZED.getMsg());
         }
+
         String encryptedPassword = passwordEncoderUtil.encodePassword(passwordChangeReq.getNewPassword());
         user.setPassword(encryptedPassword);
         userMapper.updateById(user);
@@ -220,9 +231,8 @@ public class UserServiceImpl implements UserService {
         UserReq userReq = userAllInfoReq.getUserReq();
         UserProfileReq userProfileReq = userAllInfoReq.getUserProfileReq();
         UserStatsReq userStatsReq = userAllInfoReq.getUserStatsReq();
-        Long userId = Long.valueOf(0);
+
         if (userReq != null && userReq.getUserId() != null) {
-            userId = userReq.getUserId();
             // 先查询原用户信息
             User dbUser = userMapper.selectById(userReq.getUserId());
             if (dbUser == null) {
@@ -235,7 +245,7 @@ public class UserServiceImpl implements UserService {
             if (!dbUser.getPassword().equals(userReq.getPassword())) {
                 String encryptedPassword = passwordEncoderUtil.encodePassword(userReq.getPassword());
 
-                if(user.getUserId().equals(UserIdContext.getCurrentId()) ) {
+                if(user.getUserId() == UserIdContext.getCurrentId()) {
                     addBlackListToken();
                 }
                 user.setPassword(encryptedPassword);
@@ -248,7 +258,7 @@ public class UserServiceImpl implements UserService {
         }
 
         if(userProfileReq != null && userProfileReq.getUserId() != null) {
-            userId =userProfileReq.getUserId();
+
             UserProfile dbUserProfile = userProfileMapper.selectById(userProfileReq.getUserId());
             if(dbUserProfile == null) {
                 return ResultVo.fail(CommonConst.BAD_REQUEST_CODE, CommonConst.BAD_USERINFO_QUERY);
@@ -261,7 +271,7 @@ public class UserServiceImpl implements UserService {
         }
 
         if(userStatsReq != null && userStatsReq.getUserId() != null) {
-            userId = userStatsReq.getUserId();
+
             UserStats dbUserStats = userStatsMapper.selectById(userStatsReq.getUserId());
             if(dbUserStats == null) {
                 return ResultVo.fail(CommonConst.BAD_REQUEST_CODE, CommonConst.BAD_USERINFO_QUERY);
@@ -273,7 +283,7 @@ public class UserServiceImpl implements UserService {
                 return ResultVo.fail(CommonConst.RESULT_FAILURE_CODE, CommonConst.BAD_UPDATE_USER);
             }
         }
-       return findUserById(userId);
+        return ResultVo.success();
     }
 
     private void addBlackListToken() {

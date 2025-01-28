@@ -1,6 +1,8 @@
 package com.creamakers.websystem.controller;
 
+import com.creamakers.websystem.domain.dto.ReportPost;
 import com.creamakers.websystem.domain.vo.ResultVo;
+import com.creamakers.websystem.domain.vo.request.ReviewPostReq;
 import com.creamakers.websystem.domain.vo.response.PostCommentResp;
 import com.creamakers.websystem.domain.vo.response.PostResp;
 import com.creamakers.websystem.domain.vo.response.ReportPostResp;
@@ -59,6 +61,11 @@ public class PostController {
     public ResultVo<Void> deleteCommentByPostIdAndCommentId(@PathVariable("post_id") Long postId,
                                                             @PathVariable("comment_id")Long commentId){
         return postService.deleteCommentByPostIdAndCommentId(postId,commentId);
+    }
+
+    @PutMapping("/{post_id}/review")
+    public  ResultVo<ReportPost> reviewReportPostByPostId(@PathVariable("post_id") Long postId, @RequestBody ReviewPostReq reviewPostReq){
+        return postService.reviewReportPostByPostId(postId,reviewPostReq);
     }
 }
 
