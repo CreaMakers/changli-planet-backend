@@ -24,6 +24,7 @@
         <module>tool-system</module>
         <module>web-system</module>
         <module>chat-system</module>
+        <module>fresh-system</module>
     </modules>
 
     <!-- 属性配置 -->
