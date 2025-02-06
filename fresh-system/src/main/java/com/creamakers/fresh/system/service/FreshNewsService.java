@@ -17,8 +17,4 @@ public interface FreshNewsService {
     ResultVo<List<FreshNewsResp>> getAllByLikes(Integer page, Integer pageSize);
 
     ResultVo<List<FreshNewsResp>> getByTag(String tag, Integer page, Integer pageSize);
-
-    ResultVo<Void> likeFreshNews(Long freshNewsId, Long userId);
-
-    ResultVo<Void> unlikeFreshNews(Long freshNewsId, Long userId);
 }

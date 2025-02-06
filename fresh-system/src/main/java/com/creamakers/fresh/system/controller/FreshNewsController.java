@@ -66,18 +66,4 @@ public class FreshNewsController {
                                                   @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
         return freshNewsService.getByTag(tag, page, pageSize);
     }
-
-    // 点赞新鲜事
-    @PostMapping("/{fresh_news_id}/likes/{user_id}")
-    public ResultVo<Void> likeFreshNews(@PathVariable("fresh_news_id") Long freshNewsId,
-                                        @PathVariable("user_id") Long userId) {
-        return freshNewsService.likeFreshNews(freshNewsId, userId);
-    }
-
-    // 取消点赞新鲜事
-    @DeleteMapping("/{fresh_news_id}/likes/{user_id}")
-    public ResultVo<Void> unlikeFreshNews(@PathVariable("fresh_news_id") Long freshNewsId,
-                                          @PathVariable("user_id") Long userId) {
-        return freshNewsService.unlikeFreshNews(freshNewsId, userId);
-    }
 }

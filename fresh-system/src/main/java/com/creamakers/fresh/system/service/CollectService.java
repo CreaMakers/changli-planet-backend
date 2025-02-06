@@ -5,8 +5,8 @@ import com.creamakers.fresh.system.domain.vo.ResultVo;
 
 import java.util.List;
 
-public interface FavoritesService {
-    ResultVo<Void> addFavorite(Long userId, Long newsId);
+public interface CollectService {
+    ResultVo<Void> CollectNews(Long userId, Long newsId);
 
     ResultVo<List<FreshNewsFavorites>> listFavorites(Long userId, Integer page, Integer pageSize);
 
