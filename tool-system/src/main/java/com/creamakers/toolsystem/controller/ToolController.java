@@ -1,9 +1,6 @@
 package com.creamakers.toolsystem.controller;
 
-import com.creamakers.toolsystem.dto.request.CourseInfoRequest;
-import com.creamakers.toolsystem.dto.request.ElectricityChargeRequest;
-import com.creamakers.toolsystem.dto.request.ExamArrangeInfoRequest;
-import com.creamakers.toolsystem.dto.request.GradesInfoRequest;
+import com.creamakers.toolsystem.dto.request.*;
 import com.creamakers.toolsystem.dto.response.GeneralResponse;
 import com.creamakers.toolsystem.entity.CourseGrade;
 import com.creamakers.toolsystem.entity.CourseInfo;
@@ -97,6 +94,15 @@ public class ToolController {
         electricityChargeRequest.setBuildId(buildId);
         electricityChargeRequest.setNod(nod);
         return toolService.GetElectricityChargeInfo(electricityChargeRequest);
+    }
+
+    @PostMapping("/getWeekDate")
+    public ResponseEntity<GeneralResponse> getWeekDate(
+            @RequestParam(value = "stuNum") String stuNum,
+            @RequestParam(value = "password") String password
+    ) {
+        WeekDateRequest weekDateRequest = new WeekDateRequest(stuNum, password);
+        return toolService.getWeekDate(weekDateRequest);
     }
 
 
