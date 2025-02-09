@@ -1,13 +1,11 @@
 package com.creamakers.toolsystem.controller;
 
-import com.creamakers.toolsystem.dto.request.CourseInfoRequest;
-import com.creamakers.toolsystem.dto.request.ElectricityChargeRequest;
-import com.creamakers.toolsystem.dto.request.ExamArrangeInfoRequest;
-import com.creamakers.toolsystem.dto.request.GradesInfoRequest;
+import com.creamakers.toolsystem.dto.request.*;
 import com.creamakers.toolsystem.dto.response.GeneralResponse;
 import com.creamakers.toolsystem.entity.CourseGrade;
 import com.creamakers.toolsystem.entity.CourseInfo;
 import com.creamakers.toolsystem.entity.ExamArrange;
+import com.creamakers.toolsystem.entity.PscjInfo;
 import com.creamakers.toolsystem.service.ToolService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,6 +81,16 @@ public class ToolController {
         electricityChargeRequest.setNod(nod);
         return toolService.GetElectricityChargeInfo(electricityChargeRequest);
     }
-
+    //平时成绩
+//    @GetMapping("/queryPscj")
+//    public ResponseEntity<GeneralResponse<PscjInfo>> queryUsualGrades(@RequestParam(value = "stuNum") String stuNum,
+//                                                                      @RequestParam(value = "password") String password,
+//                                                                      @RequestParam(value = "pscjUrl") String pscjUrl) throws IOException {
+//        PscjInfoRequest pscjInfoRequest=new PscjInfoRequest();
+//        pscjInfoRequest.setStuNum(stuNum);
+//        pscjInfoRequest.setPassword(password);
+//        pscjInfoRequest.setPscjUrl(pscjUrl);
+//        return toolService.getScoreDetail(pscjInfoRequest);
+//    }
 
 }
