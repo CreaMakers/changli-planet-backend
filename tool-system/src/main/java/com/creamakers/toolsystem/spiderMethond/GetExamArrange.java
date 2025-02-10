@@ -47,7 +47,6 @@ public class GetExamArrange {
                 .data("xnxqid", term)
                 .data("xqlb","");
 
-
         Connection.Response res = con.execute();
 
 

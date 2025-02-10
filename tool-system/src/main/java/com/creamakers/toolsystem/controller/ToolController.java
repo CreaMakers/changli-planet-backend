@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -39,6 +41,19 @@ public class ToolController {
         return toolService.GetCourseInfo(courseInfoRequest);
     }
 
+    @GetMapping("/courses/data")
+    public ResponseEntity<GeneralResponse<List<CourseInfo>>> GetCourseInfo(@RequestParam(value = "stuNum") String stuNum,
+                                                                           @RequestParam(value = "password") String password,
+                                                                           @RequestParam(value = "data") String data) throws IOException {
+
+        // 创建 CourseInfoRequest 对象，并设置从查询参数中获得的值
+        CourseInfoRequest courseInfoRequest = new CourseInfoRequest();
+        courseInfoRequest.setStuNum(stuNum);
+        courseInfoRequest.setPassword(password);
+        courseInfoRequest.setData(data);
+        return toolService.GetCourseInfoByData(courseInfoRequest);
+    }
+
 
     @GetMapping("/grades")
     public ResponseEntity<GeneralResponse<List<CourseGrade>>> getGradesInfo(
@@ -55,6 +70,7 @@ public class ToolController {
         // 调用服务方法，并返回响应
         return toolService.GetGradesInfo(gradesInfoRequest);
     }
+
     @GetMapping("/exams")
     public ResponseEntity<GeneralResponse<List<ExamArrange>>> getExamArrangeInfo(
             @RequestParam(value = "stuNum") String stuNum,
@@ -71,6 +87,7 @@ public class ToolController {
 
         return toolService.GetExamArrangeInfo(examArrangeInfoRequest);
     }
+
     @GetMapping("/dormitory-electricity")
     public ResponseEntity<GeneralResponse> GetElectricityChargeInfo(@RequestParam(value = "address") String address,
                                                                     @RequestParam(value = "buildId") String buildId,
@@ -81,6 +98,7 @@ public class ToolController {
         electricityChargeRequest.setNod(nod);
         return toolService.GetElectricityChargeInfo(electricityChargeRequest);
     }
+
     //平时成绩
 //    @GetMapping("/queryPscj")
 //    public ResponseEntity<GeneralResponse<PscjInfo>> queryUsualGrades(@RequestParam(value = "stuNum") String stuNum,
@@ -91,6 +109,34 @@ public class ToolController {
 //        pscjInfoRequest.setPassword(password);
 //        pscjInfoRequest.setPscjUrl(pscjUrl);
 //        return toolService.getScoreDetail(pscjInfoRequest);
+//    }
+
+  
+  
+    @GetMapping("/classroom")
+    public ResponseEntity<GeneralResponse<ArrayList<String>>> GetClassroomInfo(@RequestParam(value = "stuNum") String stuNum,
+                                                                               @RequestParam(value = "password") String password,
+                                                                               @RequestParam(value = "week") String week,
+                                                                               @RequestParam(value = "day") String day,
+                                                                               @RequestParam(value = "term") String term,
+                                                                               @RequestParam(value = "region") String region,
+                                                                               @RequestParam(value = "start") String start,
+                                                                               @RequestParam(value = "end") String end, Principal principal) throws IOException {
+        ClassroomInfoRequest classroomInfoRequest = new ClassroomInfoRequest(
+                stuNum, password, week, day, term, region, start, end
+        );
+        return toolService.GetClassroomInfo(classroomInfoRequest);
+    }
+  
+  
+
+//    @PostMapping("/getWeekDate")
+//    public ResponseEntity<GeneralResponse> getWeekDate(
+//            @RequestParam(value = "stuNum") String stuNum,
+//            @RequestParam(value = "password") String password
+//    ) {
+//        WeekDateRequest weekDateRequest = new WeekDateRequest(stuNum, password);
+//        return toolService.getWeekDate(weekDateRequest);
 //    }
 
 }

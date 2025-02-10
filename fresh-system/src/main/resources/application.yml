@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: fresh-system
+  # 运行的环境
+  profiles:
+    active: test
+  datasource:
+    url: jdbc:mysql://${planet.mysql.ip}:${planet.mysql.port}/${planet.mysql.db}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    password: ${planet.mysql.password}
+    username: ${planet.mysql.username}
+  data:
+    redis:
+      host: ${planet.redis.host}
+      port: ${planet.redis.port}
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 10
+          min-idle: 1
+          time-between-eviction-runs: 10s
+      password: ${planet.redis.password}
+
+server:
+  port: 8085
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/**/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true
+
+
+planet:
+  jwt:
+    secret:
+      creamakerscreamakeres
+    expiration_time:
+      7200000
+    refresh_expiration_time:
+      86400000
+  bloom:
+    expected_insertions: 20000000
+    fpp: 0.000001

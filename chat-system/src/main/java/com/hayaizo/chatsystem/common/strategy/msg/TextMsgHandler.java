@@ -3,10 +3,15 @@ package com.hayaizo.chatsystem.common.strategy.msg;
 import com.hayaizo.chatsystem.common.Enum.MessageTypeEnum;
 import com.hayaizo.chatsystem.common.strategy.AbstractMsgHandler;
 import com.hayaizo.chatsystem.dto.request.TextMsgReq;
+import com.hayaizo.chatsystem.dto.response.MessageExtra;
+import com.hayaizo.chatsystem.dto.response.TextMsgResp;
 import com.hayaizo.chatsystem.mapper.ChatGroupMessageMapper;
 import com.hayaizo.chatsystem.po.ChatGroupMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Objects;
+import java.util.Optional;
 
 @Component
 public class TextMsgHandler extends AbstractMsgHandler<TextMsgReq> {
@@ -30,7 +35,9 @@ public class TextMsgHandler extends AbstractMsgHandler<TextMsgReq> {
         Integer messageId = message.getMessageId();
         ChatGroupMessage updateMessage = new ChatGroupMessage();
         updateMessage.setMessageId(messageId);
+        // 消息拓展属性
 
+        updateMessage.setExtra(message.getExtra());
         // TODO 需要用AC自动机处理敏感词
         updateMessage.setMessageContent(body.getContent());
 
@@ -42,7 +49,11 @@ public class TextMsgHandler extends AbstractMsgHandler<TextMsgReq> {
 
     @Override
     public Object showMsg(ChatGroupMessage msg) {
-        return null;
+        TextMsgResp resp = new TextMsgResp();
+        resp.setContent(msg.getMessageContent());
+        resp.setUrlContentMap(Optional.ofNullable(msg.getExtra()).map(MessageExtra::getUrlContentMap).orElse(null));
+        resp.setAtUidList(Optional.ofNullable(msg.getExtra()).map(MessageExtra::getAtUidList).orElse(null));
+        return resp;
     }
 
     @Override
