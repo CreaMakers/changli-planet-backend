@@ -3,10 +3,7 @@ package com.creamakers.toolsystem.service;
 import com.creamakers.toolsystem.consts.HttpCode;
 import com.creamakers.toolsystem.dto.request.*;
 import com.creamakers.toolsystem.dto.response.GeneralResponse;
-import com.creamakers.toolsystem.entity.CourseGrade;
-import com.creamakers.toolsystem.entity.CourseInfo;
-import com.creamakers.toolsystem.entity.ElectricityCharge;
-import com.creamakers.toolsystem.entity.ExamArrange;
+import com.creamakers.toolsystem.entity.*;
 import com.creamakers.toolsystem.spiderMethond.*;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -300,6 +297,21 @@ public class ToolService {
 
         return ResponseEntity.ok(response);
     }
+  
+//
+//    public ResponseEntity<GeneralResponse<PscjInfo>> getScoreDetail(PscjInfoRequest pscjInfoRequest) throws IOException {
+//        GetCookies getCookies = new GetCookies();
+//        String cook = getCookies.getHeaderFromJW(pscjInfoRequest.getStuNum(), pscjInfoRequest.getPassword());
+//
+//        GetCourseGrade getCourseGrade = new GetCourseGrade(cook);
+//        PscjInfo pscjInfo=getCourseGrade.getScoreDetail(pscjInfoRequest.getPscjUrl());
+//
+//        if (pscjInfo==null) {
+//            // 如果平时成绩为空，返回404
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+//                    .body(GeneralResponse.<PscjInfo>builder()
+//                            .code(HttpCode.NOT_FOUND)
+//                            .msg(ErrorMessage.NO_GRADES_FOUND)
 
 //    public ResponseEntity<GeneralResponse<List<Integer>>> getWeekDate(WeekDateRequest weekDateRequest) throws IOException {
 //        GetCookies getCookies = new GetCookies();
@@ -321,10 +333,21 @@ public class ToolService {
 //                    .body(GeneralResponse.<List<Integer>>builder()
 //                            .code(HttpCode.NOT_FOUND)
 //                            .msg(ErrorMessage.NO_EXAM_ARRANGEMENTS_FOUND)
+
 //                            .data(null)
 //                            .build());
 //        }
 //
+
+//        // 返回成功响应
+//        return ResponseEntity.ok(
+//                GeneralResponse.<PscjInfo>builder()
+//                        .code(HttpCode.OK)
+//                        .msg(SuccessMessage.GRADES_RETRIEVED_SUCCESSFULLY)
+//                        .data(pscjInfo)
+//                        .build()
+//        );
+//    }
 //        List<Integer> nowWeekDate = parseWeekDateHtml(htmlText);
 //
 //        if (nowWeekDate == null) {
@@ -416,5 +439,4 @@ public class ToolService {
         response.close();
         return htmlText;
     }
-
 }

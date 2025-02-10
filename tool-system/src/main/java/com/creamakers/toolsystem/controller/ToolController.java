@@ -5,6 +5,7 @@ import com.creamakers.toolsystem.dto.response.GeneralResponse;
 import com.creamakers.toolsystem.entity.CourseGrade;
 import com.creamakers.toolsystem.entity.CourseInfo;
 import com.creamakers.toolsystem.entity.ExamArrange;
+import com.creamakers.toolsystem.entity.PscjInfo;
 import com.creamakers.toolsystem.service.ToolService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,6 +99,20 @@ public class ToolController {
         return toolService.GetElectricityChargeInfo(electricityChargeRequest);
     }
 
+    //平时成绩
+//    @GetMapping("/queryPscj")
+//    public ResponseEntity<GeneralResponse<PscjInfo>> queryUsualGrades(@RequestParam(value = "stuNum") String stuNum,
+//                                                                      @RequestParam(value = "password") String password,
+//                                                                      @RequestParam(value = "pscjUrl") String pscjUrl) throws IOException {
+//        PscjInfoRequest pscjInfoRequest=new PscjInfoRequest();
+//        pscjInfoRequest.setStuNum(stuNum);
+//        pscjInfoRequest.setPassword(password);
+//        pscjInfoRequest.setPscjUrl(pscjUrl);
+//        return toolService.getScoreDetail(pscjInfoRequest);
+//    }
+
+  
+  
     @GetMapping("/classroom")
     public ResponseEntity<GeneralResponse<ArrayList<String>>> GetClassroomInfo(@RequestParam(value = "stuNum") String stuNum,
                                                                                @RequestParam(value = "password") String password,
@@ -112,6 +127,8 @@ public class ToolController {
         );
         return toolService.GetClassroomInfo(classroomInfoRequest);
     }
+  
+  
 
 //    @PostMapping("/getWeekDate")
 //    public ResponseEntity<GeneralResponse> getWeekDate(
@@ -121,6 +138,5 @@ public class ToolController {
 //        WeekDateRequest weekDateRequest = new WeekDateRequest(stuNum, password);
 //        return toolService.getWeekDate(weekDateRequest);
 //    }
-
 
 }
