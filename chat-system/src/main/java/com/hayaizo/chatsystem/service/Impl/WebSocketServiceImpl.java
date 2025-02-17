@@ -10,10 +10,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.hayaizo.chatsystem.adapter.WSAdapter;
-import com.hayaizo.chatsystem.common.config.ThreadPoolConfig;
-import com.hayaizo.chatsystem.common.constant.MQConstant;
 import com.hayaizo.chatsystem.dto.request.WSChannelExtraDTO;
-import com.hayaizo.chatsystem.dto.response.ChatMessageResp;
 import com.hayaizo.chatsystem.dto.response.WSBaseResp;
 import com.hayaizo.chatsystem.mapper.UserMapper;
 import com.hayaizo.chatsystem.mapper.UserProfileMapper;
@@ -26,14 +23,11 @@ import io.netty.channel.Channel;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -69,10 +63,6 @@ public class WebSocketServiceImpl implements WebSocketService {
     private JwtUtil jwtUtil;
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
-
-    @Autowired
-    @Qualifier(ThreadPoolConfig.WS_EXECUTOR)
-    private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
     @Value("${REFRESH_TOKEN_PREFIX}")
     private String TOKEN_PREFIX;
@@ -140,40 +130,14 @@ public class WebSocketServiceImpl implements WebSocketService {
                 return;
             }
             // TODO 后续可以改成通用线程池
-            threadPoolTaskExecutor.execute(()->{
-                sendMsg(channel,wsBaseResp);
-            });
+            sendMsg(channel,wsBaseResp);
         });
-    }
-
-    @Override
-    public void sendToUid(WSBaseResp<?> wsBaseResp, Integer uid) {
-        CopyOnWriteArrayList<Channel> channels = ONLINE_UID_MAP.get(uid);
-        if(CollectionUtil.isEmpty(channels)){
-            return;
-        }
-        channels.forEach(channel -> {
-            threadPoolTaskExecutor.execute(()->{
-                sendMsg(channel,wsBaseResp);
-            });
-        });
-    }
-
-    @Override
-    public void sendToUids(WSBaseResp<?> wsBaseResp, List<Integer> uids) {
-        for (Integer uid : uids) {
-            CopyOnWriteArrayList<Channel> channels = ONLINE_UID_MAP.get(uid);
-            if(!CollectionUtil.isEmpty(channels)){
-                sendToUid(wsBaseResp,uid);
-            }
-        }
     }
 
     @Override
     public void sendToAllOnline(WSBaseResp<?> wsBaseResp) {
         sendToAllOnline(wsBaseResp, null);
     }
-
 
     private void loginSuccess(Channel channel,User user,UserProfile userProfile, String token){
         // 更新在线列表

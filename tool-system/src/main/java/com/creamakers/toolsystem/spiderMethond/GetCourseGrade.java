@@ -3,6 +3,7 @@ package com.creamakers.toolsystem.spiderMethond;
 
 import com.creamakers.toolsystem.entity.CourseGrade;
 import com.creamakers.toolsystem.entity.PscjInfo;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -14,7 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+@Slf4j
 public class GetCourseGrade {
 
     //从教务系统获取code的url
@@ -97,9 +98,9 @@ public class GetCourseGrade {
             if (cols.size() < 13) {
                 continue;
             }
-           Element fifthTd=cols.get(5);
-           String score;
-           String pscjUrl=null;
+            Element fifthTd = cols.get(5);
+            String score;
+            String pscjUrl = null;
             if (!fifthTd.select("a").isEmpty()) {
                 Element linkElement = fifthTd.selectFirst("a");
                 score = linkElement.text(); // 提取 <a> 标签的文本内容
@@ -112,7 +113,6 @@ public class GetCourseGrade {
                 System.out.println("Link: " + pscjUrl);
             }
             System.out.println("Score: " + score);
-            PscjInfo pscjInfo=getScoreDetail(pscjUrl);
 
             CourseGrade grade = new CourseGrade(
                     cols.get(0).text(),  // 序号
@@ -135,15 +135,8 @@ public class GetCourseGrade {
                     cols.get(12).text(),  // 考核方式
                     cols.get(13).text(),  // 考试性质
                     cols.get(14).text(),  // 课程属性
-                    pscjInfo.getPscj(),//平时成绩
-                    pscjInfo.getPscjBL(),//平时成绩比例
-                    pscjInfo.getQmcj(),//期末成绩
-                    pscjInfo.getQmcjBL(),//期末成绩比例
-                    pscjInfo.getQzcj(),//期中成绩
-                    pscjInfo.getQzcjBL(),//期中成绩比例
-                    pscjInfo.getSjcj(),//上机成绩
-                    pscjInfo.getSjcjBL()//上机成绩比例
-
+                    "http://xk.csust.edu.cn" + pscjUrl,
+                    this.cookie
             );
 
             // 将成绩对象添加到列表中
@@ -153,14 +146,44 @@ public class GetCourseGrade {
         return gradeList;
     }
 
-    public PscjInfo getScoreDetail(String pscjUrl) throws IOException {
-        Document document = Jsoup.connect("http://xk.csust.edu.cn" + pscjUrl)
-                .header("Cookie", cookie)
-                .get();
+    public PscjInfo getScoreDetail(String pscjUrl) throws IOException, InterruptedException {
+        int maxRetries = 7;  // 最大重试次数
+        int currentTry = 0;
 
-        return parseScoreDetailHtml(document);
+        while (currentTry < maxRetries) {
+            Document document = Jsoup.connect(pscjUrl)
+                    .header("Cookie", cookie)
+                    .get();
+
+            // 检查是否是登录页面
+            if (isLoginPage(document)) {
+                currentTry++;
+                if (currentTry >= maxRetries) {
+                    return null;
+                }
+                // 可以在这里添加重新登录的逻辑
+                Thread.sleep(20);
+                continue;
+            }
+
+            return parseScoreDetailHtml(document);
+        }
+
+        return null;
     }
 
+    private boolean isLoginPage(Document document) {
+        // 检查HTML内容
+        String htmlContent = document.html();
+
+        // 检查是否是登录页面或错误页面
+        return document.select("form[action='/jsxsd/xk/LoginToXk']").size() > 0
+                || document.select("#userAccount").size() > 0
+                || htmlContent.contains("alert('数据有误！')")
+                || document.select("script:contains(alert)").size() > 0
+                || document.select("body").isEmpty()
+                || document.select("head > script:contains(window.close)").size() > 0;
+    }
 
 
     private PscjInfo parseScoreDetailHtml(Document document) {
@@ -168,7 +191,12 @@ public class GetCourseGrade {
             HashMap<String, Integer> map = new HashMap<>();
             Elements elements = document.select("#dataList");
             Elements trs = elements.select("tr");
-            Element nameTr = trs.get(0);
+            Element nameTr = null;
+            try {
+                nameTr = trs.get(0);
+            } catch (Exception e) {
+                log.error(document.toString());
+            }
             Elements ths = nameTr.select("th");
             int index = 0;
             for (Element th : ths) {
@@ -196,9 +224,9 @@ public class GetCourseGrade {
                         map.put("qzcjBL", index);
                         break;
                     case "上机成绩":
-                        map.put("sjcj",index);
+                        map.put("sjcj", index);
                     case "上机成绩比例":
-                        map.put("sjcjBL",index);
+                        map.put("sjcjBL", index);
                 }
                 index++;
             }
@@ -224,9 +252,9 @@ public class GetCourseGrade {
                     pscjInfo.setQzcj(tds.get(value).ownText());
                 } else if ("qzcjBL".equals(key)) {
                     pscjInfo.setQzcjBL(tds.get(value).ownText());
-                }else if("sjcj".equals(key)){
+                } else if ("sjcj".equals(key)) {
                     pscjInfo.setSjcj(tds.get(value).ownText());
-                }else if("sjcjBL".equals(key)){
+                } else if ("sjcjBL".equals(key)) {
                     pscjInfo.setSjcjBL(tds.get(value).ownText());
                 }
             }
@@ -235,6 +263,7 @@ public class GetCourseGrade {
             throw new RuntimeException("解析平时成绩失败", e);
         }
     }
+
     /**
      * 提取并返回从 "javascript:openWindow('<URL>')" 格式字符串中提取的 URL。
      * 如果输入字符串不符合预期格式，则返回 null。

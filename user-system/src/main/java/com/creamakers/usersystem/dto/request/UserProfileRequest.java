@@ -17,7 +17,7 @@ public class UserProfileRequest implements Serializable {
     private String bio;
     private int userLevel;
     private int gender;
-    private String grade;
+    private int grade;
     private String birthdate;
     private String location;
     private String website;

@@ -1,11 +1,8 @@
 package com.hayaizo.chatsystem.po;
 
 import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-import com.hayaizo.chatsystem.dto.response.MessageExtra;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,7 +17,7 @@ import java.util.Date;
 @Data
 @Builder
 @AllArgsConstructor
-@TableName(value = "chat_group_message",autoResultMap = true)
+@TableName("chat_group_message")
 public class ChatGroupMessage {
 
     @TableId(type = IdType.AUTO)
@@ -67,8 +64,7 @@ public class ChatGroupMessage {
     /**
      * 额外消息内容
      */
-    @TableField(typeHandler = JacksonTypeHandler.class)
-    private MessageExtra extra;
+    private String extra;
 
     /**
      * 消息间隔数

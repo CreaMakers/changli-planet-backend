@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/app/users")
@@ -34,16 +33,6 @@ public class UserProfileController {
         String accessToken = authorization.substring(7);
         return userProfileService.updateInfo(request, accessToken);
     }
-
-    @PostMapping("/me/avatar")
-    public ResponseEntity<GeneralResponse> updateAvatar(@RequestParam("avatar") MultipartFile avatar,
-                                          @RequestHeader(value = "Authorization") String authorization) {
-
-           String accessToken = authorization.substring(7);
-           return userProfileService.saveAvatar(avatar,accessToken); // 你可以在这个方法中处理文件保存的逻辑
-    }
-
-
 
 
 }

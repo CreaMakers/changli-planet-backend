@@ -99,7 +99,7 @@ public class UserServiceImpl implements UserService {
     }
 
     public ResultVo<LoginTokenResp> refreshToken(String token) {
-        String username = jwtUtils.getUserNameOrNull(token);
+        String username = jwtUtils.extractUidFromExpiredToken(token);
         if(StringUtil.isNullOrEmpty(username)) {
             return ResultVo.fail(CommonConst.TOKEN_INVALID);
         }

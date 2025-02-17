@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 public class GetCookies {
@@ -25,7 +26,6 @@ public class GetCookies {
     private static final SimpleDateFormat weekDaySdf = new SimpleDateFormat("EEEE");
 
     private static final String versionRegex = ".+v\\d\\.\\d\\.\\d\\.apk1?|.+v\\d\\.\\d\\.\\d\\.ipa1?";
-
 
 
     public String[] getJwCode() throws IOException {
@@ -95,7 +95,13 @@ public class GetCookies {
             String[] jwCode = getJwCode();
             //2010AV81T974906Y80071f0Uyf1d21T5F%1%ir%8dlC63h34eg2n4g155123!
             String encoded = encodePsd(stuNum, password, jwCode[1]);
-            OkHttpClient okHttpClient = new OkHttpClient.Builder().followRedirects(false).build();
+            OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                    .followRedirects(false)
+                    .connectTimeout(400, TimeUnit.MILLISECONDS)
+                    .readTimeout(400, TimeUnit.MILLISECONDS)
+                    .writeTimeout(300, TimeUnit.MILLISECONDS)
+                    .callTimeout(300, TimeUnit.MILLISECONDS)
+                    .build();
             FormBody formBody = new FormBody.Builder()
 //                    .add("userAccount", stuNum)
 //                    .add("userPassword", password)
@@ -129,24 +135,19 @@ public class GetCookies {
 //            updateCookieUrl = headerValues.get(11);
 
 
-
-
             String updateCookieUrl = response.header("Location");
-
-
 
 
             if (updateCookieUrl == null) {
                 return null;
             }
 
-            OkHttpClient updateCookieClient = new OkHttpClient.Builder().followRedirects(false).build();
             Request updateCookieRequest = new Request.Builder()
                     .header("Cookie", "JSESSIONID=" + jwCode[0] + ";" + jwCode[2])
                     .header("Referer", "http://xk.csust.edu.cn/")
                     .url(updateCookieUrl)
                     .build();
-            updateCookieResponse = updateCookieClient.newCall(updateCookieRequest).execute();
+            updateCookieResponse = okHttpClient.newCall(updateCookieRequest).execute();
             //JSESSIONID=83F3294B2F3361D1D91F0981ECDE5F49; Path=/jsxsd; HttpOnly
 
 

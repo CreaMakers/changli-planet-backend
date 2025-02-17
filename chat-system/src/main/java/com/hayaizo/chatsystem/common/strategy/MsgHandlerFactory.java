@@ -1,14 +1,11 @@
 package com.hayaizo.chatsystem.common.strategy;
 
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 消息处理器工厂
  */
-@Component
 public class MsgHandlerFactory {
     private static final Map<Integer,AbstractMsgHandler> STRATEGY_MAP = new ConcurrentHashMap<>();
 

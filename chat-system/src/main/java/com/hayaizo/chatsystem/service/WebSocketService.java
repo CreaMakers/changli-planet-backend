@@ -1,12 +1,8 @@
 package com.hayaizo.chatsystem.service;
 
 
-import com.hayaizo.chatsystem.common.constant.MQConstant;
-import com.hayaizo.chatsystem.dto.response.ChatMessageResp;
 import com.hayaizo.chatsystem.dto.response.WSBaseResp;
 import io.netty.channel.Channel;
-
-import java.util.List;
 
 public interface WebSocketService {
 
@@ -46,11 +42,6 @@ public interface WebSocketService {
      * @param wsBaseResp 发送的消息体
      */
     void sendToAllOnline(WSBaseResp<?> wsBaseResp);
-
-    void sendToUid(WSBaseResp<?> wsBaseResp, Integer uid);
-
-    void sendToUids(WSBaseResp<?> wsBaseResp, List<Integer> uids);
-
 
 //    void sendToUid(WSBaseResp<?> wsBaseResp, Long uid);
 

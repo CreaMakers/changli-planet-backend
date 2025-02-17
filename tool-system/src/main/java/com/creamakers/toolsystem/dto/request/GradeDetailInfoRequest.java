@@ -1,5 +1,6 @@
 package com.creamakers.toolsystem.dto.request;
 
+
 import io.swagger.annotations.ApiModel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,8 +13,9 @@ import lombok.experimental.Accessors;
 @AllArgsConstructor
 @Builder
 @Accessors(chain = true)
-@ApiModel(description = "每周日期请求实体类")
-public class WeekDateRequest {
-    private String password;
-    private String stuNum;
+@ApiModel(description = "成绩详细请求实体类")
+public class GradeDetailInfoRequest {
+  private String stuNum;
+  private String password;
+  private String pscjUrl;
 }
