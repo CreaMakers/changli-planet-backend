@@ -11,7 +11,9 @@ import com.creamakers.usersystem.po.User;
 import com.creamakers.usersystem.po.UserProfile;
 import com.creamakers.usersystem.service.UserProfileService;
 import com.creamakers.usersystem.service.UserService;
+import com.creamakers.usersystem.util.HUAWEIOBSUtil;
 import com.creamakers.usersystem.util.JwtUtil;
+import com.obs.services.exception.ObsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -19,7 +21,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Date;
 
 @Service
@@ -129,5 +133,65 @@ public class UserProfileImpl extends ServiceImpl<UserProfileMapper, UserProfile>
                         .msg(msg)
                         .data(data)
                         .build());
+    }
+
+    @Override
+    public ResponseEntity<GeneralResponse> saveAvatar(MultipartFile avatar, String accessToken) {
+        String username = jwtUtil.getUserNameFromToken(accessToken);
+        logger.info("Updating avatar for user: {}", username);
+
+        try {
+            // 校验图片格式
+            String originalFileName = avatar.getOriginalFilename();
+            String fileExtension = originalFileName != null ? originalFileName.substring(originalFileName.lastIndexOf(".")) : ".png"; // 默认使用 .png
+            if (!HUAWEIOBSUtil.isValidImageExtension(fileExtension)) {
+                return buildResponse(HttpStatus.BAD_REQUEST, HttpCode.BAD_REQUEST, "Invalid image format", null);
+            }
+
+            // 上传头像到华为云 OBS
+            String fileUrl = HUAWEIOBSUtil.uploadAvatar(avatar, username);
+
+            // 更新用户头像URL
+            User user = userService.getUserByUsername(username);
+            UserProfile userProfile = new UserProfile();
+            userProfile.setAvatarUrl(fileUrl);
+            lambdaUpdate()
+                    .eq(UserProfile::getUserId, user.getUserId())
+                    .eq(UserProfile::getIsDeleted, 0)
+                    .update(userProfile);
+
+            logger.info("Profile updated successfully for user: {}", username);
+
+            // 通过临时授权方式实现图片处理
+            long expireSeconds = 3600L; // 1小时
+            String temporaryUrl = HUAWEIOBSUtil.generateTemporaryUrl("userAvatar/" + username + ".png", expireSeconds);
+
+            return buildResponse(HttpStatus.OK, HttpCode.OK, "Avatar uploaded successfully", temporaryUrl);
+
+        } catch (ObsException e) {
+            // 华为云OBS客户端异常
+            logger.error("OBS upload failed: HTTP Code: {}, Error Code: {}, Error Message: {}",
+                    e.getResponseCode(), e.getErrorCode(), e.getErrorMessage());
+            return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, HttpCode.INTERNAL_SERVER_ERROR, "OBS upload failed", null);
+        } catch (IOException e) {
+            // 文件操作异常
+            logger.error("File operation failed: {}", e.getMessage());
+            return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, HttpCode.INTERNAL_SERVER_ERROR, "File operation failed", null);
+        } catch (Exception e) {
+            // 其他异常
+            logger.error("Unexpected error: {}", e.getMessage());
+            return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, HttpCode.INTERNAL_SERVER_ERROR, "Unexpected error", null);
+        }
+    }
+
+    // 校验图片扩展名是否合法
+    private boolean isValidImageExtension(String extension) {
+        String[] validExtensions = {".jpg", ".jpeg", ".png", ".gif", ".bmp"};
+        for (String validExtension : validExtensions) {
+            if (extension.equalsIgnoreCase(validExtension)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

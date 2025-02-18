@@ -144,6 +144,10 @@
 			<artifactId>spring-boot-starter-data-redis</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>com.huaweicloud</groupId>
+			<artifactId>esdk-obs-java</artifactId>
+		</dependency>
 
 
 				<!-- Spring Boot security 测试依赖 -->

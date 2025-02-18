@@ -17,7 +17,8 @@ public class InterceptorConfig implements WebMvcConfigurer {
             "/app/users/session",
             "/app/users",
             "/app/users/availability",
-            "/app/users/register"
+            "/app/users/register",
+            "/app/users/me/avatar",
     };
 
     @Override
