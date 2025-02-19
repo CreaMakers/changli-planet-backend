@@ -45,8 +45,7 @@ public class GetExamArrange {
                 .header("Cookie", cookies)
                 .data("xqlbmc", examType)
                 .data("xnxqid", term)
-                .data("xqlb","");
-
+                .data("xqlb", "");
 
         Connection.Response res = con.execute();
 

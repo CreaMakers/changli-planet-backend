@@ -37,11 +37,13 @@ public class UserProfileController {
 
     @PostMapping("/me/avatar")
     public ResponseEntity<GeneralResponse> updateAvatar(@RequestParam("avatar") MultipartFile avatar,
-                                                        @RequestHeader(value = "Authorization") String authorization) {
+                                          @RequestHeader(value = "Authorization") String authorization) {
 
-        String accessToken = authorization.substring(7);
-        return userProfileService.saveAvatar(avatar,accessToken); // 你可以在这个方法中处理文件保存的逻辑
+           String accessToken = authorization.substring(7);
+           return userProfileService.saveAvatar(avatar,accessToken); // 你可以在这个方法中处理文件保存的逻辑
     }
+
+
 
 
 }

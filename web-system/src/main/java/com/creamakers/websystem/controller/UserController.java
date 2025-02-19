@@ -83,9 +83,8 @@ public class UserController {
     刷新token
      */
     @PutMapping("/me/token")
-    public ResultVo<LoginTokenResp> refreshToken(@RequestBody RefreshTokenReq refreshTokenReq) {
-        String accessToken = refreshTokenReq.getAccessToken();
-        return userService.refreshToken(accessToken);
+    public ResultVo<LoginTokenResp> refreshToken(@RequestHeader(value = "token") String token) {
+        return userService.refreshToken(token);
     }
 
     @GetMapping("/count")

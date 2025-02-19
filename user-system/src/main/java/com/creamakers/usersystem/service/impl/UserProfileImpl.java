@@ -13,7 +13,9 @@ import com.creamakers.usersystem.service.UserProfileService;
 import com.creamakers.usersystem.service.UserService;
 import com.creamakers.usersystem.util.HUAWEIOBSUtil;
 import com.creamakers.usersystem.util.JwtUtil;
+import com.obs.services.ObsConfiguration;
 import com.obs.services.exception.ObsException;
+import com.obs.services.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -22,7 +24,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import com.obs.services.ObsClient;
+import com.obs.services.exception.ObsException;
+import com.obs.services.model.PutObjectRequest;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 
@@ -33,6 +39,7 @@ public class UserProfileImpl extends ServiceImpl<UserProfileMapper, UserProfile>
 
     private final JwtUtil jwtUtil;
     private final UserService userService;
+
 
     @Autowired
     public UserProfileImpl(JwtUtil jwtUtil, UserService userService) {
@@ -103,8 +110,8 @@ public class UserProfileImpl extends ServiceImpl<UserProfileMapper, UserProfile>
                     .bio("这个人很懒，没有写任何描述")
                     .userLevel(1)
                     .gender(2)
-                    .grade("大学一年级")
-                    .location("中国")
+                    .grade("保密~")
+                    .location("银河 地球")
                     .birthDate(new Date())
                     .build();
 
@@ -115,24 +122,6 @@ public class UserProfileImpl extends ServiceImpl<UserProfileMapper, UserProfile>
             logger.error("Error initializing profile for user ID: {}", userId, e);
             return false;
         }
-    }
-
-    private UserProfile getUserProfile(Integer userId) {
-        return baseMapper.selectOne(
-                new LambdaQueryWrapper<UserProfile>()
-                        .eq(UserProfile::getUserId, userId)
-                        .eq(UserProfile::getIsDeleted, 0)
-        );
-    }
-
-    private ResponseEntity<GeneralResponse> buildResponse(HttpStatus status, String code, String msg, Object data) {
-        return ResponseEntity
-                .status(status)
-                .body(GeneralResponse.builder()
-                        .code(code)
-                        .msg(msg)
-                        .data(data)
-                        .build());
     }
 
     @Override
@@ -193,5 +182,23 @@ public class UserProfileImpl extends ServiceImpl<UserProfileMapper, UserProfile>
             }
         }
         return false;
+    }
+
+    private UserProfile getUserProfile(Integer userId) {
+        return baseMapper.selectOne(
+                new LambdaQueryWrapper<UserProfile>()
+                        .eq(UserProfile::getUserId, userId)
+                        .eq(UserProfile::getIsDeleted, 0)
+        );
+    }
+
+    private ResponseEntity<GeneralResponse> buildResponse(HttpStatus status, String code, String msg, Object data) {
+        return ResponseEntity
+                .status(status)
+                .body(GeneralResponse.builder()
+                        .code(code)
+                        .msg(msg)
+                        .data(data)
+                        .build());
     }
 }

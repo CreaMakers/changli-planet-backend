@@ -73,46 +73,52 @@ public class GetCourseInfo {
 
 
         for (Element div : courseDivs) {
-            // 提取课程名称
-            String courseName = div.ownText().trim();
+            // 检查是否有分隔符 "---------------------"
+            String[] courseBlocks = div.html().split("---------------------");
 
-            String teacher = null;
-            String weeks = null;
-            String classroom = null;
-            String weekday = null;
+            for (String block : courseBlocks) {
+                // 为每个课程块创建新的Element
+                Element courseBlock = Jsoup.parse(block).body();
 
-            // 获取div的id并解析出星期和第几节课
-            String divId = div.attr("id");
-            if (divId != null && !divId.isEmpty()) {
-                String[] idParts = divId.split("-");
-                if (idParts.length >= 2) {
-                    // 倒数第二位表示星期
-                    weekday = idParts[idParts.length - 2];
+                // 提取课程名称 - 使用第一行文本
+                String courseName = courseBlock.ownText().trim();
+
+                String teacher = null;
+                String weeks = null;
+                String classroom = null;
+                String weekday = null;
+
+                // 获取原始div的id并解析出星期
+                String divId = div.attr("id");
+                if (divId != null && !divId.isEmpty()) {
+                    String[] idParts = divId.split("-");
+                    if (idParts.length >= 2) {
+                        weekday = idParts[idParts.length - 2];
+                    }
                 }
-            }
 
-            // 查找课程的周次、教室、老师等信息
-            Elements fonts = div.select("font");
-            for (Element font : fonts) {
-                String title = font.attr("title");
-                String text = font.text();
+                // 查找当前课程块的信息
+                Elements fonts = courseBlock.select("font");
+                for (Element font : fonts) {
+                    String title = font.attr("title");
+                    String text = font.text();
 
-                if ("老师".equals(title)) {
-                    teacher = text;
-                } else if ("周次(节次)".equals(title)) {
-                    weeks = text;
-                } else if ("教室".equals(title)) {
-                    classroom = text;
+                    if ("老师".equals(title)) {
+                        teacher = text;
+                    } else if ("周次(节次)".equals(title)) {
+                        weeks = text;
+                    } else if ("教室".equals(title)) {
+                        classroom = text;
+                    }
                 }
-            }
 
-
-            if (!courseName.isEmpty()) {
-                CourseInfo course = new CourseInfo(courseName, teacher, weeks, classroom, weekday);
-                courseList.add(course);
+                // 只有当课程名不为空时才添加到列表中
+                if (!courseName.isEmpty()) {
+                    CourseInfo course = new CourseInfo(courseName, teacher, weeks, classroom, weekday);
+                    courseList.add(course);
+                }
             }
         }
-
 
         return courseList;
     }

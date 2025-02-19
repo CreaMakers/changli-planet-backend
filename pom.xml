@@ -24,6 +24,7 @@
         <module>tool-system</module>
         <module>web-system</module>
         <module>chat-system</module>
+        <module>fresh-system</module>
     </modules>
 
     <!-- 属性配置 -->
@@ -49,11 +50,20 @@
         <caffeine.version>3.1.8</caffeine.version> <!--caffeine缓存版本-->
         <guava.version>33.2.1-jre</guava.version> <!--caffeine缓存版本-->
         <bundleVersion>3.23.9.1</bundleVersion>
+
     </properties>
 
     <!-- 依赖管理 -->
     <dependencyManagement>
         <dependencies>
+
+
+            <dependency>
+                <groupId>com.huaweicloud</groupId>
+                <artifactId>esdk-obs-java</artifactId>
+                <version>${bundleVersion}</version>
+            </dependency>
+
             <!-- Spring Boot 核心依赖 -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
@@ -64,11 +74,6 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-web</artifactId>
                 <version>${web.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.huaweicloud</groupId>
-                <artifactId>esdk-obs-java</artifactId>
-                <version>${bundleVersion}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
