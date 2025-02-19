@@ -171,7 +171,7 @@ public class ToolService {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(GeneralResponse.<List<CourseGrade>>builder()
                             .code(HttpCode.FORBIDDEN)
-                            .msg(ErrorMessage.INCORRECT_USER)
+                            .msg(ErrorMessage.NO_GRADES_FOUND)
                             .data(null)
                             .build());
         }
@@ -199,7 +199,6 @@ public class ToolService {
                         .build()
         );
     }
-
     public ResponseEntity<GeneralResponse<List<ExamArrange>>> GetExamArrangeInfo(ExamArrangeInfoRequest examArrangeRequest) throws IOException {
         GetCookies getCookies = new GetCookies();
         String cook = getCookies.getHeaderFromJW(examArrangeRequest.getStuNum(), examArrangeRequest.getPassword());

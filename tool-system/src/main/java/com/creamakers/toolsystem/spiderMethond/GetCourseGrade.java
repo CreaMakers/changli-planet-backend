@@ -184,6 +184,27 @@ public class GetCourseGrade {
         Document doc = Jsoup.parse(res.body());
 
         Elements rows = doc.select("#dataList > tbody > tr");
+//        Elements links = doc.select("a");
+//        for (Element link : links) {
+//            // 获取 href 属性
+//            String href = link.attr("href");
+//
+//            // 检查 href 是否以 "javascript:openWindow(" 开头
+//            String prefix = "javascript:openWindow('";
+//            if (href.startsWith(prefix)) {
+//                // 找到第一个单引号的位置，并从该位置开始找第二个单引号，以定位 URL 部分的结尾
+//                int start = prefix.length();
+//                int end = href.indexOf("'", start);
+//
+//                // 确保找到了结束的单引号
+//                if (end > start) {
+//                    // 提取中间的部分
+//                    href = href.substring(start, end);
+//                }
+//            }
+//
+//            System.out.println("Extracted URL: " + href);
+//        }
 
 
         List<CourseGrade> gradeList = new ArrayList<>();
@@ -195,10 +216,21 @@ public class GetCourseGrade {
             if (cols.size() < 13) {
                 continue;
             }
-
-
-            String score = cols.get(5).select("a").isEmpty() ? cols.get(5).text() : cols.get(5).select("a").text();
-
+            Element fifthTd = cols.get(5);
+            String score;
+            String pscjUrl = null;
+            if (!fifthTd.select("a").isEmpty()) {
+                Element linkElement = fifthTd.selectFirst("a");
+                score = linkElement.text(); // 提取 <a> 标签的文本内容
+                pscjUrl = extractUrlFromScript(linkElement.attr("href")); // 提取 <a> 标签的 href 属性
+            } else {
+                score = fifthTd.text(); // 如果没有 <a> 标签，则获取纯文本内容
+            }
+            // 打印或使用提取的链接
+            if (pscjUrl != null) {
+                System.out.println("Link: " + pscjUrl);
+            }
+            System.out.println("Score: " + score);
 
             CourseGrade grade = new CourseGrade(
                     cols.get(0).text(),  // 序号
@@ -220,7 +252,8 @@ public class GetCourseGrade {
                     cols.get(11).text(),  // 补重学期
                     cols.get(12).text(),  // 考核方式
                     cols.get(13).text(),  // 考试性质
-                    cols.get(14).text()  // 课程属性
+                    cols.get(14).text(),  // 课程属性
+                    "http://xk.csust.edu.cn" + pscjUrl
             );
 
             // 将成绩对象添加到列表中
@@ -228,6 +261,27 @@ public class GetCourseGrade {
         }
 
         return gradeList;
+    }
+
+
+    public static String extractUrlFromScript(String scriptString) {
+        // 定义前缀以识别目标字符串
+        String prefix = "javascript:openWindow('";
+
+        // 检查字符串是否以指定的前缀开头
+        if (scriptString.startsWith(prefix)) {
+            // 计算提取子字符串的起始和结束位置
+            int start = prefix.length();
+            int end = scriptString.indexOf("'", start);
+
+            // 确保找到了结束的单引号并且起始位置小于结束位置
+            if (end > start) {
+                // 提取并返回 URL 部分
+                return scriptString.substring(start, end);
+            }
+        }
+        // 如果字符串格式不符合预期，返回 null
+        return null;
     }
 
 }
