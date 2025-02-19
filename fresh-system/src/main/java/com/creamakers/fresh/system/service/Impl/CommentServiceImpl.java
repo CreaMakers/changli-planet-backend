@@ -43,6 +43,7 @@ public class CommentServiceImpl implements CommentService {
             updateComment.setCommentId(commentId);
             updateComment.setRoot(commentId);  // 设置 root 字段为评论的 ID
             freshNewsCommentMapper.updateById(updateComment);  // 使用 MyBatis-Plus 更新
+            //rabbitTemplate.convertAndSend("commentExchange", "comment", comments);
             return ResultVo.success(null);
         } else {
             return ResultVo.fail("评论添加失败");

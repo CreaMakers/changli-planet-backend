@@ -1,14 +1,14 @@
 package com.creamakers.fresh.system.domain.vo.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 /**
  * 新鲜事请求类
  */
 @Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class FreshNewsRequest {
@@ -22,8 +22,6 @@ public class FreshNewsRequest {
     @JsonProperty("content")
     private String content;  // 新鲜事内容
 
-    @JsonProperty("images")
-    private String images;   // 新鲜事的图片路径 (可选)
 
     @JsonProperty("tags")
     private String tags;     // 新鲜事的标签 (可选)

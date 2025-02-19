@@ -1,4 +1,4 @@
-package com.creamakers.fresh.system.utils;
+package com.creamakers.websystem.utils;
 
 import com.obs.services.ObsClient;
 import com.obs.services.ObsConfiguration;
@@ -25,40 +25,41 @@ public class HUAWEIOBSUtil {
         return new ObsClient(AK, SK, configuration);
     }
 
-    // 校验图片扩展名是否合法
-    public static boolean isValidImageExtension(String extension) {
-        String[] validExtensions = {".jpg", ".jpeg", ".png", ".gif", ".bmp"};
-        for (String validExtension : validExtensions) {
-            if (extension.equalsIgnoreCase(validExtension)) {
-                return true;
-            }
-        }
-        return false;
+    // 校验文件扩展名是否合法
+    public static boolean isValidApk(String extension) {
+        return ".apk".equalsIgnoreCase(extension);
     }
 
-    // 上传文件到 OBS 并设置为公开
-    public static String uploadImage(MultipartFile image, String username) throws ObsException, IOException {
-        ObsClient obsClient = createObsClient();
-        File tempFile = File.createTempFile(username + "_freshNewsImage_", ".png");
-        image.transferTo(tempFile);
+    // 上传文件到 OBS
+    public static String uploadFile(MultipartFile file, String custom) throws ObsException, IOException {
+        String extension = getFileExtension(file.getOriginalFilename());
+//        if (!isValidApk(extension)) {
+//            throw new IllegalArgumentException("文件类型错误，请上传.apk结尾的文件");
+//        }
 
-        String fileName = "freshNewsImage/" + username + ".png";
+        // 创建临时文件
+        File tempFile = File.createTempFile(custom + "_apk_", extension);
+
+        // 将 MultipartFile 内容写入临时文件
+        file.transferTo(tempFile);
+
+        // 上传到 OBS
+        ObsClient obsClient = createObsClient();
+        String fileName = "apkFiles/" + custom + extension;
         PutObjectRequest request = new PutObjectRequest(BUCKET_NAME, fileName, tempFile);
         PutObjectResult response = obsClient.putObject(request);
 
         // 设置文件为公开读取权限
         setFilePublicReadPermission(obsClient, fileName);
-
-        // 清理临时文件
         if (tempFile.exists()) {
             tempFile.delete();
         }
 
+        // 检查上传是否成功，并返回文件的公开 URL
         if (response != null && response.getStatusCode() == 200) {
-            // 返回公开的 URL
             return "https://csustplant.obs.cn-south-1.myhuaweicloud.com/" + fileName;
         } else {
-            throw new ObsException("Failed to upload fresh news image, status code: " + response.getStatusCode());
+            throw new ObsException("Failed to upload APK file, status code: " + response.getStatusCode());
         }
     }
 
@@ -68,15 +69,12 @@ public class HUAWEIOBSUtil {
         SetObjectAclRequest aclRequest = new SetObjectAclRequest(BUCKET_NAME, fileName,REST_CANNED_PUBLIC_READ);
     }
 
-
-    // 生成临时签名 URL
-    public static String generateTemporaryUrl(String fileName, long expireSeconds) throws ObsException {
-        ObsClient obsClient = createObsClient();
-        TemporarySignatureRequest temporarySignatureRequest = new TemporarySignatureRequest(HttpMethodEnum.GET, expireSeconds);
-        temporarySignatureRequest.setBucketName(BUCKET_NAME);
-        temporarySignatureRequest.setObjectKey(fileName);
-
-        TemporarySignatureResponse response = obsClient.createTemporarySignature(temporarySignatureRequest);
-        return response.getSignedUrl();
+    // 获取文件扩展名
+    private static String getFileExtension(String filename) {
+        int dotIndex = filename.lastIndexOf(".");
+        if (dotIndex > 0) {
+            return filename.substring(dotIndex);
+        }
+        return "";
     }
 }

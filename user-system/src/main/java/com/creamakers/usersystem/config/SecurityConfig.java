@@ -27,10 +27,10 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/swagger-ui.html","/app/users/register", "/app/users/login", "/app/users/**").permitAll()  // 允许注册和登录端点
+                        .requestMatchers("/swagger-ui.html","/app/users/register", "/app/users/login", "/app/users/apk","/app/users/**").permitAll()  // 允许注册和登录端点
                         .anyRequest().authenticated()
                 )
-                .csrf(csrf -> csrf.disable())
+                //.csrf(csrf -> csrf.disable())
                 .formLogin(withDefaults())
                 .httpBasic(withDefaults());
 
