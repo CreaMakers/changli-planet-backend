@@ -5,6 +5,7 @@ import com.creamakers.toolsystem.dto.response.GeneralResponse;
 import com.creamakers.toolsystem.entity.CourseGrade;
 import com.creamakers.toolsystem.entity.CourseInfo;
 import com.creamakers.toolsystem.entity.ExamArrange;
+import com.creamakers.toolsystem.entity.PscjInfo;
 import com.creamakers.toolsystem.service.ToolService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,6 +112,18 @@ public class ToolController {
                 stuNum, password, week, day, term, region, start, end
         );
         return toolService.GetClassroomInfo(classroomInfoRequest);
+    }
+
+
+
+    @GetMapping("/grades/detail")
+    public ResponseEntity<GeneralResponse<PscjInfo>> getGradesDetailsInfo(
+            @RequestParam(value = "stuNum") String stuNum,
+            @RequestParam(value = "password") String password,
+            @RequestParam(value = "pscjUrl") String pscjUrl) throws IOException, InterruptedException {
+
+        // 调用服务方法，并返回响应
+        return toolService.GetGradesDetailInfo(new GradeDetailInfoRequest(stuNum, password, pscjUrl));
     }
 
 //    @PostMapping("/getWeekDate")

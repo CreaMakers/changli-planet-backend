@@ -3,10 +3,7 @@ package com.creamakers.toolsystem.service;
 import com.creamakers.toolsystem.consts.HttpCode;
 import com.creamakers.toolsystem.dto.request.*;
 import com.creamakers.toolsystem.dto.response.GeneralResponse;
-import com.creamakers.toolsystem.entity.CourseGrade;
-import com.creamakers.toolsystem.entity.CourseInfo;
-import com.creamakers.toolsystem.entity.ElectricityCharge;
-import com.creamakers.toolsystem.entity.ExamArrange;
+import com.creamakers.toolsystem.entity.*;
 import com.creamakers.toolsystem.spiderMethond.*;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -36,6 +33,60 @@ import com.creamakers.toolsystem.consts.ErrorMessage;
 
 @Service
 public class ToolService {
+    public ResponseEntity<GeneralResponse<PscjInfo>> GetGradesDetailInfo(GradeDetailInfoRequest gradeDetailInfoRequest) throws IOException, InterruptedException {
+
+        GetCookies getCookies = new GetCookies();
+        String cook = getCookies.getHeaderFromJW(gradeDetailInfoRequest.getStuNum(), gradeDetailInfoRequest.getPassword());
+
+//        return ResponseEntity.ok(
+//                GeneralResponse.<PscjInfo>builder()
+//                        .code(HttpCode.OK)
+//                        .msg(SuccessMessage.GRADES_RETRIEVED_SUCCESSFULLY)
+//                        .data(new PscjInfo(
+//                                "90",   // 平时成绩
+//                                "50%",  // 平时成绩比例
+//                                "90",   // 期末成绩
+//                                "30%",   // 期末成绩比例
+//                                null,   // 期中成绩
+//                                null,   // 期中成绩比例
+//                                "91",   // 总成绩
+//                                "91.1", // 上机成绩
+//                                "20%"   // 上机成绩比例
+//                        ))
+//                        .build()
+//        );
+        if (cook == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(GeneralResponse.<PscjInfo>builder()
+                            .code(HttpCode.FORBIDDEN)
+                            .msg(ErrorMessage.NO_GRADES_DETAIL_FOUND)
+                            .data(null)
+                            .build());
+        }
+//
+        GetCourseGrade getCourseGrade = new GetCourseGrade(cook);
+
+        PscjInfo scoreDetail = getCourseGrade.getScoreDetail(gradeDetailInfoRequest.getPscjUrl());
+
+        if (scoreDetail == null) {
+            // 如果成绩列表为空，返回404
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(GeneralResponse.<PscjInfo>builder()
+                            .code(HttpCode.NOT_FOUND)
+                            .msg(ErrorMessage.NO_GRADES_DETAIL_FOUND)
+                            .data(null)
+                            .build());
+        }
+
+        // 返回成功响应
+        return ResponseEntity.ok(
+                GeneralResponse.<PscjInfo>builder()
+                        .code(HttpCode.OK)
+                        .msg(SuccessMessage.GRADES_RETRIEVED_SUCCESSFULLY)
+                        .data(scoreDetail)
+                        .build()
+        );
+    }
 
     public ResponseEntity<GeneralResponse<List<CourseInfo>>> GetCourseInfo(CourseInfoRequest courseInfoRequest) throws IOException {
 
