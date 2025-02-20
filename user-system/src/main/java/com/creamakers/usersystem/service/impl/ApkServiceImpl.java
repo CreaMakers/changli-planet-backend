@@ -14,6 +14,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import static com.creamakers.usersystem.consts.SuccessMessage.ALREADY_LATEST_VERSION_MESSAGE;
+import static com.creamakers.usersystem.consts.SuccessMessage.FETCH_LATEST_APK_VERSION_SUCCESS_MESSAGE;
+
 @Service
 public class ApkServiceImpl implements ApkService {
     @Autowired
@@ -23,12 +26,12 @@ public class ApkServiceImpl implements ApkService {
         LambdaQueryWrapper<ApkUpdate> wrapper = new LambdaQueryWrapper<>();
         wrapper.orderByDesc(ApkUpdate::getVersionCode).last("LIMIT 1");
         ApkUpdate latestApkUpdate = apkUpdateMapper.selectOne(wrapper);
-        if (latestApkUpdate != null && latestApkUpdate.getVersionCode().equals(versionCode) ) {
-            return buildResponse(HttpStatus.OK, HttpCode.OK, "当前已为最新版本", null);
+        if (latestApkUpdate == null||latestApkUpdate != null && latestApkUpdate.getVersionCode().equals(versionCode) ) {
+            return buildResponse(HttpStatus.OK, HttpCode.OK, ALREADY_LATEST_VERSION_MESSAGE, null);
         }
         ApkResp apkResp = new ApkResp();
         BeanUtils.copyProperties(latestApkUpdate,apkResp);
-        return buildResponse(HttpStatus.OK, HttpCode.OK,"获取最新apk版本成功",apkResp);
+        return buildResponse(HttpStatus.OK, HttpCode.OK,FETCH_LATEST_APK_VERSION_SUCCESS_MESSAGE,apkResp);
     }
 
     private ResponseEntity<GeneralResponse> buildResponse(HttpStatus status, String code, String msg, Object data) {

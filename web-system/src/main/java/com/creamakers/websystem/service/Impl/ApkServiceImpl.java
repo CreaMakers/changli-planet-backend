@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import static com.creamakers.websystem.constants.CommonConst.VERSION_ERROR_MESSAGE;
+
 @Service
 public class ApkServiceImpl implements ApkService {
     @Autowired
@@ -32,7 +34,7 @@ public class ApkServiceImpl implements ApkService {
 
         // 如果最新版本号大于等于传入的版本号，返回版本号错误
         if (latestApkUpdate != null && latestApkUpdate.getVersionCode() >= versionCode) {
-            return ResultVo.fail("版本号错误. 最新版本号为 " + latestApkUpdate.getVersionCode());
+            return ResultVo.fail(VERSION_ERROR_MESSAGE+" 最新版本号为 " + latestApkUpdate.getVersionCode());
         }
 
         String url = HUAWEIOBSUtil.uploadFile(apkFile, UUID.randomUUID().toString());
@@ -49,7 +51,8 @@ public class ApkServiceImpl implements ApkService {
         ApkResp apkResp = new ApkResp();
         BeanUtils.copyProperties(apkUpdate, apkResp);
         apkResp.setDownloadUrl(url);
-        apkResp.setId((long) (latestApkUpdate.getId()+1));
+        if(latestApkUpdate != null) apkResp.setId((long) (latestApkUpdate.getId()+1));
+        else apkResp.setId(1L);
         return ResultVo.success(apkResp);
     }
 
