@@ -53,4 +53,7 @@ public class CommonConst {
     public final static String GROUP_BULLETIN_ID_NOT_EXIST = "群聊公告Id不存在，查询失败";
     public static final String UPDATE_GROUP_ANNOUNCEMENT_FAILED = "更新群聊公告表失败";
 
+    public final static String VERSION_ERROR_MESSAGE = "版本号错误";
+
+
 }

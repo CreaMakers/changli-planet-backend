@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.creamakers.fresh.system.constants.CommonConst.*;
+
 @Service
 public class CommentServiceImpl implements CommentService {
 
@@ -46,7 +48,7 @@ public class CommentServiceImpl implements CommentService {
             //rabbitTemplate.convertAndSend("commentExchange", "comment", comments);
             return ResultVo.success(null);
         } else {
-            return ResultVo.fail("评论添加失败");
+            return ResultVo.fail(COMMENT_ADD_FAILED_MESSAGE);
         }
     }
 
@@ -102,7 +104,7 @@ public class CommentServiceImpl implements CommentService {
         if (result > 0) {
             return ResultVo.success(null);
         } else {
-            return ResultVo.fail("评论删除失败");
+            return ResultVo.fail(COMMENT_DELETE_FAILED_MESSAGE);
         }
     }
     /*
@@ -120,7 +122,7 @@ public class CommentServiceImpl implements CommentService {
         // 查询父评论的 root 值
         FreshNewsComment parentComment = freshNewsCommentMapper.selectById(commentId);
         if (parentComment == null) {
-            return ResultVo.fail("父评论不存在");
+            return ResultVo.fail(PARENT_COMMENT_NOT_FOUND_MESSAGE);
         }
 
         // 将子评论的 root 设置为父评论的 root
@@ -130,7 +132,7 @@ public class CommentServiceImpl implements CommentService {
         if (result > 0) {
             return ResultVo.success();
         } else {
-            return ResultVo.fail("评论添加失败");
+            return ResultVo.fail(COMMENT_ADD_FAILED_MESSAGE);
         }
     }
 

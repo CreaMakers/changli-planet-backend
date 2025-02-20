@@ -27,6 +27,6 @@ public class ApkResp {
     private String updateMessage;
 
     // 创建时间
-    private LocalDateTime createdTime;
+    private LocalDateTime createTime;
 }
 

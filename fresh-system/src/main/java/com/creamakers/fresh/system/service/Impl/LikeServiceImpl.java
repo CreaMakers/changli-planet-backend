@@ -19,6 +19,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import static com.creamakers.fresh.system.constants.CommonConst.COMMENT_LIKE_COUNT_UPDATE_FAILED_MESSAGE;
+import static com.creamakers.fresh.system.constants.CommonConst.NEWS_LIKE_COUNT_UPDATE_FAILED_MESSAGE;
+
 @Service
 public class LikeServiceImpl implements LikeService {
     @Autowired
@@ -90,7 +93,7 @@ public class LikeServiceImpl implements LikeService {
             if (!CollectionUtils.isEmpty(freshNews)) {
                 int rows = freshNewsMapper.updateFreshNewsLiked(freshNews);
                 if (rows != freshNews.size()) {
-                    ResultVo.fail("新闻点赞数更新失败");
+                    ResultVo.fail(NEWS_LIKE_COUNT_UPDATE_FAILED_MESSAGE);
                 }
                 redisTemplate.delete(deleteKeys);
             }
@@ -159,7 +162,7 @@ public class LikeServiceImpl implements LikeService {
             if (!CollectionUtils.isEmpty(comments)) {
                 int rows = freshNewsCommentMapper.updateCommentLikeNum(comments);
                 if (rows != comments.size()) {
-                    ResultVo.fail("评论点赞数更新失败");
+                    ResultVo.fail(COMMENT_LIKE_COUNT_UPDATE_FAILED_MESSAGE);
                 }
                 redisTemplate.delete(deleteKeys);
             }

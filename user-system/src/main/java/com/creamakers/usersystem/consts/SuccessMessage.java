@@ -38,4 +38,10 @@ public class SuccessMessage {
     public static final String NO_VIOLATION_INFO = "没有违规记录哦";
     public static final String TOKEN_REFRESHED = "Token已经刷新完毕";
     public static final String USER_NOT_EXITS = "用户验证通过";
+
+    //apk成功消息
+    public final static String ALREADY_LATEST_VERSION_MESSAGE = "当前已是最新版本，无需更新。";
+    public final static String FETCH_LATEST_APK_VERSION_SUCCESS_MESSAGE = "获取最新apk版本成功";
+
+
 }
