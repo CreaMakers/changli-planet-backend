@@ -13,8 +13,8 @@ import static com.obs.services.model.AccessControlList.REST_CANNED_PUBLIC_READ;
 
 public class HUAWEIOBSUtil {
 
-    private static final String AK = "";
-    private static final String SK = "";
+    private static final String AK = System.getenv("HUAWEIYUN_OBS_ACCESS_KEY_ID");
+    private static final String SK = System.getenv("HUAWEIYUN_OBS_SECRET_ACCESS_KEY_ID");
     private static final String ENDPOINT = "https://obs.cn-south-1.myhuaweicloud.com";
     private static final String BUCKET_NAME = "csustplant";
 

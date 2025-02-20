@@ -1,11 +1,13 @@
 package com.creamakers.usersystem.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.Date;
 
 @Data
 @Builder
@@ -18,7 +20,8 @@ public class UserProfileRequest implements Serializable {
     private int userLevel;
     private int gender;
     private String grade;
-    private String birthdate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private Date birthDate;
     private String location;
     private String website;
 }

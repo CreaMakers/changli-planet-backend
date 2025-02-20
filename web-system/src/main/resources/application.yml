@@ -1,10 +1,6 @@
 spring:
   application:
     name: web-system
-  servlet:
-    multipart:
-      max-file-size: 100MB
-      max-request-size: 100MB
   # 运行的环境
   profiles:
     active: test
@@ -23,7 +19,10 @@ spring:
           max-idle: 10
           min-idle: 1
           time-between-eviction-runs: 10s
-      password: ${planet.redis.password}
+  servlet:
+    multipart:
+      max-file-size: 60MB
+      max-request-size: 70MB
 
 server:
   port: 8082
