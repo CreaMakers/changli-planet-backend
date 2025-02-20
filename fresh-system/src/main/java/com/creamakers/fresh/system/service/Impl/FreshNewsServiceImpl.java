@@ -28,6 +28,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.creamakers.fresh.system.constants.CommonConst.*;
+
 @Service
 public class FreshNewsServiceImpl implements FreshNewsService {
     @Autowired
@@ -42,10 +44,10 @@ public class FreshNewsServiceImpl implements FreshNewsService {
     @Transactional
     public ResultVo<FreshNewsResp> createFreshNews(List<MultipartFile> images, FreshNewsRequest freshNewsRequest) throws IOException {
         if (StringUtil.isEmpty(freshNewsRequest.getContent())) {
-            return ResultVo.fail("新鲜事内容不能为空");
+            return ResultVo.fail(FRESH_NEWS_CONTENT_CANNOT_BE_EMPTY_MESSAGE);
         }
         if (!CollectionUtils.isEmpty(images) && images.size() > 9) {
-            return ResultVo.fail("图片数量超过限制");
+            return ResultVo.fail(IMAGE_COUNT_EXCEEDS_LIMIT_MESSAGE);
         }
 
         // 新增标签的逻辑
@@ -116,7 +118,7 @@ public class FreshNewsServiceImpl implements FreshNewsService {
             BeanUtils.copyProperties(freshNews, freshNewsResp);
             return ResultVo.success(freshNewsResp);
         } else {
-            return ResultVo.fail("创建新鲜事失败");
+            return ResultVo.fail(CREATE_FRESH_NEWS_FAILED_MESSAGE);
         }
     }
 
@@ -148,7 +150,7 @@ public class FreshNewsServiceImpl implements FreshNewsService {
 
             return ResultVo.success(freshNewsDetailResp);
         } else {
-            return ResultVo.fail("新鲜事不存在");
+            return ResultVo.fail( FRESH_NEWS_NOT_FOUND_MESSAGE);
         }
     }
 
@@ -201,7 +203,7 @@ public class FreshNewsServiceImpl implements FreshNewsService {
     public ResultVo<List<FreshNewsResp>> getByTag(String tag, Integer page, Integer pageSize) {
         Set<String> freshNewsIds = redisTemplate.opsForSet().members("tags:" + tag);
         if (freshNewsIds == null || freshNewsIds.isEmpty()) {
-            return ResultVo.fail("该标签下没有新鲜事");
+            return ResultVo.fail(NO_FRESH_NEWS_UNDER_TAG_MESSAGE);
         }
         List<Long> freshNewsIdList = freshNewsIds.stream()
                 .map(Long::parseLong)

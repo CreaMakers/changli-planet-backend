@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.creamakers.fresh.system.constants.CommonConst.*;
 
 
 @Service
@@ -32,7 +33,7 @@ public class CollectServiceImpl implements CollectService {
         // 使用 Redis 检查是否已经收藏
         Boolean isFavorited = redisTemplate.opsForSet().isMember(RedisKeyConstant.LIKE_NEWS + newsId, userId);
         if (isFavorited != null && isFavorited) {
-            return ResultVo.fail("您已经收藏过此新鲜事");
+            return ResultVo.fail(ALREADY_FAVORITED_FRESH_NEWS_MESSAGE);
         }
 
         // 插入新的收藏记录到数据库
@@ -56,7 +57,7 @@ public class CollectServiceImpl implements CollectService {
             }
             return ResultVo.success();
         } else {
-            return ResultVo.fail("收藏失败");
+            return ResultVo.fail(FAVORITE_FAILED_MESSAGE);
         }
     }
 
@@ -82,7 +83,7 @@ public class CollectServiceImpl implements CollectService {
         Boolean isFavorited = redisTemplate.opsForSet().isMember(RedisKeyConstant.LIKE_NEWS + newsId, userId);
 
         if (isFavorited == null || !isFavorited) {
-            return ResultVo.fail("您尚未收藏此新鲜事");
+            return ResultVo.fail(NOT_FAVORITED_FRESH_NEWS_MESSAGE);
         }
 
         // 查找收藏记录
@@ -94,7 +95,7 @@ public class CollectServiceImpl implements CollectService {
         );
 
         if (freshNewsFavorites == null) {
-            return ResultVo.fail("收藏记录不存在");
+            return ResultVo.fail(FAVORITE_RECORD_NOT_FOUND_MESSAGE);
         }
 
         // 标记收藏记录为已删除
@@ -113,7 +114,7 @@ public class CollectServiceImpl implements CollectService {
             }
             return ResultVo.success();
         } else {
-            return ResultVo.fail("取消收藏失败");
+            return ResultVo.fail(CANCEL_FAVORITE_FAILED_MESSAGE);
         }
     }
 }

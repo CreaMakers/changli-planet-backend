@@ -17,6 +17,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import java.util.concurrent.TimeUnit;
 
+import static com.creamakers.fresh.system.constants.CommonConst.*;
+
 @Service
 public class ReportServiceImpl implements ReportService {
 
@@ -46,7 +48,7 @@ public class ReportServiceImpl implements ReportService {
         Boolean isReported = redisTemplate.opsForSet().isMember(redisKey, userId);
 
         if (isReported != null && isReported) {
-            return ResultVo.fail("您已经举报过此新鲜事");  // 用户已经举报过
+            return ResultVo.fail(ALREADY_REPORTED_FRESH_NEWS_MESSAGE);  // 用户已经举报过
         }
 
         // 将举报记录添加到 Redis，表示该用户已举报该新闻
@@ -63,7 +65,7 @@ public class ReportServiceImpl implements ReportService {
         if (rows > 0) {
             return ResultVo.success();
         } else {
-            return ResultVo.fail("举报新鲜事失败");
+            return ResultVo.fail(REPORT_FRESH_NEWS_FAILED_MESSAGE);
         }
     }
 
@@ -84,7 +86,7 @@ public class ReportServiceImpl implements ReportService {
         Boolean isReported = redisTemplate.opsForSet().isMember(redisKey, userId);
 
         if (isReported != null && isReported) {
-            return ResultVo.fail("您已经举报过此评论");  // 用户已经举报过
+            return ResultVo.fail(ALREADY_REPORTED_COMMENT_MESSAGE);  // 用户已经举报过
         }
 
         // 将举报记录添加到 Redis，表示该用户已举报该评论
@@ -102,7 +104,7 @@ public class ReportServiceImpl implements ReportService {
         if (rows > 0) {
             return ResultVo.success();
         } else {
-            return ResultVo.fail("举报评论失败");
+            return ResultVo.fail(REPORT_COMMENT_FAILED_MESSAGE);
         }
     }
 
@@ -121,7 +123,7 @@ public class ReportServiceImpl implements ReportService {
         if (reportFreshNews != null) {
             return ResultVo.success(reportNewsResp);  // 返回举报信息
         }
-        return ResultVo.fail("新鲜事举报记录不存在");
+        return ResultVo.fail(FRESH_NEWS_REPORT_RECORD_NOT_FOUND_MESSAGE);
     }
 
     /**
@@ -139,6 +141,6 @@ public class ReportServiceImpl implements ReportService {
         if (reportCommentResp != null) {
             return ResultVo.success(reportCommentResp);  // 返回举报信息
         }
-        return ResultVo.fail("评论举报记录不存在");
+        return ResultVo.fail(COMMENT_REPORT_RECORD_NOT_FOUND_MESSAGE);
     }
 }
