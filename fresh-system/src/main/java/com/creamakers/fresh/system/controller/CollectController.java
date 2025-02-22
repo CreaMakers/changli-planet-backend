@@ -23,7 +23,7 @@ public class CollectController {
      */
     @PostMapping("/add/{user_id}/{news_id}")
     public ResultVo<Void> CollectNews(@PathVariable("user_id") Long userId, @PathVariable("news_id") Long newsId) {
-        return favoritesService.CollectNews(userId, newsId);
+        return favoritesService.collectNews(userId, newsId);
     }
 
     /**

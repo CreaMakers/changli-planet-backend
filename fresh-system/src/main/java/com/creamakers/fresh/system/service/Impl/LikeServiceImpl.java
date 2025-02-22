@@ -8,6 +8,7 @@ import com.creamakers.fresh.system.domain.dto.FreshNews;
 import com.creamakers.fresh.system.domain.dto.FreshNewsComment;
 import com.creamakers.fresh.system.domain.vo.ResultVo;
 import com.creamakers.fresh.system.service.LikeService;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,8 @@ public class LikeServiceImpl implements LikeService {
     private FreshNewsMapper freshNewsMapper;  // 用于访问数据库中的新闻/帖子数据
     @Autowired
     private FreshNewsCommentMapper freshNewsCommentMapper; // 用于访问数据库中的评论数据
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     /**
      * 点赞新闻
@@ -49,6 +52,8 @@ public class LikeServiceImpl implements LikeService {
             redisTemplate.opsForSet().add(RedisKeyConstant.LIKE_NEWS + newsId, userId);
             // 增加新闻的点赞数
             redisTemplate.opsForValue().increment(RedisKeyConstant.LIKE_NEWS_NUM + newsId);
+
+            rabbitTemplate.convertAndSend("likeNewsExchange", "likeNews",newsId);
         } else {
             // 如果已经点赞，再次点击则取消点赞
             redisTemplate.opsForSet().remove(RedisKeyConstant.LIKE_NEWS + newsId, userId);
@@ -118,6 +123,8 @@ public class LikeServiceImpl implements LikeService {
             redisTemplate.opsForSet().add(RedisKeyConstant.LIKE_COMMENT + commentId, userId);
             // 增加评论的点赞数
             redisTemplate.opsForValue().increment(RedisKeyConstant.LIKE_COMMENT_NUM + commentId);
+
+            rabbitTemplate.convertAndSend("likeCommentExchange", "likeComment",commentId);
         } else {
             // 如果已经点赞，再次点击则取消点赞
             redisTemplate.opsForSet().remove(RedisKeyConstant.LIKE_COMMENT + commentId, userId);

@@ -6,7 +6,7 @@ import com.creamakers.fresh.system.domain.vo.ResultVo;
 import java.util.List;
 
 public interface CollectService {
-    ResultVo<Void> CollectNews(Long userId, Long newsId);
+    ResultVo<Void> collectNews(Long userId, Long newsId);
 
     ResultVo<List<FreshNewsFavorites>> listFavorites(Long userId, Integer page, Integer pageSize);
 

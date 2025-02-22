@@ -9,6 +9,7 @@ import com.creamakers.fresh.system.domain.dto.FreshNews;
 import com.creamakers.fresh.system.domain.dto.FreshNewsFavorites;
 import com.creamakers.fresh.system.domain.vo.ResultVo;
 import com.creamakers.fresh.system.service.CollectService;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -28,8 +29,11 @@ public class CollectServiceImpl implements CollectService {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;  // 注入 RedisTemplate
 
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+
     @Override
-    public ResultVo<Void> CollectNews(Long userId, Long newsId) {
+    public ResultVo<Void> collectNews(Long userId, Long newsId) {
         // 使用 Redis 检查是否已经收藏
         Boolean isFavorited = redisTemplate.opsForSet().isMember(RedisKeyConstant.LIKE_NEWS + newsId, userId);
         if (isFavorited != null && isFavorited) {
@@ -55,6 +59,7 @@ public class CollectServiceImpl implements CollectService {
                 freshNews.setFavoritesCount(freshNews.getFavoritesCount() + 1);
                 freshNewsMapper.updateById(freshNews);
             }
+            rabbitTemplate.convertAndSend("collectNewsExchange", "collectNews",newsId);
             return ResultVo.success();
         } else {
             return ResultVo.fail(FAVORITE_FAILED_MESSAGE);

@@ -33,9 +33,9 @@ public class HUAWEIOBSUtil {
     // 上传文件到 OBS
     public static String uploadFile(MultipartFile file, String custom) throws ObsException, IOException {
         String extension = getFileExtension(file.getOriginalFilename());
-//        if (!isValidApk(extension)) {
-//            throw new IllegalArgumentException("文件类型错误，请上传.apk结尾的文件");
-//        }
+        if (!isValidApk(extension)) {
+            throw new IllegalArgumentException("文件类型错误，请上传.apk结尾的文件");
+        }
 
         // 创建临时文件
         File tempFile = File.createTempFile(custom + "_apk_", extension);

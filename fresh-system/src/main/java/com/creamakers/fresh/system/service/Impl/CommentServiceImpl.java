@@ -8,11 +8,15 @@ import com.creamakers.fresh.system.domain.vo.ResultVo;
 import com.creamakers.fresh.system.domain.vo.request.FreshNewsCommentRequest;
 import com.creamakers.fresh.system.domain.vo.response.FreshNewsCommentResp;
 import com.creamakers.fresh.system.service.CommentService;
+import jakarta.annotation.Resource;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.creamakers.fresh.system.constants.CommonConst.*;
@@ -23,6 +27,15 @@ public class CommentServiceImpl implements CommentService {
     @Autowired
     private FreshNewsCommentMapper freshNewsCommentMapper;
 
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
+
+    // redis记录浏览量
+    private static final String VIEW_COUNT_ZSET_KEY = "freshNews:viewCounts:zset";  // 定义 ZSET 键名
+    private static final long EXPIRATION = 7L * 24 * 60 * 60; // 7天，单位为秒
     /**
      * 添加评论(非回复评论)
      * @param freshNewsId 新鲜事ID
@@ -45,8 +58,8 @@ public class CommentServiceImpl implements CommentService {
             updateComment.setCommentId(commentId);
             updateComment.setRoot(commentId);  // 设置 root 字段为评论的 ID
             freshNewsCommentMapper.updateById(updateComment);  // 使用 MyBatis-Plus 更新
-            //rabbitTemplate.convertAndSend("commentExchange", "comment", comments);
-            return ResultVo.success(null);
+            rabbitTemplate.convertAndSend("commentExchange", "comment", updateComment);
+            return ResultVo.success();
         } else {
             return ResultVo.fail(COMMENT_ADD_FAILED_MESSAGE);
         }
@@ -87,6 +100,12 @@ public class CommentServiceImpl implements CommentService {
                 })
                 .collect(Collectors.toList());
 
+        // 使用 ZINCRBY 命令增加有序集合中该 freshNewsId 的分数（浏览量）
+        redisTemplate.opsForZSet().incrementScore(VIEW_COUNT_ZSET_KEY,freshNewsId,1);
+        Boolean hasExpire = redisTemplate.getExpire(VIEW_COUNT_ZSET_KEY, TimeUnit.SECONDS) > 0;
+        if (Boolean.FALSE.equals(hasExpire)) {
+            redisTemplate.expire(VIEW_COUNT_ZSET_KEY, EXPIRATION, TimeUnit.SECONDS);
+        }
         // 返回分页查询结果
         return ResultVo.success(freshNewsCommentRespList);
     }
@@ -127,6 +146,9 @@ public class CommentServiceImpl implements CommentService {
 
         // 将子评论的 root 设置为父评论的 root
         comment.setRoot(parentComment.getRoot() != null ? parentComment.getRoot() : commentId);
+
+        // 通过 RabbitMQ 发送评论消息到队列
+        rabbitTemplate.convertAndSend("replyExchange", "reply", comment);
 
         int result = freshNewsCommentMapper.insert(comment);
         if (result > 0) {

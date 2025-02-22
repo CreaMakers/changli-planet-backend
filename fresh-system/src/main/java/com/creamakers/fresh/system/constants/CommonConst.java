@@ -53,6 +53,7 @@ public class CommonConst {
 
     public final static String COMMENT_REPORT_RECORD_NOT_FOUND_MESSAGE = "评论举报记录不存在";
 
+    public static final String DB_INSERT_NOTIFICATION_FAILED = "数据库notification表插入失败";
 
 
 
