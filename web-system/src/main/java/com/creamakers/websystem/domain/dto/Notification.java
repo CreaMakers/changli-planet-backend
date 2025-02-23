@@ -1,4 +1,4 @@
-package com.creamakers.fresh.system.domain.dto;
+package com.creamakers.websystem.domain.dto;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;

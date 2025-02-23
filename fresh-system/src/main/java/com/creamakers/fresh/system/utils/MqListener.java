@@ -40,7 +40,7 @@ public class MqListener {
     private NotificationMapper notificationMapper;
     @Autowired
     private WebSocketService webSocketService;
-
+//通知类型，1为系统通知，2为收到的赞，3为@我，4为回复我的
     // 1. 处理新的评论
     @RabbitListener(queues = "commentQueue")
     public void handleNewComment(FreshNewsComment comments) {
@@ -60,6 +60,7 @@ public class MqListener {
                 .setIsRead(0)
                 .setIsDeleted(0)
                 .setSendTime(LocalDateTime.now())
+                .setNotificationType(4)
                 .setDescription("新鲜事收到的评论");
         int insert = notificationMapper.insert(notification);
         if(insert<=0) ResultVo.fail(DB_INSERT_NOTIFICATION_FAILED);
@@ -83,6 +84,7 @@ public class MqListener {
                 .setIsRead(0)
                 .setIsDeleted(0)
                 .setSendTime(LocalDateTime.now())
+                .setNotificationType(4)
                 .setDescription("评论收到回复");
         int insert = notificationMapper.insert(notification);
         if(insert<=0) ResultVo.fail(DB_INSERT_NOTIFICATION_FAILED);
@@ -111,6 +113,7 @@ public class MqListener {
                 .setIsRead(0)
                 .setIsDeleted(0)
                 .setSendTime(LocalDateTime.now())
+                .setNotificationType(2)
                 .setDescription("新鲜事收到点赞");
         int insert = notificationMapper.insert(notification);
         if(insert<=0) ResultVo.fail(DB_INSERT_NOTIFICATION_FAILED);
@@ -140,6 +143,7 @@ public class MqListener {
                 .setIsRead(0)
                 .setIsDeleted(0)
                 .setSendTime(LocalDateTime.now())
+                .setNotificationType(2)
                 .setDescription("评论收到点赞");
         int insert = notificationMapper.insert(notification);
         if(insert<=0) ResultVo.fail(DB_INSERT_NOTIFICATION_FAILED);
@@ -168,6 +172,7 @@ public class MqListener {
                 .setIsRead(0)
                 .setIsDeleted(0)
                 .setSendTime(LocalDateTime.now())
+                .setNotificationType(2)
                 .setDescription("新鲜事被收藏");
         int insert = notificationMapper.insert(notification);
         if(insert<=0) ResultVo.fail(DB_INSERT_NOTIFICATION_FAILED);
