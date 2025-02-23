@@ -1,4 +1,4 @@
-package com.creamakers.fresh.system.domain.dto;
+package com.creamakers.websystem.domain.dto;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -11,45 +11,44 @@ import lombok.experimental.Accessors;
 import java.time.LocalDateTime;
 
 /**
- * 新鲜事评论DTO类
+ * 新鲜事DTO类
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("fresh_news_comments")
-public class FreshNewsComment {
+@TableName("fresh_news")
+public class FreshNews {
 
-    @TableId(value = "comment_id", type = IdType.AUTO)
-    private Long commentId;
+    @TableId(value = "fresh_news_id", type = IdType.AUTO)
+    private Long freshNewsId;
 
     // 用户ID
     @TableField(value = "user_id")
     private Long userId;
 
-    // 新鲜事ID
-    @TableField(value = "news_id")
-    private Long newsId;
+    // 标题
+    @TableField(value = "title")
+    private String title;
 
-    // 父评论ID
-    @TableField(value = "parent_id")
-    private Long parentId;
-
-    // 根评论ID
-    @TableField(value = "root")
-    private Long root;
-
-    // 评论内容
+    // 内容
     @TableField(value = "content")
     private String content;
+
+    // 图片路径
+    @TableField(value = "images")
+    private String images;
+
+    // 标签
+    @TableField(value = "tags")
+    private String tags;
 
     // 点赞数量
     @TableField(value = "liked")
     private Integer liked;
 
-    // 是否删除
-    @TableField(value = "is_deleted")
-    private Integer isDeleted;
-
+    // 评论数量
+    @TableField(value = "comments")
+    private Integer comments;
 
     // 创建时间
     @TableField(value = "create_time")
@@ -59,4 +58,15 @@ public class FreshNewsComment {
     @TableField(value = "update_time")
     private LocalDateTime updateTime;
 
+    // 是否删除
+    @TableField(value = "is_deleted")
+    private Integer isDeleted;
+
+    // 是否允许评论
+    @TableField(value = "allow_comments")
+    private Integer allowComments;
+
+    // 被收藏数
+    @TableField(value = "favorites_count")
+    private Integer favoritesCount;
 }

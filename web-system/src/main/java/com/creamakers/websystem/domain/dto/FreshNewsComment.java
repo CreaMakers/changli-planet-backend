@@ -1,4 +1,4 @@
-package com.creamakers.fresh.system.domain.dto;
+package com.creamakers.websystem.domain.dto;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -49,7 +49,6 @@ public class FreshNewsComment {
     // 是否删除
     @TableField(value = "is_deleted")
     private Integer isDeleted;
-
 
     // 创建时间
     @TableField(value = "create_time")
