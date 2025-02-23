@@ -2,25 +2,23 @@ package com.creamakers.websystem.service.Impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.creamakers.websystem.dao.FreshNewsCommentMapper;
-import com.creamakers.websystem.dao.FreshNewsMapper;
-import com.creamakers.websystem.dao.ReportCommentMapper;
-import com.creamakers.websystem.dao.ReportFreshNewsMapper;
-import com.creamakers.websystem.domain.dto.FreshNews;
-import com.creamakers.websystem.domain.dto.FreshNewsComment;
-import com.creamakers.websystem.domain.dto.ReportComment;
-import com.creamakers.websystem.domain.dto.ReportFreshNews;
+import com.creamakers.websystem.dao.*;
+import com.creamakers.websystem.domain.dto.*;
 import com.creamakers.websystem.domain.vo.ResultVo;
 import com.creamakers.websystem.domain.vo.request.PenaltyReq;
+import com.creamakers.websystem.domain.vo.response.NotificationResp;
 import com.creamakers.websystem.domain.vo.response.ReportCommentResp;
 import com.creamakers.websystem.domain.vo.response.ReportNewsResp;
 import com.creamakers.websystem.service.FreshNewsService;
+import com.creamakers.websystem.utils.HUAWEIOBSUtil;
+import com.creamakers.websystem.utils.WebSocketService;
 import io.netty.util.internal.StringUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,8 +36,15 @@ public class FreshNewsServiceImpl implements FreshNewsService {
 
     @Autowired
     private ReportCommentMapper reportCommentMapper;
+
     @Autowired
     private FreshNewsCommentMapper freshNewsCommentMapper;
+
+    @Autowired
+    private WebSocketService webSocketService;
+
+    @Autowired
+    private NotificationMapper notificationMapper;
 
     // 获取所有新鲜事举报
     @Override
@@ -58,9 +63,10 @@ public class FreshNewsServiceImpl implements FreshNewsService {
     @Transactional
     public ResultVo<ReportNewsResp> handleReportNewsPenalty(PenaltyReq penaltyReq) {
         ReportFreshNews reportFreshNews = reportFreshNewsMapper.selectById(penaltyReq.getReportId());
-        reportFreshNews.setPenaltyType(2)
+        reportFreshNews.setPenaltyType(penaltyReq.getPenaltyType())
                 .setProcessDescription(penaltyReq.getProcessDescription())
-                .setStatus(1);
+                .setStatus(1)
+                .setProcessTime(LocalDateTime.now());
         if(penaltyReq.getPenaltyType().equals(0)){
             reportFreshNewsMapper.updateById(reportFreshNews);
         }
@@ -78,6 +84,25 @@ public class FreshNewsServiceImpl implements FreshNewsService {
         }else{
             ResultVo.fail("处罚类型错误");
         }
+        // 创建通知对象，通知举报者或被举报者
+        Notification notification = new Notification();
+        notification.setNotificationType(1)
+                .setIsRead(0)
+                .setIsDeleted(0)
+                .setSenderId(1L)
+                .setReceiverId(reportFreshNews.getReporterId())
+                .setSendTime(LocalDateTime.now())
+                .setCreateTime(LocalDateTime.now())
+                .setDescription("您的举报已被处理");
+        notification.setContent(penaltyReq.getProcessDescription());
+
+        notificationMapper.insert(notification);
+
+        NotificationResp notificationResp = new NotificationResp();
+        BeanUtils.copyProperties(notification,notificationResp);
+
+        webSocketService.sendMessageToUser(reportFreshNews.getReporterId(),notificationResp);
+
         ReportNewsResp reportNewsResp = new ReportNewsResp();
         BeanUtils.copyProperties(reportFreshNews,reportNewsResp);
         return ResultVo.success(reportNewsResp);
@@ -102,7 +127,8 @@ public class FreshNewsServiceImpl implements FreshNewsService {
         ReportComment reportComment = reportCommentMapper.selectById(penaltyReq.getReportId());
         reportComment.setPenaltyType(penaltyReq.getPenaltyType())
                 .setProcessDescription(penaltyReq.getProcessDescription())
-                .setStatus(1);
+                .setStatus(1)
+                .setProcessTime(LocalDateTime.now());
         if(penaltyReq.getPenaltyType().equals(0)){
             reportCommentMapper.updateById(reportComment);
         }
@@ -114,6 +140,24 @@ public class FreshNewsServiceImpl implements FreshNewsService {
         } else{
             ResultVo.fail("处罚类型错误");
         }
+        // 创建通知对象，通知举报者或被举报者
+        Notification notification = new Notification();
+        notification.setNotificationType(1)
+                .setIsRead(0)
+                .setIsDeleted(0)
+                .setSenderId(1L)
+                .setReceiverId(reportComment.getReporterId())
+                .setSendTime(LocalDateTime.now())
+                .setCreateTime(LocalDateTime.now())
+                .setDescription("您的举报已被处理")
+                .setContent(penaltyReq.getProcessDescription());
+
+        notificationMapper.insert(notification);
+
+        NotificationResp notificationResp = new NotificationResp();
+        BeanUtils.copyProperties(notification,notificationResp);
+
+        webSocketService.sendMessageToUser(reportComment.getReporterId(),notificationResp);
         ReportCommentResp reportCommentResp = new ReportCommentResp();
         BeanUtils.copyProperties(reportComment,reportCommentResp);
         sendMessageToReporter(reportComment);

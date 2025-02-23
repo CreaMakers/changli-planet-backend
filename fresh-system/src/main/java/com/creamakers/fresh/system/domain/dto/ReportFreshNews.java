@@ -66,4 +66,7 @@ public class ReportFreshNews {
     // 处理类型: 0-删除, 1-禁止评论, 2-不处罚
     @TableField(value = "penalty_type")
     private Integer penaltyType;
+    // 处理时间
+    @TableField(value = "process_time")
+    private LocalDateTime processTime;
 }

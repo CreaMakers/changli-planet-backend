@@ -1,5 +1,6 @@
 package com.creamakers.websystem.domain.vo.response;
 
+import com.creamakers.websystem.enums.ReportType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,7 +29,7 @@ public class ReportCommentResp {
     private String reason;
 
     // 举报类型
-    private String reportType;
+    private ReportType reportType;
 
     // 举报状态: 0-未处理, 1-已处理
     private Integer status;

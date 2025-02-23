@@ -1,6 +1,5 @@
 package com.creamakers.websystem.utils;
 
-
 import com.creamakers.websystem.domain.vo.response.NotificationResp;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
@@ -43,6 +42,22 @@ public class WebSocketService extends TextWebSocketHandler {
                 session.sendMessage(new TextMessage(message));  // 发送消息
             } catch (IOException e) {
                 e.printStackTrace();
+            }
+        }
+    }
+
+    // 发送消息给所有已连接的用户
+    public void sendMessageToAllUsers(NotificationResp notificationResp) {
+        for (WebSocketSession session : userSessions.values()) {
+            if (session.isOpen()) {
+                try {
+                    // 将 NotificationResp 对象转换为 JSON 字符串
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    String message = objectMapper.writeValueAsString(notificationResp);
+                    session.sendMessage(new TextMessage(message));  // 发送消息
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
