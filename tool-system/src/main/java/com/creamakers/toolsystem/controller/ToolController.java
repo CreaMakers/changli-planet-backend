@@ -1,13 +1,11 @@
 package com.creamakers.toolsystem.controller;
 
-import com.creamakers.toolsystem.dto.request.CourseInfoRequest;
-import com.creamakers.toolsystem.dto.request.ElectricityChargeRequest;
-import com.creamakers.toolsystem.dto.request.ExamArrangeInfoRequest;
-import com.creamakers.toolsystem.dto.request.GradesInfoRequest;
+import com.creamakers.toolsystem.dto.request.*;
 import com.creamakers.toolsystem.dto.response.GeneralResponse;
 import com.creamakers.toolsystem.entity.CourseGrade;
 import com.creamakers.toolsystem.entity.CourseInfo;
 import com.creamakers.toolsystem.entity.ExamArrange;
+import com.creamakers.toolsystem.entity.PscjInfo;
 import com.creamakers.toolsystem.service.ToolService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -55,8 +55,6 @@ public class ToolController {
     }
 
 
-
-
     @GetMapping("/grades")
     public ResponseEntity<GeneralResponse<List<CourseGrade>>> getGradesInfo(
             @RequestParam(value = "stuNum") String stuNum,
@@ -72,6 +70,7 @@ public class ToolController {
         // 调用服务方法，并返回响应
         return toolService.GetGradesInfo(gradesInfoRequest);
     }
+
     @GetMapping("/exams")
     public ResponseEntity<GeneralResponse<List<ExamArrange>>> getExamArrangeInfo(
             @RequestParam(value = "stuNum") String stuNum,
@@ -88,6 +87,7 @@ public class ToolController {
 
         return toolService.GetExamArrangeInfo(examArrangeInfoRequest);
     }
+
     @GetMapping("/dormitory-electricity")
     public ResponseEntity<GeneralResponse> GetElectricityChargeInfo(@RequestParam(value = "address") String address,
                                                                     @RequestParam(value = "buildId") String buildId,
@@ -98,6 +98,42 @@ public class ToolController {
         electricityChargeRequest.setNod(nod);
         return toolService.GetElectricityChargeInfo(electricityChargeRequest);
     }
+
+    @GetMapping("/classroom")
+    public ResponseEntity<GeneralResponse<ArrayList<String>>> GetClassroomInfo(@RequestParam(value = "stuNum") String stuNum,
+                                                                               @RequestParam(value = "password") String password,
+                                                                               @RequestParam(value = "week") String week,
+                                                                               @RequestParam(value = "day") String day,
+                                                                               @RequestParam(value = "term") String term,
+                                                                               @RequestParam(value = "region") String region,
+                                                                               @RequestParam(value = "start") String start,
+                                                                               @RequestParam(value = "end") String end, Principal principal) throws IOException {
+        ClassroomInfoRequest classroomInfoRequest = new ClassroomInfoRequest(
+                stuNum, password, week, day, term, region, start, end
+        );
+        return toolService.GetClassroomInfo(classroomInfoRequest);
+    }
+
+
+
+    @GetMapping("/grades/detail")
+    public ResponseEntity<GeneralResponse<PscjInfo>> getGradesDetailsInfo(
+            @RequestParam(value = "stuNum") String stuNum,
+            @RequestParam(value = "password") String password,
+            @RequestParam(value = "pscjUrl") String pscjUrl) throws IOException, InterruptedException {
+
+        // 调用服务方法，并返回响应
+        return toolService.GetGradesDetailInfo(new GradeDetailInfoRequest(stuNum, password, pscjUrl));
+    }
+
+//    @PostMapping("/getWeekDate")
+//    public ResponseEntity<GeneralResponse> getWeekDate(
+//            @RequestParam(value = "stuNum") String stuNum,
+//            @RequestParam(value = "password") String password
+//    ) {
+//        WeekDateRequest weekDateRequest = new WeekDateRequest(stuNum, password);
+//        return toolService.getWeekDate(weekDateRequest);
+//    }
 
 
 }

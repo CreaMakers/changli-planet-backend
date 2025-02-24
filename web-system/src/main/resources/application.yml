@@ -19,6 +19,10 @@ spring:
           max-idle: 10
           min-idle: 1
           time-between-eviction-runs: 10s
+  servlet:
+    multipart:
+      max-file-size: 60MB
+      max-request-size: 70MB
 
 server:
   port: 8082

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.creamakers.fresh.system.enums.ReportType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -58,11 +59,14 @@ public class ReportFreshNews {
     @TableField(value = "update_time")
     private LocalDateTime updateTime;
 
-    // 举报类型
+    // 举报类型（改用枚举）
     @TableField(value = "report_type")
-    private String reportType;
+    private ReportType reportType;
 
     // 处理类型: 0-删除, 1-禁止评论, 2-不处罚
     @TableField(value = "penalty_type")
     private Integer penaltyType;
+    // 处理时间
+    @TableField(value = "process_time")
+    private LocalDateTime processTime;
 }

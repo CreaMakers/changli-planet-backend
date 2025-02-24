@@ -2,7 +2,7 @@ package com.creamakers.fresh.system.controller;
 
 import com.creamakers.fresh.system.domain.dto.FreshNewsFavorites;
 import com.creamakers.fresh.system.domain.vo.ResultVo;
-import com.creamakers.fresh.system.service.FavoritesService;
+import com.creamakers.fresh.system.service.CollectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,10 +10,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/app/fresh_news/favorites")
-public class FavoritesController {
+public class CollectController {
 
     @Autowired
-    private FavoritesService favoritesService;
+    private CollectService favoritesService;
 
     /**
      * 添加收藏
@@ -22,8 +22,8 @@ public class FavoritesController {
      * @return 结果
      */
     @PostMapping("/add/{user_id}/{news_id}")
-    public ResultVo<Void> addFavorite(@PathVariable("user_id") Long userId, @PathVariable("news_id") Long newsId) {
-        return favoritesService.addFavorite(userId, newsId);
+    public ResultVo<Void> CollectNews(@PathVariable("user_id") Long userId, @PathVariable("news_id") Long newsId) {
+        return favoritesService.collectNews(userId, newsId);
     }
 
     /**

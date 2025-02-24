@@ -110,8 +110,8 @@ public class UserProfileImpl extends ServiceImpl<UserProfileMapper, UserProfile>
                     .bio("这个人很懒，没有写任何描述")
                     .userLevel(1)
                     .gender(2)
-                    .grade("大学一年级")
-                    .location("中国")
+                    .grade("保密~")
+                    .location("银河 地球")
                     .birthDate(new Date())
                     .build();
 

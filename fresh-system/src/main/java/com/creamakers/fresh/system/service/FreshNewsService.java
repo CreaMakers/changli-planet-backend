@@ -4,11 +4,13 @@ import com.creamakers.fresh.system.domain.vo.ResultVo;
 import com.creamakers.fresh.system.domain.vo.request.FreshNewsRequest;
 import com.creamakers.fresh.system.domain.vo.response.FreshNewsDetailResp;
 import com.creamakers.fresh.system.domain.vo.response.FreshNewsResp;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface FreshNewsService {
-    ResultVo<Void> createFreshNews(FreshNewsRequest freshNewsRequest);
+    ResultVo<FreshNewsResp> createFreshNews(List<MultipartFile> images, FreshNewsRequest freshNewsRequest) throws IOException;
 
     ResultVo<FreshNewsDetailResp> getFreshNewsById(Long freshNewsId);
 
@@ -17,8 +19,4 @@ public interface FreshNewsService {
     ResultVo<List<FreshNewsResp>> getAllByLikes(Integer page, Integer pageSize);
 
     ResultVo<List<FreshNewsResp>> getByTag(String tag, Integer page, Integer pageSize);
-
-    ResultVo<Void> likeFreshNews(Long freshNewsId, Long userId);
-
-    ResultVo<Void> unlikeFreshNews(Long freshNewsId, Long userId);
 }

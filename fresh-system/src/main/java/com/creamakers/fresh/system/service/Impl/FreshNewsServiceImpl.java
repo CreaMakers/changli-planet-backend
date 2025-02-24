@@ -4,21 +4,31 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.creamakers.fresh.system.dao.FreshNewsLikesMapper;
 import com.creamakers.fresh.system.dao.FreshNewsMapper;
+import com.creamakers.fresh.system.dao.TagsMapper;
 import com.creamakers.fresh.system.domain.dto.FreshNews;
-import com.creamakers.fresh.system.domain.dto.FreshNewsLikes;
+import com.creamakers.fresh.system.domain.dto.Tags;
 import com.creamakers.fresh.system.domain.vo.ResultVo;
 import com.creamakers.fresh.system.domain.vo.request.FreshNewsRequest;
 import com.creamakers.fresh.system.domain.vo.response.FreshNewsDetailResp;
 import com.creamakers.fresh.system.domain.vo.response.FreshNewsResp;
 import com.creamakers.fresh.system.service.FreshNewsService;
+import com.creamakers.fresh.system.utils.HUAWEIOBSUtil;
+import jodd.util.StringUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.creamakers.fresh.system.constants.CommonConst.*;
 
 @Service
 public class FreshNewsServiceImpl implements FreshNewsService {
@@ -26,22 +36,92 @@ public class FreshNewsServiceImpl implements FreshNewsService {
     private FreshNewsMapper freshNewsMapper;
     @Autowired
     private FreshNewsLikesMapper freshNewsLikesMapper;
+    @Autowired
+    private TagsMapper tagsMapper;
+    @Autowired
+    private RedisTemplate redisTemplate;
     @Override
-    public ResultVo<Void> createFreshNews(FreshNewsRequest freshNewsRequest) {
+    @Transactional
+    public ResultVo<FreshNewsResp> createFreshNews(List<MultipartFile> images, FreshNewsRequest freshNewsRequest) throws IOException {
+        if (StringUtil.isEmpty(freshNewsRequest.getContent())) {
+            return ResultVo.fail(FRESH_NEWS_CONTENT_CANNOT_BE_EMPTY_MESSAGE);
+        }
+        if (!CollectionUtils.isEmpty(images) && images.size() > 9) {
+            return ResultVo.fail(IMAGE_COUNT_EXCEEDS_LIMIT_MESSAGE);
+        }
+
+        // 新增标签的逻辑
+        if (!StringUtil.isEmpty(freshNewsRequest.getTags())) {
+            String[] tags = freshNewsRequest.getTags().split("#");
+            for (int i = 1; i < tags.length; i++) {
+                String tag = tags[i];
+
+                // 先检查 Redis 中是否存在该标签
+                Boolean exists = redisTemplate.hasKey("tags:" + tag); // Redis key 前缀可以自定义
+
+                if (exists == null || !exists) {
+                    // Redis 中没有这个标签，插入到 Redis 和数据库
+                    redisTemplate.opsForValue().set("tags:" + tag, tag); // 在 Redis 中保存标签
+
+                    // 插入数据库
+                    Tags tags1 = new Tags();
+                    tags1.setName(tag);
+                    tagsMapper.insert(tags1);
+                }
+            }
+        }
+
+        // 图片上传逻辑
+        StringBuilder urls = new StringBuilder();
+        if (!CollectionUtils.isEmpty(images)) {
+            for (MultipartFile image : images) {
+                String s = HUAWEIOBSUtil.uploadImage(image, UUID.randomUUID().toString());
+                if (urls.length() > 0) {
+                    urls.append(",");
+                }
+                urls.append(s);
+            }
+        }
+        String finalUrls = urls.toString();
+
+        // 创建 FreshNews 实体并插入数据库
         FreshNews freshNews = new FreshNews();
         freshNews.setUserId(freshNewsRequest.getUserId())
                 .setTitle(freshNewsRequest.getTitle())
+                .setImages(finalUrls)
                 .setContent(freshNewsRequest.getContent())
-                .setImages(freshNewsRequest.getImages())
                 .setTags(freshNewsRequest.getTags())
+                .setLiked(0)
+                .setIsDeleted(0)
+                .setFavoritesCount(0)
+                .setCreateTime(LocalDateTime.now())
+                .setUpdateTime(LocalDateTime.now())
                 .setAllowComments(freshNewsRequest.getAllowComments());
+
         int rows = freshNewsMapper.insert(freshNews);
         if (rows > 0) {
-            return ResultVo.success();
+            // 获取新鲜事的 ID
+            Long freshNewsId = freshNews.getFreshNewsId();
+
+            // 将新鲜事 ID 加入到 Redis 中对应标签的集合
+            if (!StringUtil.isEmpty(freshNewsRequest.getTags())) {
+                String[] tags = freshNewsRequest.getTags().split("#");
+                for (int i = 1; i < tags.length; i++) {
+                    String tag = tags[i];
+
+                    // 将新鲜事 ID 加入 Redis 中该标签的集合
+                    redisTemplate.opsForSet().add("tags:" + tag, String.valueOf(freshNewsId)); // 将新鲜事 ID 加入 Redis 集合
+                }
+            }
+            // 返回创建的新鲜事响应
+            FreshNewsResp freshNewsResp = new FreshNewsResp();
+            BeanUtils.copyProperties(freshNews, freshNewsResp);
+            return ResultVo.success(freshNewsResp);
         } else {
-            return ResultVo.fail("创建新鲜事失败");
+            return ResultVo.fail(CREATE_FRESH_NEWS_FAILED_MESSAGE);
         }
     }
+
 
     @Override
     public ResultVo<FreshNewsDetailResp> getFreshNewsById(Long freshNewsId) {
@@ -70,10 +150,9 @@ public class FreshNewsServiceImpl implements FreshNewsService {
 
             return ResultVo.success(freshNewsDetailResp);
         } else {
-            return ResultVo.fail("新鲜事不存在");
+            return ResultVo.fail( FRESH_NEWS_NOT_FOUND_MESSAGE);
         }
     }
-
 
     @Override
     public ResultVo<List<FreshNewsResp>> getAllFreshNews(Integer page, Integer pageSize) {
@@ -122,11 +201,18 @@ public class FreshNewsServiceImpl implements FreshNewsService {
 
     @Override
     public ResultVo<List<FreshNewsResp>> getByTag(String tag, Integer page, Integer pageSize) {
+        Set<String> freshNewsIds = redisTemplate.opsForSet().members("tags:" + tag);
+        if (freshNewsIds == null || freshNewsIds.isEmpty()) {
+            return ResultVo.fail(NO_FRESH_NEWS_UNDER_TAG_MESSAGE);
+        }
+        List<Long> freshNewsIdList = freshNewsIds.stream()
+                .map(Long::parseLong)
+                .collect(Collectors.toList());
         Page<FreshNews> pageParam = new Page<>(page, pageSize);
         Page<FreshNews> pageResult = freshNewsMapper.selectPage(pageParam,
                 new QueryWrapper<FreshNews>()
-                        .eq("is_deleted", 0) // 只查询未删除的记录
-                        .like("tags", tag)   // 查询标签包含给定tag的记录
+                        .eq("is_deleted", 0)
+                        .in("fresh_news_id", freshNewsIdList)
                         .orderByDesc("create_time")
         );
         List<FreshNews> records = pageResult.getRecords();
@@ -138,70 +224,5 @@ public class FreshNewsServiceImpl implements FreshNewsService {
                 })
                 .collect(Collectors.toList());
         return ResultVo.success(freshNewsRespList);
-    }
-
-
-    @Override
-    public ResultVo<Void> likeFreshNews(Long freshNewsId, Long userId) {
-        // 检查是否已经点赞
-        FreshNewsLikes freshNewsLikes0 = freshNewsLikesMapper.selectOne(
-                new QueryWrapper<FreshNewsLikes>()
-                        .eq("user_id", userId)
-                        .eq("news_id", freshNewsId)
-                        .eq("is_deleted", 0)
-        );
-
-        if (freshNewsLikes0 != null) {
-            return ResultVo.fail("您已点赞此新鲜事");
-        }
-
-        // 插入点赞记录
-        FreshNewsLikes freshNewsLikes = new FreshNewsLikes();
-        freshNewsLikes.setUserId(Math.toIntExact(userId));
-        freshNewsLikes.setNewsId(freshNewsId);
-        int rows = freshNewsLikesMapper.insert(freshNewsLikes);
-
-        if (rows > 0) {
-            // 更新对应的新鲜事点赞数
-            FreshNews freshNews = freshNewsMapper.selectById(freshNewsId);
-            if (freshNews != null) {
-                freshNews.setLiked(freshNews.getLiked() + 1);
-                freshNewsMapper.updateById(freshNews);
-            }
-            return ResultVo.success();
-        } else {
-            return ResultVo.fail("点赞失败");
-        }
-    }
-
-    @Override
-    public ResultVo<Void> unlikeFreshNews(Long freshNewsId, Long userId) {
-        // 查找点赞记录
-        FreshNewsLikes freshNewsLikes = freshNewsLikesMapper.selectOne(
-                new QueryWrapper<FreshNewsLikes>()
-                        .eq("user_id", userId)
-                        .eq("news_id", freshNewsId)
-                        .eq("is_deleted", 0)
-        );
-
-        if (freshNewsLikes == null) {
-            return ResultVo.fail("您尚未点赞此新鲜事");
-        }
-
-        // 标记点赞记录为已删除
-        freshNewsLikes.setIsDeleted(true);
-        int rows = freshNewsLikesMapper.updateById(freshNewsLikes);
-
-        if (rows > 0) {
-            // 更新对应的新鲜事点赞数
-            FreshNews freshNews = freshNewsMapper.selectById(freshNewsId);
-            if (freshNews != null && freshNews.getLiked() > 0) {
-                freshNews.setLiked(freshNews.getLiked() - 1);
-                freshNewsMapper.updateById(freshNews);
-            }
-            return ResultVo.success();
-        } else {
-            return ResultVo.fail("取消点赞失败");
-        }
     }
 }

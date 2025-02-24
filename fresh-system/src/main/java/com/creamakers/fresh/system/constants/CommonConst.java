@@ -11,46 +11,51 @@ public class CommonConst {
 
     public final static String RESULT_FAILURE_MSG = "failure";
 
-    public static final String CRYPOT_KEY = "changli-planetchangli-planet";
+    public final static String ALREADY_FAVORITED_FRESH_NEWS_MESSAGE = "您已经收藏过此新鲜事";
 
-    public final static String PASSWORD_ERROR = "密码错误，请重新输入";
+    public final static String FAVORITE_FAILED_MESSAGE = "收藏失败";
 
-    public final static String ACCOUNT_NOT_FOUND = "用户不存在，请重新登陆";
+    public final static String NOT_FAVORITED_FRESH_NEWS_MESSAGE = "您尚未收藏此新鲜事";
 
-    public final static String TOKEN_NOT_FOUND = "token不存在，请重新登陆";
+    public final static String FAVORITE_RECORD_NOT_FOUND_MESSAGE = "收藏记录不存在";
 
-    public final static String TOKEN_INVALID = "无效token，请重新登陆";
-    //Insufficient permissions
-    public final static String INSUFFICIENT_PERMISSION = "权限不足，无法访问";
+    public final static String CANCEL_FAVORITE_FAILED_MESSAGE = "取消收藏失败";
 
-    public final static String ACCOUNT_DISABLED_OR_BANNED = "账号异常，已被删除或封禁";
+    public final static String COMMENT_ADD_FAILED_MESSAGE = "评论添加失败";
 
-    public final static String BAD_USERINFO_QUERY = "查询用户ID无效，请重新输入";
+    public final static String PARENT_COMMENT_NOT_FOUND_MESSAGE = "父评论不存在";
 
-    public final static String BAD_UPDATE_USER = "更新用户信息失败";
+    public final static String COMMENT_DELETE_FAILED_MESSAGE = "评论删除失败";
 
-    public final static String REFRESH_TOKEN_PREFIX = "web:refresh_token:";
+    public final static String FRESH_NEWS_CONTENT_CANNOT_BE_EMPTY_MESSAGE = "新鲜事内容不能为空";
 
-    public final static String ACCESS_TOKEN_PREFIX = "web:access_token:";
+    public final static String IMAGE_COUNT_EXCEEDS_LIMIT_MESSAGE = "图片数量超过限制";
 
-    public final static String BLACKLIST_TOKEN_PREFIX = "web:blacklist:token:";
+    public final static String CREATE_FRESH_NEWS_FAILED_MESSAGE = "创建新鲜事失败";
 
-    public final static String TOKEN_EXPIRATION_TIME = "7200";
+    public final static String FRESH_NEWS_NOT_FOUND_MESSAGE = "新鲜事不存在";
 
-    public final static String DATABASE_OPERATION_ERROR = "与数据库交互失败，请检查配置";
+    public final static String NO_FRESH_NEWS_UNDER_TAG_MESSAGE = "该标签下没有新鲜事";
 
-    public final static Integer REGULAR_USER = 0;
+    public final static String NEWS_LIKE_COUNT_UPDATE_FAILED_MESSAGE = "新闻点赞数更新失败";
 
-    public final static Integer OPERATIONS_TEAM = 1;
+    public final static String COMMENT_LIKE_COUNT_UPDATE_FAILED_MESSAGE = "评论点赞数更新失败";
 
-    public final static Integer DEVELOPMENT_TEAM = 2;
+    public final static String ALREADY_REPORTED_FRESH_NEWS_MESSAGE = "您已经举报过此新鲜事";
 
-    public final static String VIOLATION_RECORD_NOT_SUPPORTED = "未找到对应的违规记录";
+    public final static String REPORT_FRESH_NEWS_FAILED_MESSAGE = "举报新鲜事失败";
 
-    public final static String DATA_DELETE_FAILED_NOT_FOUND = "数据删除失败，未找到该条记录";
+    public final static String ALREADY_REPORTED_COMMENT_MESSAGE = "您已经举报过此评论";
 
-    public final static String EMPTY_SEARCH_KEYWORD = "搜索关键词为空,无法查询";
-    public final static String GROUP_BULLETIN_ID_NOT_EXIST = "群聊公告Id不存在，查询失败";
-    public static final String UPDATE_GROUP_ANNOUNCEMENT_FAILED = "更新群聊公告表失败";
+    public final static String REPORT_COMMENT_FAILED_MESSAGE = "举报评论失败";
+
+    public final static String FRESH_NEWS_REPORT_RECORD_NOT_FOUND_MESSAGE = "新鲜事举报记录不存在";
+
+    public final static String COMMENT_REPORT_RECORD_NOT_FOUND_MESSAGE = "评论举报记录不存在";
+
+    public static final String DB_INSERT_NOTIFICATION_FAILED = "数据库notification表插入失败";
+
+
+
 
 }

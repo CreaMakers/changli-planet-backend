@@ -1,5 +1,6 @@
 package com.creamakers.fresh.system.controller;
 
+import com.creamakers.fresh.system.domain.dto.FreshNews;
 import com.creamakers.fresh.system.domain.vo.ResultVo;
 import com.creamakers.fresh.system.domain.vo.request.FreshNewsRequest;
 
@@ -7,9 +8,12 @@ import com.creamakers.fresh.system.domain.vo.response.FreshNewsDetailResp;
 import com.creamakers.fresh.system.domain.vo.response.FreshNewsResp;
 import com.creamakers.fresh.system.service.FreshNewsService;
 
+import com.creamakers.fresh.system.utils.JsonParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -21,12 +25,12 @@ public class FreshNewsController {
 
     /**
      * 创建新鲜事
-     * @param freshNewsRequest 请求参数
-     * @return 结果
      */
     @PostMapping
-    public ResultVo<Void> createFreshNews(@RequestBody FreshNewsRequest freshNewsRequest) {
-        return freshNewsService.createFreshNews(freshNewsRequest);
+    public ResultVo<FreshNewsResp> createFreshNews(@RequestParam("images")List<MultipartFile> images,
+                                               @RequestParam("fresh_news") String s) throws IOException {
+        FreshNewsRequest freshNewsRequest = JsonParser.StoJ(s);
+        return freshNewsService.createFreshNews(images,freshNewsRequest);
     }
 
     /**
@@ -65,19 +69,5 @@ public class FreshNewsController {
                                                   @RequestParam(value = "page", defaultValue = "1") Integer page,
                                                   @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
         return freshNewsService.getByTag(tag, page, pageSize);
-    }
-
-    // 点赞新鲜事
-    @PostMapping("/{fresh_news_id}/likes/{user_id}")
-    public ResultVo<Void> likeFreshNews(@PathVariable("fresh_news_id") Long freshNewsId,
-                                        @PathVariable("user_id") Long userId) {
-        return freshNewsService.likeFreshNews(freshNewsId, userId);
-    }
-
-    // 取消点赞新鲜事
-    @DeleteMapping("/{fresh_news_id}/likes/{user_id}")
-    public ResultVo<Void> unlikeFreshNews(@PathVariable("fresh_news_id") Long freshNewsId,
-                                          @PathVariable("user_id") Long userId) {
-        return freshNewsService.unlikeFreshNews(freshNewsId, userId);
     }
 }

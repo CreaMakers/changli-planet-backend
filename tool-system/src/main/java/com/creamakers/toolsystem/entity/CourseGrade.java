@@ -17,38 +17,43 @@ import lombok.experimental.Accessors;
 public class CourseGrade {
 
     // 序号
-    public String id;
+    private String id;
 
     // 开课学期
-    public String item;
+    private String item;
 
     // 课程名称
     public String name;
 
     // 成绩
-    public String grade;
+    private String grade;
 
     // 成绩标识
-    public String flag;
+    private String flag;
 
     // 学分
-    public String score;
+    private String score;
 
     // 总学时
-    public String timeR;
+    private String timeR;
 
     // 绩点
-    public String point;
+    private String point;
 
     // 补重学期
-    public String ReItem;
+    private String ReItem;
 
     // 考核方式
-    public String method;
+    private String method;
 
     // 考试性质
-    public String property;
+    private String property;
 
     // 课程属性
-    public String attribute;
+    private String attribute;
+
+    /*
+     上机成绩比例
+     */
+    private String pscjUrl;
 }

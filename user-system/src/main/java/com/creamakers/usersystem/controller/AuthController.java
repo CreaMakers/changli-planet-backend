@@ -17,6 +17,9 @@ public class AuthController {
     @Autowired
     private UserAuthService userAuthService;
 
+    @Autowired
+    private ApkService apkService;
+
     @PostMapping("/register")
     public ResponseEntity<GeneralResponse> register(@RequestBody RegisterRequest registerRequest) {
         return userAuthService.register(registerRequest);
@@ -62,6 +65,13 @@ public class AuthController {
     public ResponseEntity<GeneralResponse> updatePassword(@RequestBody PasswordUpdateRequest request, @RequestHeader(value = "Authorization") String authorization) {
         String accessToken = authorization.substring(7);
         return userAuthService.updatePassword(request, accessToken);
+    }
+
+    @GetMapping("/apk")
+    public ResponseEntity<GeneralResponse> checkApkVersion(@RequestParam("versionCode") Integer versionCode,
+                                                           @RequestParam("versionName") String versionName) {
+
+        return apkService.checkApkVersion(versionCode,versionName);
     }
 
 }
