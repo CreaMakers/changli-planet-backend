@@ -73,55 +73,105 @@ public class UserAuthServiceImpl implements UserAuthService {
 
     @Override
     public ResponseEntity<GeneralResponse> login(LoginRequest loginRequest, String deviceId, String accessToken) {
+
         if (deviceId == null || deviceId.isEmpty()) {
             return badRequest("Missing device ID");
         }
 
         if (isValidAccessToken(accessToken, deviceId)) {
-            return handleLoginWithNewTokens(jwtUtil.getUserNameFromToken(accessToken), deviceId);
+            String username = jwtUtil.getUserNameFromToken(accessToken);
+            return loginAndGenerateTokens(username, deviceId);
         }
 
         if (loginRequest != null) {
             return processPasswordLogin(loginRequest, deviceId);
         }
 
-        return badRequest("Both access token and login request are missing");
+        logger.error("Login failed: Both access token and login request are missing for device '{}'", deviceId);
+        return badRequest("Err:Both access token and login request are missing");
     }
 
     private boolean isValidAccessToken(String accessToken, String deviceId) {
+        // Check if the access token is null or is blacklisted
         if (accessToken == null || userService.getCachedAccessTokenFromBlack(accessToken) != null) {
+            logger.warn("Access token is invalid or blacklisted.");
             return false;
         }
 
+        // Extract the username from the token
+        String username = jwtUtil.getUserNameFromToken(accessToken);
+
+        // Check if the user exists
+        if (userService.getUserByUsername(username) == null) {
+            logger.error("Login failed: User '{}' not found.", username);
+            return false;
+        }
+
+        // Extract the device ID from the token
         String tokenDeviceId = jwtUtil.getDeviceIDFromToken(accessToken);
-        return deviceId.equals(tokenDeviceId) && !userService.isRefreshTokenExpired(jwtUtil.getUserNameFromToken(accessToken), deviceId);
+
+        // Check if the device ID matches and the refresh token is not expired
+        if (!deviceId.equals(tokenDeviceId)) {
+            logger.warn("Device ID mismatch: Expected '{}', but found '{}'.", deviceId, tokenDeviceId);
+            return false;
+        }
+
+        if (userService.isRefreshTokenExpired(username, deviceId)) {
+            logger.warn("Refresh token expired for user '{}' on device '{}'.", username, deviceId);
+            return false;
+        }
+
+        // If all checks pass, return true
+        logger.info("Access token for user '{}' on device '{}' is valid.", username, deviceId);
+        return true;
     }
+
 
     private ResponseEntity<GeneralResponse> processPasswordLogin(LoginRequest loginRequest, String deviceId) {
         String username = loginRequest.getUsername();
+
+        logger.info("Attempting password login for user '{}' on device '{}'", username, deviceId);
+
         User foundUser = userService.getUserByUsername(username);
 
         if (foundUser == null) {
+            logger.warn("User '{}' not found for login attempt on device '{}'", username, deviceId);
             return notFound(ErrorMessage.USER_NOT_FOUND);
         }
 
         if (passwordEncoderUtil.matches(loginRequest.getPassword(), foundUser.getPassword())) {
-            return handleLoginWithNewTokens(username, deviceId);
+            logger.info("User '{}' successfully logged in on device '{}'", username, deviceId);
+            return loginAndGenerateTokens(username, deviceId);
         }
 
-        return unauthorized(ErrorMessage.INVALID_CREDENTIALS);
+        logger.warn("Invalid password for user '{}' on device '{}'", username, deviceId);
+        return unauthorized(ErrorMessage.INVALID_PASSWORD);
     }
 
-    private ResponseEntity<GeneralResponse> handleLoginWithNewTokens(String username, String deviceId) {
-        long timestamp = System.currentTimeMillis();
-        String newAccessToken = jwtUtil.generateAccessToken(username, deviceId, timestamp);
-        String newRefreshToken = jwtUtil.generateRefreshToken(username, deviceId, timestamp);
-        userService.cacheRefreshToken(username, deviceId, newRefreshToken);
 
-        System.out.println("newAccessToken: " + newAccessToken);
+    private ResponseEntity<GeneralResponse> loginAndGenerateTokens(String username, String deviceId) {
+        logger.info("Handling login for user '{}' with device '{}'", username, deviceId);
+
+        long timestamp = System.currentTimeMillis();
+        String newAccessToken = null;
+        String newRefreshToken = null;
+
+        try {
+            newAccessToken = jwtUtil.generateAccessToken(username, deviceId, timestamp);
+            newRefreshToken = jwtUtil.generateRefreshToken(username, deviceId, timestamp);
+
+            userService.cacheRefreshToken(username, deviceId, newRefreshToken);
+
+            logger.debug("Generated new tokens for user '{}': AccessToken (hidden), RefreshToken (hidden), Timestamp: {}", username, timestamp);
+            logger.info("User '{}' logged in successfully on device '{}'. Tokens generated and cached.", username, deviceId);
+        } catch (Exception e) {
+            logger.error("Error occurred during login process for user '{}' on device '{}': {}", username, deviceId, e.getMessage(), e);
+            return response(HttpStatus.INTERNAL_SERVER_ERROR,HttpCode.INTERNAL_SERVER_ERROR , ErrorMessage.TOKEN_GENERATION_FAILED);
+        }
 
         return responseWithAuthHeader(newAccessToken, HttpStatus.OK, HttpCode.OK, SuccessMessage.USER_LOGGED_IN);
     }
+
 
     @Override
     public ResponseEntity<GeneralResponse> updatePassword(PasswordUpdateRequest request, String accessToken) {

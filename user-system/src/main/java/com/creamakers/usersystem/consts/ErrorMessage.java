@@ -56,4 +56,6 @@ public class ErrorMessage {
     public static final String INVALID_TOKEN = "提供的令牌无效或已过期";
 
     public static final String TOKEN_EXPIRED = "token过期，需要重新登录";
+    public static final String TOKEN_GENERATION_FAILED = "token生成过程错误，请重新尝试或者联系管理员";
+    public static final String INVALID_PASSWORD = "密码错误，请重新输入";
 }

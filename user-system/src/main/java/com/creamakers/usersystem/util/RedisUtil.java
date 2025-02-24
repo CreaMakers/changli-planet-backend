@@ -28,54 +28,85 @@ public class RedisUtil {
     private StringRedisTemplate redisTemplate;
 
     public void storeRefreshToken(String username, String deviceId, String refreshToken) {
-        String key = refreshTokenPrefix + username + "-" + deviceId;
-        redisTemplate.opsForValue().set(key, refreshToken, jwtRefreshTokenExpirationTime, TimeUnit.MILLISECONDS);
-        logger.info("Stored refresh token for user {} on device {} with key {}", username, deviceId, key);
+        try {
+            String key = refreshTokenPrefix + username + "-" + deviceId;
+            redisTemplate.opsForValue().set(key, refreshToken, jwtRefreshTokenExpirationTime, TimeUnit.MILLISECONDS);
+            logger.info("Stored refresh token for user {} on device {} with key {}", username, deviceId, key);
+        } catch (Exception e) {
+            logger.error("Error storing refresh token for user {} on device {}: {}", username, deviceId, e.getMessage(), e);
+        }
     }
 
     public boolean isRefreshTokenExpired(String username, String deviceId) {
-        String key = refreshTokenPrefix + username + "-" + deviceId;
-        boolean isExpired = redisTemplate.opsForValue().get(key) == null;
-        logger.info("Checked expiration for user {} on device {}: {}", username, deviceId, isExpired);
-        return isExpired;
+        try {
+            String key = refreshTokenPrefix + username + "-" + deviceId;
+            boolean isExpired = redisTemplate.opsForValue().get(key) == null;
+            logger.info("Checked expiration for user {} on device {}: {}", username, deviceId, isExpired);
+            return isExpired;
+        } catch (Exception e) {
+            logger.error("Error checking expiration for user {} on device {}: {}", username, deviceId, e.getMessage(), e);
+            return true;  // In case of error, assume token is expired to be safe
+        }
     }
 
-
     public void deleteRefreshToken(String username, String deviceId) {
-        String key = refreshTokenPrefix + username + "-" + deviceId;
-        redisTemplate.delete(key);
-        logger.info("Deleted refresh token for user {} on device {} with key {}", username, deviceId, key);
+        try {
+            String key = refreshTokenPrefix + username + "-" + deviceId;
+            redisTemplate.delete(key);
+            logger.info("Deleted refresh token for user {} on device {} with key {}", username, deviceId, key);
+        } catch (Exception e) {
+            logger.error("Error deleting refresh token for user {} on device {}: {}", username, deviceId, e.getMessage(), e);
+        }
     }
 
     public boolean refreshTokenExists(String username, String deviceId) {
-        String key = refreshTokenPrefix + username + "-" + deviceId;
-        boolean exists = redisTemplate.hasKey(key);
-        logger.info("Checked existence of refresh token for user {} on device {}: {}", username, deviceId, exists);
-        return exists;
+        try {
+            String key = refreshTokenPrefix + username + "-" + deviceId;
+            boolean exists = redisTemplate.hasKey(key);
+            logger.info("Checked existence of refresh token for user {} on device {}: {}", username, deviceId, exists);
+            return exists;
+        } catch (Exception e) {
+            logger.error("Error checking existence of refresh token for user {} on device {}: {}", username, deviceId, e.getMessage(), e);
+            return false;
+        }
     }
 
     public void addAccessToBlacklist(String accessToken) {
-        String key = blackListTokenPrefix + accessToken;
-        redisTemplate.opsForSet().add(key, accessToken);
-        logger.info("Added access token to blacklist: {}", accessToken);
+        try {
+            String key = blackListTokenPrefix + accessToken;
+            redisTemplate.opsForSet().add(key, accessToken);
+            logger.info("Added access token to blacklist: {}", accessToken);
+        } catch (Exception e) {
+            logger.error("Error adding access token to blacklist: {}", accessToken, e);
+        }
     }
 
     public String getCachedAccessTokenFromBlack(String accessToken) {
-        String key = blackListTokenPrefix + accessToken;
-        Set<String> tokens = redisTemplate.opsForSet().members(key);
-        String cachedToken = (tokens != null && !tokens.isEmpty()) ? tokens.iterator().next() : null;
-        logger.info("Retrieved cached access token from blacklist for token {}: {}", accessToken, cachedToken);
-        return cachedToken;
+        try {
+            String key = blackListTokenPrefix + accessToken;
+            Set<String> tokens = redisTemplate.opsForSet().members(key);
+            String cachedToken = (tokens != null && !tokens.isEmpty()) ? tokens.iterator().next() : null;
+            logger.info("Retrieved cached access token from blacklist for token {}: {}", accessToken, cachedToken);
+            return cachedToken;
+        } catch (Exception e) {
+            logger.error("Error retrieving cached access token from blacklist for token {}: {}", accessToken, e.getMessage(), e);
+            return null;
+        }
     }
 
     public String getFreshTokenByUsernameAndDeviceId(String username, String deviceId) {
-        String key = refreshTokenPrefix + username + "-" + deviceId;
-        String refreshToken = redisTemplate.opsForValue().get(key);
-        if (refreshToken != null) {
-            logger.info("Successfully retrieved refresh token for user {} on device {}", username, deviceId);
-        } else {
-            logger.warn("No refresh token found for user {} on device {}", username, deviceId);
+        try {
+            String key = refreshTokenPrefix + username + "-" + deviceId;
+            String refreshToken = redisTemplate.opsForValue().get(key);
+            if (refreshToken != null) {
+                logger.info("Successfully retrieved refresh token for user {} on device {}", username, deviceId);
+            } else {
+                logger.warn("No refresh token found for user {} on device {}", username, deviceId);
+            }
+            return refreshToken;
+        } catch (Exception e) {
+            logger.error("Error retrieving refresh token for user {} on device {}: {}", username, deviceId, e.getMessage(), e);
+            return null;
         }
-        return refreshToken;
     }
 }
