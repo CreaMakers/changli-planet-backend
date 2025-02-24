@@ -9,6 +9,7 @@ import com.creamakers.usersystem.po.User;
 import com.creamakers.usersystem.service.*;
 import com.creamakers.usersystem.util.JwtUtil;
 import com.creamakers.usersystem.util.PasswordEncoderUtil;
+import com.creamakers.usersystem.util.RedisUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,10 @@ public class UserAuthServiceImpl implements UserAuthService {
     private UserService userService;
     @Autowired
     private PasswordEncoderUtil passwordEncoderUtil;
+
+    @Autowired
+    private RedisUtil redisUtil;
+
     @Autowired
     private JwtUtil jwtUtil;
 
@@ -38,24 +43,31 @@ public class UserAuthServiceImpl implements UserAuthService {
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<GeneralResponse> register(RegisterRequest registerRequest) {
         String username = registerRequest.getUsername();
-        logger.info("Attempting to register user: {}", username);
+        logger.info("Attempting to register user: '{}'", username);
 
         if (userExists(username)) {
+            logger.warn("User '{}' already exists, registration attempt aborted.", username);
             return conflictResponse(ErrorMessage.USER_ALREADY_EXISTS);
         }
 
         try {
             User newUser = createUserAndInsert(registerRequest);
             initializeUserProfileAndStats(newUser.getUserId());
+
+            logger.info("User '{}' successfully registered with UserId '{}'.", username, newUser.getUserId());
             return successResponse(SuccessMessage.USER_REGISTERED);
         } catch (DuplicateKeyException e) {
+            logger.warn("Duplicate username '{}' found during registration attempt.", username, e);
             return logAndRespondConflict("Duplicate username found during registration: ", username, e, ErrorMessage.USER_ALREADY_EXISTS);
         } catch (DataAccessException e) {
+            logger.error("Database error occurred while registering user '{}': {}", username, e.getMessage(), e);
             return logAndRespondError("Database error during registration for user: ", username, e, ErrorMessage.DATABASE_ERROR);
         } catch (Exception e) {
+            logger.error("Unexpected error occurred while registering user '{}': {}", username, e.getMessage(), e);
             return logAndRespondError("Unexpected error during registration for user: ", username, e, ErrorMessage.OPERATION_FAILED);
         }
     }
+
 
     private boolean userExists(String username) {
         return userService.getUserByUsername(username) != null;
@@ -205,15 +217,32 @@ public class UserAuthServiceImpl implements UserAuthService {
 
     @Override
     public ResponseEntity<GeneralResponse> quit(String accessToken, String deviceId) {
-        String username = jwtUtil.getUserNameFromToken(accessToken);
+        try {
+            String username = jwtUtil.getUserNameFromToken(accessToken);
 
-        if (username == null) {
-            return unauthorized(ErrorMessage.UNAUTHORIZED_ACCESS);
+            logger.info("User logout attempt. AccessToken: {}, DeviceId: {}", accessToken, deviceId);
+
+            if (username == null) {
+                logger.warn("Failed logout attempt. Username could not be extracted from access token.");
+                return unauthorized(ErrorMessage.UNAUTHORIZED_ACCESS);
+            }
+
+            logger.info("Username: {} is logging out from device: {}", username, deviceId);
+
+            userService.deleteRefreshToken(username, deviceId);
+            logger.info("Refresh token deleted for username: {} on device: {}", username, deviceId);
+
+            userService.addAccessToBlacklist(accessToken);
+            logger.info("Access token added to blacklist for username: {} on device: {}", username, deviceId);
+
+
+            logger.info("User: {} successfully logged out from device: {}", username, deviceId);
+            return successResponse(SuccessMessage.USER_LOGGED_OUT);
+        } catch (Exception e) {
+            // 异常捕获，记录详细错误信息
+            logger.error("An error occurred during logout process for accessToken: {}, deviceId: {}. Error: {}", accessToken, deviceId, e.getMessage());
+            return response(HttpStatus.INTERNAL_SERVER_ERROR, HttpCode.INTERNAL_SERVER_ERROR, "Internal server error.");
         }
-
-        userService.deleteRefreshToken(username, deviceId);
-        userService.addAccessToBlacklist(accessToken);
-        return successResponse(SuccessMessage.USER_LOGGED_OUT);
     }
 
     @Override
@@ -226,13 +255,27 @@ public class UserAuthServiceImpl implements UserAuthService {
             String username = jwtUtil.getUserNameFromToken(auth);
             String deviceId = jwtUtil.getDeviceIDFromToken(auth);
 
+            logger.info("Refreshing auth for user '{}' with device '{}'", username, deviceId);
+
+            logger.info("Checking if the refresh token for user '{}' on device '{}' is expired.", username, deviceId);
             if (userService.isRefreshTokenExpired(username, deviceId)) {
+                logger.warn("Refresh token for user '{}' on device '{}' is expired.", username, deviceId);
                 return unauthorized(ErrorMessage.TOKEN_EXPIRED);
             }
 
+            // Generate new access token
+            long timestamp = System.currentTimeMillis();
+            String newAccessToken = jwtUtil.generateAccessToken(username, deviceId, timestamp);
+
+            logger.debug("Generated new tokens for user '{}': AccessToken (hidden), Timestamp: {}", username, timestamp);
+
+            redisUtil.refreshTokenIfNeeded(username, deviceId);
+
             return responseWithAuthHeader(
-                    jwtUtil.generateAccessToken(username, deviceId, System.currentTimeMillis()),
-                    HttpStatus.OK, HttpCode.OK, SuccessMessage.TOKEN_REFRESHED
+                    newAccessToken,
+                    HttpStatus.OK,
+                    HttpCode.OK,
+                    SuccessMessage.TOKEN_REFRESHED
             );
         } catch (Exception e) {
             return logAndRespondError("Error refreshing token: ", e, ErrorMessage.OPERATION_FAILED);

@@ -40,14 +40,21 @@ public class RedisUtil {
     public boolean isRefreshTokenExpired(String username, String deviceId) {
         try {
             String key = refreshTokenPrefix + username + "-" + deviceId;
-            boolean isExpired = redisTemplate.opsForValue().get(key) == null;
-            logger.info("Checked expiration for user {} on device {}: {}", username, deviceId, isExpired);
-            return isExpired;
+            Long ttl = redisTemplate.getExpire(key, TimeUnit.MILLISECONDS);
+
+            if (ttl == null || ttl <= 0) {
+                logger.info("Token expired or not found for user {} on device {}", username, deviceId);
+                return true;
+            }
+
+            logger.info("Checked expiration for user {} on device {}: false", username, deviceId);
+            return false;
         } catch (Exception e) {
-            logger.error("Error checking expiration for user {} on device {}: {}", username, deviceId, e.getMessage(), e);
-            return true;  // In case of error, assume token is expired to be safe
+            logger.error("Error checking expiration for user {} on device {} ", username, deviceId, e);
         }
+        return false;
     }
+
 
     public void deleteRefreshToken(String username, String deviceId) {
         try {
@@ -109,4 +116,22 @@ public class RedisUtil {
             return null;
         }
     }
+
+    public void refreshTokenIfNeeded(String username, String deviceId) {
+        try {
+            String existingRefreshToken = getFreshTokenByUsernameAndDeviceId(username, deviceId);
+            if (existingRefreshToken != null) {
+                Long ttl = redisTemplate.getExpire(refreshTokenPrefix + username + "-" + deviceId, TimeUnit.SECONDS);
+                if (ttl != null && ttl < TimeUnit.DAYS.toSeconds(10)) {
+                    storeRefreshToken(username, deviceId, existingRefreshToken);
+                    logger.info("Refresh token for user '{}' on device '{}' has been refreshed due to less than 10 days left.", username, deviceId);
+                } else {
+                    logger.info("No need to refresh the refresh token for user '{}' on device '{}', remaining time is sufficient.", username, deviceId);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error while refreshing the refresh token for user '{}' on device '{}': {}", username, deviceId, e.getMessage(), e);
+        }
+    }
+
 }
