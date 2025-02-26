@@ -59,8 +59,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .username(registerRequest.getUsername())
                 .password(encodedPassword)
                 .isAdmin((byte) 0)
+                .mailbox(registerRequest.getMailbox())
                 .isDeleted((byte) 0)
                 .isBanned((byte) 0)
+
                 .build();
 
 

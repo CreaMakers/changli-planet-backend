@@ -10,6 +10,7 @@ import com.creamakers.usersystem.service.*;
 import com.creamakers.usersystem.util.JwtUtil;
 import com.creamakers.usersystem.util.PasswordEncoderUtil;
 import com.creamakers.usersystem.util.RedisUtil;
+import io.netty.util.internal.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +53,9 @@ public class UserAuthServiceImpl implements UserAuthService {
             logger.warn("User '{}' already exists, registration attempt aborted.", username);
             return conflictResponse(ErrorMessage.USER_ALREADY_EXISTS);
         }
+        if(!isValidEmail(registerRequest.getMailbox())){
+            return conflictResponse(ErrorMessage.EMAIL_FORMAT_INCORRECT);
+        }
 
         try {
             User newUser = createUserAndInsert(registerRequest);
@@ -84,6 +88,25 @@ public class UserAuthServiceImpl implements UserAuthService {
         userProfileService.initializeUserProfile(userId,username);
         userStatsService.initializeUserStats(userId,username);
     }
+
+    private static boolean isValidEmail(String email) {
+        logger.info("Validating email format for: {}", email);  // Log the email being validated
+        if (StringUtil.isNullOrEmpty(email)) {
+            logger.info("Email is null or empty.");  // Log if the email is null or empty
+            return false;
+        }
+        String emailPattern = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+        boolean isValid = email.matches(emailPattern);
+        if (isValid) {
+            logger.info("Email {} is valid.", email);  // Log if the email is valid
+        } else {
+            logger.info("Email {} is invalid.", email);  // Log if the email is invalid
+        }
+        return isValid;
+    }
+
+
+
 
     @Override
     public ResponseEntity<GeneralResponse> login(LoginRequest loginRequest, String deviceId, String accessToken) {

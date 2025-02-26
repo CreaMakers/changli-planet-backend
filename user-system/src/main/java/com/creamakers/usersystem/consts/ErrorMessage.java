@@ -15,6 +15,8 @@ public class ErrorMessage {
     public static final String USERNAME_TOO_SHORT = "用户名过短，至少需要 3 个字符";
     public static final String PASSWORD_TOO_WEAK = "密码强度不足，至少需要 8 个字符，包含字母和数字";
     public static final String PASSWORD_NOT_SAME = "两次密码不一致";
+    public static final String EMAIL_FORMAT_INCORRECT = "邮箱格式不正确";
+
 
     // 群聊相关错误
     public static final String GROUP_NOT_FOUND = "群聊未找到";

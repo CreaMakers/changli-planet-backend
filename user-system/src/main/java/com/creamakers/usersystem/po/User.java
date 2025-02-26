@@ -78,4 +78,7 @@ public class User {
     @ApiModelProperty(value = "用户描述", example = "这是一个普通用户")
     @TableField("description")
     private String description;
+
+    @TableField("mailbox")
+    private String mailbox;
 }
