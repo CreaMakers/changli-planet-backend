@@ -101,12 +101,14 @@ public class UserProfileImpl extends ServiceImpl<UserProfileMapper, UserProfile>
     }
 
     @Override
-    public Boolean initializeUserProfile(Integer userId) {
+    public Boolean initializeUserProfile(Integer userId,String userName) {
         try {
             logger.info("Initializing profile for user ID: {}", userId);
             UserProfile userProfile = UserProfile.builder()
                     .userId(userId)
                     .avatarUrl("https://pic.imgdb.cn/item/671e5e17d29ded1a8c5e0dbe.jpg")
+                    .username(userName)
+                    .account(userName)
                     .bio("这个人很懒，没有写任何描述")
                     .userLevel(1)
                     .gender(2)

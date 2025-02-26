@@ -102,12 +102,13 @@ public class UserStatsServiceImpl extends ServiceImpl<UserStatsMapper, UserStats
     }
 
     @Override
-    public Boolean initializeUserStats(Integer userId) {
+    public Boolean initializeUserStats(Integer userId,String userName) {
         try {
             logger.info("Initializing stats for user ID: {}", userId);
 
             UserStats userStats = UserStats.builder()
                     .userId(userId)
+                    .account(userName)
                     .studentNumber("")
                     .articleCount(0)
                     .commentCount(0)

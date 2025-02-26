@@ -9,20 +9,24 @@ import com.creamakers.websystem.service.ApkService;
 import com.creamakers.websystem.utils.HUAWEIOBSUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static com.creamakers.websystem.constants.CommonConst.VERSION_ERROR_MESSAGE;
+import static com.creamakers.websystem.constants.RedisKeyConst.LATEST_APK_URL_KEY;
 
 @Service
 public class ApkServiceImpl implements ApkService {
     @Autowired
     private ApkUpdateMapper apkUpdateMapper;
-
+    @Autowired
+    private StringRedisTemplate redisTemplate;
     @Override
     public ResultVo<ApkResp> updateApk(Integer versionCode, String versionName, String updateMessage, MultipartFile apkFile) throws IOException {
         LambdaQueryWrapper<ApkUpdate> wrapper = new LambdaQueryWrapper<>();
@@ -47,7 +51,7 @@ public class ApkServiceImpl implements ApkService {
                 .setCreateTime(LocalDateTime.now())
                 .setUpdateTime(LocalDateTime.now());
         apkUpdateMapper.insert(apkUpdate);
-
+        redisTemplate.opsForValue().set(LATEST_APK_URL_KEY, url, 7, TimeUnit.DAYS);
         ApkResp apkResp = new ApkResp();
         BeanUtils.copyProperties(apkUpdate, apkResp);
         apkResp.setDownloadUrl(url);

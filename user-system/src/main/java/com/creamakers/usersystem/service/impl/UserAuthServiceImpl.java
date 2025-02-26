@@ -40,13 +40,16 @@ public class UserAuthServiceImpl implements UserAuthService {
         String username = registerRequest.getUsername();
         logger.info("Attempting to register user: {}", username);
 
+        String mailbox = registerRequest.getMailbox();
+        logger.info("注册邮箱为",mailbox);
+
         if (userExists(username)) {
             return conflictResponse(ErrorMessage.USER_ALREADY_EXISTS);
         }
 
         try {
             User newUser = createUserAndInsert(registerRequest);
-            initializeUserProfileAndStats(newUser.getUserId());
+            initializeUserProfileAndStats(newUser.getUserId(),username);
             return successResponse(SuccessMessage.USER_REGISTERED);
         } catch (DuplicateKeyException e) {
             return logAndRespondConflict("Duplicate username found during registration: ", username, e, ErrorMessage.USER_ALREADY_EXISTS);
@@ -66,9 +69,9 @@ public class UserAuthServiceImpl implements UserAuthService {
         return userService.createUserAndInsert(registerRequest, encodedPassword);
     }
 
-    private void initializeUserProfileAndStats(Integer userId) {
-        userProfileService.initializeUserProfile(userId);
-        userStatsService.initializeUserStats(userId);
+    private void initializeUserProfileAndStats(Integer userId,String username) {
+        userProfileService.initializeUserProfile(userId,username);
+        userStatsService.initializeUserStats(userId,username);
     }
 
     @Override

@@ -14,7 +14,7 @@ public interface UserStatsService extends IService<UserStats> {
 
     ResponseEntity<GeneralResponse> setStudentNumber(String studentNumber,String accessToken);
 
-    Boolean initializeUserStats(Integer userId);
+    Boolean initializeUserStats(Integer userId,String userName);
 
     ResponseEntity<GeneralResponse> createResponseEntity(HttpStatus status, String code, String msg, Object data);
 }

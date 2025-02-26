@@ -36,6 +36,18 @@ public class UserProfile implements Serializable {
     private String avatarUrl;
 
     /**
+     * 用户姓名注册登录用
+     */
+    @TableField("username")
+    private String username;
+
+    /**
+     * 用户账号名，用户自定义
+     */
+    @TableField("account")
+    private String account;
+
+    /**
     * 个性标签/个人描述
     */
     private String bio;

@@ -21,11 +21,17 @@ import java.util.Date;
 @TableName("user_stats")
 public class UserStats implements Serializable {
 
-    @TableId(type = IdType.AUTO)
     /**
     * 用户id
     */
+    @TableId(type = IdType.AUTO)
     private Integer userId;
+
+    /**
+     * 用户账号名，用户自定义
+     */
+    @TableField("account")
+    private String account;
 
     /**
      * 用户动态数据描述

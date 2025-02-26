@@ -25,4 +25,6 @@ public class RegisterRequest {
     @NotBlank(message = "密码不能为空")
     @ApiModelProperty(value = "密码", required = true)
     private String password;
+
+    private String mailbox;
 }
