@@ -55,8 +55,7 @@ public class UserAuthServiceImpl implements UserAuthService {
 
         try {
             User newUser = createUserAndInsert(registerRequest);
-            initializeUserProfileAndStats(newUser.getUserId());
-
+            initializeUserProfileAndStats(newUser.getUserId(),username);
             logger.info("User '{}' successfully registered with UserId '{}'.", username, newUser.getUserId());
             return successResponse(SuccessMessage.USER_REGISTERED);
         } catch (DuplicateKeyException e) {
