@@ -39,7 +39,7 @@ public class ApkServiceImpl implements ApkService {
             LambdaQueryWrapper<ApkUpdate> wrapper = new LambdaQueryWrapper<>();
             wrapper.orderByDesc(ApkUpdate::getVersionCode).last("LIMIT 1");
             ApkUpdate latestApkUpdate = apkUpdateMapper.selectOne(wrapper);
-            if (latestApkUpdate == null || (latestApkUpdate != null && latestApkUpdate.getVersionCode().equals(versionCode))) {
+            if (latestApkUpdate == null || (latestApkUpdate != null && latestApkUpdate.getVersionCode() <= versionCode)) {
                 logger.info("No new APK version available. The current version is the latest.");
                 return buildResponse(HttpStatus.OK, HttpCode.OK, ALREADY_LATEST_VERSION_MESSAGE, null);
             }
@@ -54,7 +54,6 @@ public class ApkServiceImpl implements ApkService {
         apkResp.setDownloadUrl(apkUrl);
         return buildResponse(HttpStatus.OK, HttpCode.OK, FETCH_LATEST_APK_VERSION_SUCCESS_MESSAGE, apkResp);
     }
-
 
 
     private ResponseEntity<GeneralResponse> buildResponse(HttpStatus status, String code, String msg, Object data) {
