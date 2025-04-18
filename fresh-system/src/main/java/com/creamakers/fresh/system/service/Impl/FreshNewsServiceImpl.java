@@ -20,7 +20,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -42,7 +41,7 @@ public class FreshNewsServiceImpl implements FreshNewsService {
     private RedisTemplate redisTemplate;
     @Override
     @Transactional
-    public ResultVo<FreshNewsResp> createFreshNews(List<MultipartFile> images, FreshNewsRequest freshNewsRequest) throws IOException {
+    public ResultVo<FreshNewsDetailResp> createFreshNews(List<MultipartFile> images, FreshNewsRequest freshNewsRequest) throws IOException {
         if (StringUtil.isEmpty(freshNewsRequest.getContent())) {
             return ResultVo.fail(FRESH_NEWS_CONTENT_CANNOT_BE_EMPTY_MESSAGE);
         }
@@ -114,9 +113,8 @@ public class FreshNewsServiceImpl implements FreshNewsService {
                 }
             }
             // 返回创建的新鲜事响应
-            FreshNewsResp freshNewsResp = new FreshNewsResp();
-            BeanUtils.copyProperties(freshNews, freshNewsResp);
-            return ResultVo.success(freshNewsResp);
+            FreshNewsDetailResp freshNewsDetailResp = convertToFreshNewsDetailResp(freshNews);
+            return ResultVo.success(freshNewsDetailResp);
         } else {
             return ResultVo.fail(CREATE_FRESH_NEWS_FAILED_MESSAGE);
         }
@@ -127,27 +125,7 @@ public class FreshNewsServiceImpl implements FreshNewsService {
     public ResultVo<FreshNewsDetailResp> getFreshNewsById(Long freshNewsId) {
         FreshNews freshNewsDetail = freshNewsMapper.selectById(freshNewsId);
         if (freshNewsDetail != null) {
-            FreshNewsDetailResp freshNewsDetailResp = new FreshNewsDetailResp();
-
-            // 使用 BeanUtils 复制属性
-            BeanUtils.copyProperties(freshNewsDetail, freshNewsDetailResp);
-
-            // 处理 images 字段，将逗号分隔的字符串转换为数组
-            if (freshNewsDetail.getImages() != null && !freshNewsDetail.getImages().isEmpty()) {
-                String[] imageArray = freshNewsDetail.getImages().split(",");
-                freshNewsDetailResp.setImages(Arrays.asList(imageArray));  // 转换为 List
-            } else {
-                freshNewsDetailResp.setImages(new ArrayList<>());  // 空字符串或 null 时返回空数组
-            }
-
-            // 处理 tags 字段，将逗号分隔的字符串转换为数组
-            if (freshNewsDetail.getTags() != null && !freshNewsDetail.getTags().isEmpty()) {
-                String[] tagArray = freshNewsDetail.getTags().split(",");
-                freshNewsDetailResp.setTags(Arrays.asList(tagArray));  // 转换为 List
-            } else {
-                freshNewsDetailResp.setTags(new ArrayList<>());  // 空字符串或 null 时返回空数组
-            }
-
+            FreshNewsDetailResp freshNewsDetailResp = convertToFreshNewsDetailResp(freshNewsDetail);
             return ResultVo.success(freshNewsDetailResp);
         } else {
             return ResultVo.fail( FRESH_NEWS_NOT_FOUND_MESSAGE);
@@ -155,7 +133,7 @@ public class FreshNewsServiceImpl implements FreshNewsService {
     }
 
     @Override
-    public ResultVo<List<FreshNewsResp>> getAllFreshNews(Integer page, Integer pageSize) {
+    public ResultVo<List<FreshNewsDetailResp>> getAllFreshNews(Integer page, Integer pageSize) {
         // 创建分页对象
         Page<FreshNews> pageParam = new Page<>(page, pageSize);
 
@@ -163,18 +141,17 @@ public class FreshNewsServiceImpl implements FreshNewsService {
 
         List<FreshNews> records = pageResult.getRecords();
 
-        List<FreshNewsResp> freshNewsRespList = records.stream()
+        List<FreshNewsDetailResp> freshNewsRespList = records.stream()
                     .map(freshNews -> {
-                        FreshNewsResp resp = new FreshNewsResp();
-                        BeanUtils.copyProperties(freshNews, resp);
-                        return resp;
+                        FreshNewsDetailResp freshNewsDetailResp = convertToFreshNewsDetailResp(freshNews);
+                        return freshNewsDetailResp;
                     })
                     .collect(Collectors.toList());
         return ResultVo.success(freshNewsRespList);
     }
 
     @Override
-    public ResultVo<List<FreshNewsResp>> getAllByLikes(Integer page, Integer pageSize) {
+    public ResultVo<List<FreshNewsDetailResp>> getAllByLikes(Integer page, Integer pageSize) {
         // 创建分页对象
         Page<FreshNews> pageParam = new Page<>(page, pageSize);
 
@@ -186,11 +163,10 @@ public class FreshNewsServiceImpl implements FreshNewsService {
         List<FreshNews> records = pageResult.getRecords();
 
         // 转换查询结果为响应对象
-        List<FreshNewsResp> freshNewsRespList = records.stream()
+        List<FreshNewsDetailResp> freshNewsRespList = records.stream()
                 .map(freshNews -> {
-                    FreshNewsResp resp = new FreshNewsResp();
-                    BeanUtils.copyProperties(freshNews, resp);
-                    return resp;
+                    FreshNewsDetailResp freshNewsDetailResp = convertToFreshNewsDetailResp(freshNews);
+                    return freshNewsDetailResp;
                 })
                 .collect(Collectors.toList());
 
@@ -200,7 +176,7 @@ public class FreshNewsServiceImpl implements FreshNewsService {
 
 
     @Override
-    public ResultVo<List<FreshNewsResp>> getByTag(String tag, Integer page, Integer pageSize) {
+    public ResultVo<List<FreshNewsDetailResp>> getByTag(String tag, Integer page, Integer pageSize) {
         Set<String> freshNewsIds = redisTemplate.opsForSet().members("tags:" + tag);
         if (freshNewsIds == null || freshNewsIds.isEmpty()) {
             return ResultVo.fail(NO_FRESH_NEWS_UNDER_TAG_MESSAGE);
@@ -216,13 +192,34 @@ public class FreshNewsServiceImpl implements FreshNewsService {
                         .orderByDesc("create_time")
         );
         List<FreshNews> records = pageResult.getRecords();
-        List<FreshNewsResp> freshNewsRespList = records.stream()
+        List<FreshNewsDetailResp> freshNewsRespList = records.stream()
                 .map(freshNews -> {
-                    FreshNewsResp resp = new FreshNewsResp();
-                    BeanUtils.copyProperties(freshNews, resp);
-                    return resp;
+                    FreshNewsDetailResp freshNewsDetailResp = convertToFreshNewsDetailResp(freshNews);
+                    return freshNewsDetailResp;
                 })
                 .collect(Collectors.toList());
         return ResultVo.success(freshNewsRespList);
+    }
+    private FreshNewsDetailResp convertToFreshNewsDetailResp(FreshNews freshNewsDetail){
+        FreshNewsDetailResp freshNewsDetailResp = new FreshNewsDetailResp();
+        // 使用 BeanUtils 复制属性
+        BeanUtils.copyProperties(freshNewsDetail, freshNewsDetailResp);
+
+        // 处理 images 字段，将逗号分隔的字符串转换为数组
+        if (freshNewsDetail.getImages() != null && !freshNewsDetail.getImages().isEmpty()) {
+            String[] imageArray = freshNewsDetail.getImages().split(",");
+            freshNewsDetailResp.setImages(Arrays.asList(imageArray));  // 转换为 List
+        } else {
+            freshNewsDetailResp.setImages(new ArrayList<>());  // 空字符串或 null 时返回空数组
+        }
+
+        // 处理 tags 字段，将逗号分隔的字符串转换为数组
+        if (freshNewsDetail.getTags() != null && !freshNewsDetail.getTags().isEmpty()) {
+            String[] tagArray = freshNewsDetail.getTags().split(",");
+            freshNewsDetailResp.setTags(Arrays.asList(tagArray));  // 转换为 List
+        } else {
+            freshNewsDetailResp.setTags(new ArrayList<>());  // 空字符串或 null 时返回空数组
+        }
+        return freshNewsDetailResp;
     }
 }

@@ -29,8 +29,8 @@ public class CollectServiceImpl implements CollectService {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;  // 注入 RedisTemplate
 
-    @Autowired
-    private RabbitTemplate rabbitTemplate;
+//    @Autowired
+//    private RabbitTemplate rabbitTemplate;
 
     @Override
     public ResultVo<Void> collectNews(Long userId, Long newsId) {
@@ -59,7 +59,7 @@ public class CollectServiceImpl implements CollectService {
                 freshNews.setFavoritesCount(freshNews.getFavoritesCount() + 1);
                 freshNewsMapper.updateById(freshNews);
             }
-            rabbitTemplate.convertAndSend("collectNewsExchange", "collectNews",newsId);
+            //rabbitTemplate.convertAndSend("collectNewsExchange", "collectNews",newsId);
             return ResultVo.success();
         } else {
             return ResultVo.fail(FAVORITE_FAILED_MESSAGE);
