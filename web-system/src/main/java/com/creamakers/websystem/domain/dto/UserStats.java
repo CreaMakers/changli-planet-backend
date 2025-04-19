@@ -29,6 +29,12 @@ public class UserStats implements Serializable {
     private Integer userId;
 
     /**
+     * 用户账号名，用户自定义
+     */
+    @TableField("account")
+    private String account;
+
+    /**
      * 学号，唯一
      */
     @TableField("student_number")

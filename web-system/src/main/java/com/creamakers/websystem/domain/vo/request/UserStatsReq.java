@@ -22,6 +22,11 @@ public class UserStatsReq {
     private Long userId;
 
     /**
+     * 用户账号名，用户自定义
+     */
+    private String account;
+
+    /**
      * 学号，唯一
      */
     private String studentNumber;
