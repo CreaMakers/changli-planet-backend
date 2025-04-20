@@ -1,0 +1,10 @@
+planet:
+  mysql:
+    ip: localhost # 服务器ip
+    port: 3306
+    db: csust_planet # database名
+    username: root
+    password: CreaMaker1@
+  redis:
+    host: localhost
+    port: 6379

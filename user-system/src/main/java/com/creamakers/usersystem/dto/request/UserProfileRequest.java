@@ -14,8 +14,9 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserProfileRequest implements Serializable {
-
     private String avatarUrl;
+    private String username;
+    private String account;
     private String bio;
     private int userLevel;
     private int gender;
