@@ -221,8 +221,15 @@ public class UserAuthServiceImpl implements UserAuthService {
         user.setUsername(username);
         user.setPassword(passwordEncoderUtil.encodePassword(request.getNewPassword()));
 
-        return userService.updateUser(user) ?
+        return userService.updateUserPassword(user) ?
                 successResponse(SuccessMessage.USER_UPDATED) :
+                notFound(ErrorMessage.USER_NOT_FOUND);
+    }
+
+    @Override
+    public ResponseEntity<GeneralResponse> updateUsername(UsernameUpdateRequest request, String accessToken) {
+        return userService.updateUserUsername(request)?
+                successResponse(SuccessMessage.USER_UPDATED):
                 notFound(ErrorMessage.USER_NOT_FOUND);
     }
 

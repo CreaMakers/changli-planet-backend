@@ -21,11 +21,13 @@ public interface UserService {
 
     User createUserAndInsert(RegisterRequest registerRequest, String encodedPassword);
 
-    boolean updateUser(User user);
+    boolean updateUserPassword(User user);
 
     int saveUser(User newUser);
 
     void addAccessToBlacklist(String accessToken);
 
     String getFreshTokenByUsernameAndDevicedId(String username, String deviceId);
+
+    boolean updateUserUsername(UsernameUpdateRequest request);
 }

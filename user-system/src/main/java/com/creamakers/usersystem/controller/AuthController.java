@@ -67,6 +67,13 @@ public class AuthController {
         return userAuthService.updatePassword(request, accessToken);
     }
 
+    @PutMapping("/me/username")
+    public ResponseEntity<GeneralResponse> updateUsername(@RequestBody UsernameUpdateRequest request, @RequestHeader(value = "Authorization") String authorization) {
+        String accessToken = authorization.substring(7);
+        return userAuthService.updateUsername(request, accessToken);
+    }
+
+
     @GetMapping("/apk")
     public ResponseEntity<GeneralResponse> checkApkVersion(@RequestParam("versionCode") Integer versionCode,
                                                            @RequestParam("versionName") String versionName) {
