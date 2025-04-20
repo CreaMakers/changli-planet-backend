@@ -1,9 +1,6 @@
 package com.creamakers.usersystem.service;
 
-import com.creamakers.usersystem.dto.request.LoginRequest;
-import com.creamakers.usersystem.dto.request.PasswordUpdateRequest;
-import com.creamakers.usersystem.dto.request.RegisterRequest;
-import com.creamakers.usersystem.dto.request.UsernameCheckRequest;
+import com.creamakers.usersystem.dto.request.*;
 import com.creamakers.usersystem.dto.response.GeneralResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
@@ -28,4 +25,6 @@ public interface UserAuthService {
     ResponseEntity<GeneralResponse> login(LoginRequest loginRequest, String deviceId,String accessToken);
 
     ResponseEntity<GeneralResponse> updatePassword(PasswordUpdateRequest request, String accessToken);
+
+    ResponseEntity<GeneralResponse> updateUsername(UsernameUpdateRequest request, String accessToken);
 }

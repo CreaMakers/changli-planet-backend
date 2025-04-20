@@ -1,5 +1,6 @@
 package com.creamakers.usersystem.dto.request;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,6 +20,8 @@ public class UserProfileRequest implements Serializable {
     private String account;
     private String bio;
     private int userLevel;
+    private String username;
+    private String account;
     private int gender;
     private String grade;
     @JsonFormat(pattern = "yyyy-MM-dd")

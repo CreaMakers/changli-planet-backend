@@ -1,5 +1,6 @@
 package com.creamakers.usersystem.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -13,9 +14,11 @@ import com.creamakers.usersystem.po.UserStats;
 import com.creamakers.usersystem.service.UserService;
 import com.creamakers.usersystem.service.UserStatsService;
 import com.creamakers.usersystem.util.JwtUtil;
+import org.mybatis.spring.MyBatisSystemException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -29,11 +32,13 @@ public class UserStatsServiceImpl extends ServiceImpl<UserStatsMapper, UserStats
 
     private final JwtUtil jwtUtil;
     private final UserService userService;
+    private final UserStatsMapper userStatsMapper;
 
     @Autowired
-    public UserStatsServiceImpl(JwtUtil jwtUtil, UserService userService) {
+    public UserStatsServiceImpl(JwtUtil jwtUtil, UserService userService, UserStatsMapper userStatsMapper) {
         this.jwtUtil = jwtUtil;
         this.userService = userService;
+        this.userStatsMapper = userStatsMapper;
     }
 
     @Override
@@ -126,6 +131,28 @@ public class UserStatsServiceImpl extends ServiceImpl<UserStatsMapper, UserStats
             logger.error("Error initializing stats for user ID: {}", userId, e);
             return false;
         }
+    }
+
+    @Override
+    public Boolean updateUserStats(UserStats userStats) {
+        try {
+            boolean success = userStatsMapper.update(null, createUpdateWrapper(userStats)) > 0;
+            if (success) {
+                logger.info("User password updated successfully for username: {}", userStats.getAccount());
+            } else {
+                logger.warn("No user found to update for username: {}", userStats.getAccount());
+            }
+            return success;
+        } catch (DataAccessException e) {
+            logger.error("Database error while updating user: {}", userStats.getAccount(), e);
+            throw new MyBatisSystemException(e);
+        }
+    }
+
+    private Wrapper<UserStats> createUpdateWrapper(UserStats userStats) {
+        return Wrappers.lambdaUpdate(UserStats.class)
+                .eq(UserStats::getUserId, userStats.getUserId())
+                .set(UserStats::getAccount, userStats.getAccount());
     }
 
     @Override

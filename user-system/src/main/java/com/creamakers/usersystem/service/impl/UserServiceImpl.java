@@ -1,10 +1,12 @@
 package com.creamakers.usersystem.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.creamakers.usersystem.dto.request.RegisterRequest;
+import com.creamakers.usersystem.dto.request.UsernameUpdateRequest;
 import com.creamakers.usersystem.mapper.UserMapper;
 import com.creamakers.usersystem.po.User;
 import com.creamakers.usersystem.service.UserService;
@@ -77,9 +79,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public boolean updateUser(User user) {
+    public boolean updateUserPassword(User user) {
         try {
-            boolean success = userMapper.update(null, createUpdateWrapper(user)) > 0;
+            boolean success = userMapper.update(null, UpdateUserPasswordWrapper(user)) > 0;
             if (success) {
                 logger.info("User password updated successfully for username: {}", user.getUsername());
             } else {
@@ -92,7 +94,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
     }
 
-    private LambdaUpdateWrapper<User> createUpdateWrapper(User user) {
+    private LambdaUpdateWrapper<User> UpdateUserPasswordWrapper(User user) {
         return Wrappers.lambdaUpdate(User.class)
                 .eq(User::getUsername, user.getUsername())
                 .set(User::getPassword, user.getPassword());
@@ -127,6 +129,29 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         logger.info("Fetching refresh token for user: {} on device: {}", username, deviceId);
         return redisUtil.getFreshTokenByUsernameAndDeviceId(username, deviceId);
     }
+
+    @Override
+    public boolean updateUserUsername(UsernameUpdateRequest request) {
+        try {
+            boolean success = userMapper.update(null, UpdateUserUsernameWrapper(request)) > 0;
+            if (success) {
+                logger.info("Username updated successfully for username: {}", request.getOldUsername());
+            } else {
+                logger.warn("No user found to update for username: {}", request.getOldUsername());
+            }
+            return success;
+        } catch (DataAccessException e) {
+            logger.error("Database error while updating user: {}", request.getOldUsername(), e);
+            throw new MyBatisSystemException(e);
+        }
+    }
+
+    private Wrapper<User> UpdateUserUsernameWrapper(UsernameUpdateRequest request) {
+        return Wrappers.<User>lambdaUpdate(User.class)
+                .eq(User::getUsername, request.getOldUsername())
+                .set(User::getUsername, request.getNewUsername());
+    }
+
 
     @Override
     public String getCachedAccessTokenFromBlack(String accessToken) {

@@ -7,10 +7,13 @@ import com.creamakers.usersystem.consts.SuccessMessage;
 import com.creamakers.usersystem.dto.request.UserProfileRequest;
 import com.creamakers.usersystem.dto.response.GeneralResponse;
 import com.creamakers.usersystem.mapper.UserProfileMapper;
+import com.creamakers.usersystem.mapper.UserStatsMapper;
 import com.creamakers.usersystem.po.User;
 import com.creamakers.usersystem.po.UserProfile;
+import com.creamakers.usersystem.po.UserStats;
 import com.creamakers.usersystem.service.UserProfileService;
 import com.creamakers.usersystem.service.UserService;
+import com.creamakers.usersystem.service.UserStatsService;
 import com.creamakers.usersystem.util.HUAWEIOBSUtil;
 import com.creamakers.usersystem.util.JwtUtil;
 import com.obs.services.ObsConfiguration;
@@ -39,12 +42,18 @@ public class UserProfileImpl extends ServiceImpl<UserProfileMapper, UserProfile>
 
     private final JwtUtil jwtUtil;
     private final UserService userService;
+    private final UserStatsService userStatsService;
+    private final UserStatsMapper userStatsMapper;
+    private final UserStatsServiceImpl userStatsServiceImpl;
 
 
     @Autowired
-    public UserProfileImpl(JwtUtil jwtUtil, UserService userService) {
+    public UserProfileImpl(JwtUtil jwtUtil, UserService userService, UserStatsService userStatsService, UserStatsMapper userStatsMapper, UserStatsServiceImpl userStatsServiceImpl) {
         this.jwtUtil = jwtUtil;
         this.userService = userService;
+        this.userStatsService = userStatsService;
+        this.userStatsMapper = userStatsMapper;
+        this.userStatsServiceImpl = userStatsServiceImpl;
     }
 
     @Override
@@ -91,6 +100,14 @@ public class UserProfileImpl extends ServiceImpl<UserProfileMapper, UserProfile>
                     .eq(UserProfile::getUserId, user.getUserId())
                     .eq(UserProfile::getIsDeleted, 0)
                     .update(userProfile);
+
+
+           if(request.getAccount() != null){
+                 UserStats userStats = new UserStats();
+                 userStats.setUserId(user.getUserId());
+                 userStats.setAccount(request.getAccount());
+                 userStatsService.updateUserStats(userStats);
+           }
 
             logger.info("Profile updated successfully for user: {}", username);
             return buildResponse(HttpStatus.OK, HttpCode.OK, SuccessMessage.USER_UPDATED, userProfile);
