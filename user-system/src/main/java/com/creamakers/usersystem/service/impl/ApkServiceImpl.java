@@ -19,8 +19,7 @@ import org.springframework.stereotype.Service;
 import java.util.concurrent.TimeUnit;
 
 import static com.creamakers.usersystem.consts.RedisKeyConst.LATEST_APK_URL_KEY;
-import static com.creamakers.usersystem.consts.SuccessMessage.ALREADY_LATEST_VERSION_MESSAGE;
-import static com.creamakers.usersystem.consts.SuccessMessage.FETCH_LATEST_APK_VERSION_SUCCESS_MESSAGE;
+import static com.creamakers.usersystem.consts.SuccessMessage.*;
 
 @Service
 public class ApkServiceImpl implements ApkService {
@@ -32,7 +31,8 @@ public class ApkServiceImpl implements ApkService {
 
     @Override
     public ResponseEntity<GeneralResponse> checkApkVersion(Integer versionCode, String versionName) {
-        String apkUrl = redisTemplate.opsForValue().get(LATEST_APK_URL_KEY);
+//        String apkUrl = redisTemplate.opsForValue().get(LATEST_APK_URL_KEY);
+        String apkUrl = null;
         logger.info("Checking for latest APK URL in Redis...");
         if (apkUrl == null) {
             logger.info("No APK URL found in Redis. Querying database for the latest APK version...");
@@ -42,6 +42,10 @@ public class ApkServiceImpl implements ApkService {
             if (latestApkUpdate == null || (latestApkUpdate != null && latestApkUpdate.getVersionCode() <= versionCode)) {
                 logger.info("No new APK version available. The current version is the latest.");
                 return buildResponse(HttpStatus.OK, HttpCode.OK, ALREADY_LATEST_VERSION_MESSAGE, null);
+            }
+            if (latestApkUpdate.getVersionCode() == null || latestApkUpdate.getVersionName() == null) {
+                logger.info("Fetched latest APK data from the database");
+                return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, HttpCode.INTERNAL_SERVER_ERROR, FETCH_LATEST_APK_VERSION_FAILURE_MESSAGE, null);
             }
             apkUrl = latestApkUpdate.getDownloadUrl();
             logger.info("Fetched latest APK URL from the database: {}", apkUrl);

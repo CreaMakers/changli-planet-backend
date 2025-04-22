@@ -42,6 +42,7 @@ public class SuccessMessage {
     //apk成功消息
     public final static String ALREADY_LATEST_VERSION_MESSAGE = "当前已是最新版本，无需更新。";
     public final static String FETCH_LATEST_APK_VERSION_SUCCESS_MESSAGE = "获取最新apk版本成功";
+    public final static String FETCH_LATEST_APK_VERSION_FAILURE_MESSAGE = "获取最新apk版本失败，请练习后端人员";
 
 
 }
