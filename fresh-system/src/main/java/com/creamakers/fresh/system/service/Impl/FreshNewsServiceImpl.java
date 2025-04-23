@@ -39,6 +39,7 @@ public class FreshNewsServiceImpl implements FreshNewsService {
     private TagsMapper tagsMapper;
     @Autowired
     private RedisTemplate redisTemplate;
+
     @Override
     @Transactional
     public ResultVo<FreshNewsDetailResp> createFreshNews(List<MultipartFile> images, FreshNewsRequest freshNewsRequest) throws IOException {
@@ -74,6 +75,7 @@ public class FreshNewsServiceImpl implements FreshNewsService {
         StringBuilder urls = new StringBuilder();
         if (!CollectionUtils.isEmpty(images)) {
             for (MultipartFile image : images) {
+                if (image == null || image.isEmpty()) continue;
                 String s = HUAWEIOBSUtil.uploadImage(image, UUID.randomUUID().toString());
                 if (urls.length() > 0) {
                     urls.append(",");
@@ -128,7 +130,7 @@ public class FreshNewsServiceImpl implements FreshNewsService {
             FreshNewsDetailResp freshNewsDetailResp = convertToFreshNewsDetailResp(freshNewsDetail);
             return ResultVo.success(freshNewsDetailResp);
         } else {
-            return ResultVo.fail( FRESH_NEWS_NOT_FOUND_MESSAGE);
+            return ResultVo.fail(FRESH_NEWS_NOT_FOUND_MESSAGE);
         }
     }
 
@@ -142,11 +144,11 @@ public class FreshNewsServiceImpl implements FreshNewsService {
         List<FreshNews> records = pageResult.getRecords();
 
         List<FreshNewsDetailResp> freshNewsRespList = records.stream()
-                    .map(freshNews -> {
-                        FreshNewsDetailResp freshNewsDetailResp = convertToFreshNewsDetailResp(freshNews);
-                        return freshNewsDetailResp;
-                    })
-                    .collect(Collectors.toList());
+                .map(freshNews -> {
+                    FreshNewsDetailResp freshNewsDetailResp = convertToFreshNewsDetailResp(freshNews);
+                    return freshNewsDetailResp;
+                })
+                .collect(Collectors.toList());
         return ResultVo.success(freshNewsRespList);
     }
 
@@ -200,7 +202,8 @@ public class FreshNewsServiceImpl implements FreshNewsService {
                 .collect(Collectors.toList());
         return ResultVo.success(freshNewsRespList);
     }
-    private FreshNewsDetailResp convertToFreshNewsDetailResp(FreshNews freshNewsDetail){
+
+    private FreshNewsDetailResp convertToFreshNewsDetailResp(FreshNews freshNewsDetail) {
         FreshNewsDetailResp freshNewsDetailResp = new FreshNewsDetailResp();
         // 使用 BeanUtils 复制属性
         BeanUtils.copyProperties(freshNewsDetail, freshNewsDetailResp);

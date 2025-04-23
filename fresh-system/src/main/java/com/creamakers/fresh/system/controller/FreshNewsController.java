@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
-@RequestMapping("/app/fresh_news")
+    @RequestMapping("/app/fresh_news")
 public class FreshNewsController {
 
     @Autowired
