@@ -8,6 +8,7 @@ public interface UserService {
 
     User getUserByUsername(String username);
 
+    User getUserByEmail(String email);
 
     void cacheRefreshToken(String username, String deviceId, String refreshToken);
 
@@ -30,4 +31,6 @@ public interface UserService {
     String getFreshTokenByUsernameAndDevicedId(String username, String deviceId);
 
     boolean updateUserUsername(UsernameUpdateRequest request);
+
+
 }

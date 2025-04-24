@@ -14,9 +14,12 @@ import com.creamakers.usersystem.util.RedisUtil;
 import org.mybatis.spring.MyBatisSystemException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
@@ -61,7 +64,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .username(registerRequest.getUsername())
                 .password(encodedPassword)
                 .isAdmin((byte) 0)
-                .mailbox(registerRequest.getMailbox())
+                .mailbox(registerRequest.getEmail())
                 .isDeleted((byte) 0)
                 .isBanned((byte) 0)
 
@@ -143,6 +146,38 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         } catch (DataAccessException e) {
             logger.error("Database error while updating user: {}", request.getOldUsername(), e);
             throw new MyBatisSystemException(e);
+        }
+    }
+
+    @Override
+    public User getUserByEmail(String email) {
+        logger.info("Fetching user by email: {}", email);
+        List<User> users;
+
+        try {
+            users = userMapper.selectList(new LambdaQueryWrapper<User>()
+                    .eq(User::getMailbox, email));
+        } catch (DataAccessException e) {
+            logger.error("Database error while fetching user by email: {}", email, e);
+            throw new MyBatisSystemException(e);
+        }
+
+        if (users.isEmpty()) {
+            return null;
+        } else if (users.size() > 1) {
+            String message = "Multiple users (" + users.size() + ") found with email: " + email;
+            logger.error("Data integrity error: {}", message);
+
+            // 创建并抛出一个新的异常实例
+            DataIntegrityViolationException exception =
+                    new DataIntegrityViolationException(message);
+
+            // 打印堆栈以便调试
+            logger.error("Throwing exception", exception);
+
+            throw exception; // 直接抛出异常
+        } else {
+            return users.get(0);
         }
     }
 

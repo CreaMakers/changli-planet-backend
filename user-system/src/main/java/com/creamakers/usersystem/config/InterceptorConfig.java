@@ -14,9 +14,11 @@ public class InterceptorConfig implements WebMvcConfigurer {
     private final TokenInterceptor tokenInterceptor;
 
     private static final String[] EXCLUDE_PATHS = {
-            "/app/users/session",
+            "/app/users/sessions",
+            "/app/users/sessions/*",
             "/app/users",
-            "/app/users/availability",
+            "/app/users/availability/**",
+            "/app/users/auth/verification-code/*",
             "/app/users/register",
             "/app/users/me/avatar",
     };

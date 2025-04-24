@@ -2,10 +2,7 @@ package com.creamakers.usersystem.controller;
 
 import com.creamakers.usersystem.dto.request.*;
 import com.creamakers.usersystem.dto.response.GeneralResponse;
-import com.creamakers.usersystem.po.UserProfile;
 import com.creamakers.usersystem.service.*;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +22,7 @@ public class AuthController {
         return userAuthService.register(registerRequest);
     }
 
-    @PostMapping("/session")
+    @PostMapping("/sessions/password")
     public ResponseEntity<GeneralResponse> login(
             @RequestHeader(value = "Authorization", required = false) String authorization,
             @RequestBody(required = false) LoginRequest loginRequest,
@@ -38,6 +35,33 @@ public class AuthController {
 
         return userAuthService.login(loginRequest, deviceId, accessToken);
     }
+
+
+    @PostMapping("/sessions/email")
+     public  ResponseEntity<GeneralResponse> loginByEmail(
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestBody(required = false) LoginByEmailRequest loginByEmailRequest,
+            @RequestHeader(value = "deviceId", required = false) String deviceId
+     ){
+        String accessToken = null;
+        if (authorization != null && !authorization.isEmpty()) {
+            accessToken = authorization.substring(7);
+        }
+        return userAuthService.loginByEmail(loginByEmailRequest, deviceId, accessToken);
+    }
+
+
+
+    @PostMapping("/auth/verification-code/register")
+    public ResponseEntity<GeneralResponse> registerVerificationCode(@RequestBody VerificationCodeRequest verificationCodeRequest){
+        return userAuthService.registerVerificationCode(verificationCodeRequest);
+    }
+
+    @PostMapping("/auth/verification-code/login")
+    public ResponseEntity<GeneralResponse> loginVerificationCode(@RequestBody VerificationCodeRequest verificationCodeRequest) {
+        return userAuthService.loginVerificationCode(verificationCodeRequest);
+    }
+
 
 
     @DeleteMapping("/session")
@@ -55,11 +79,11 @@ public class AuthController {
     }
 
 
-    @GetMapping("/availability")
-    public ResponseEntity<GeneralResponse> usernameCheck(@RequestBody UsernameCheckRequest usernameCheckRequest) {
+    @GetMapping("/availability/{username}")
+    public ResponseEntity<GeneralResponse> usernameCheck(@PathVariable String username) {
+        UsernameCheckRequest usernameCheckRequest = new UsernameCheckRequest(username);
         return userAuthService.checkUsernameAvailability(usernameCheckRequest);
     }
-
 
     @PutMapping("/me/password")
     public ResponseEntity<GeneralResponse> updatePassword(@RequestBody PasswordUpdateRequest request, @RequestHeader(value = "Authorization") String authorization) {

@@ -59,5 +59,16 @@ public class ErrorMessage {
 
     public static final String TOKEN_EXPIRED = "token过期，需要重新登录";
     public static final String TOKEN_GENERATION_FAILED = "token生成过程错误，请重新尝试或者联系管理员";
+    public static final String LOGIN_FAILED = "登录失败";
     public static final String INVALID_PASSWORD = "密码错误，请重新输入";
+
+    public static final String VERIFICATION_CODE_SEND_FAILED = "验证码发送失败" ;
+    public static final String VERIFICATION_CODE_REQUIRED = "未填写验证码";
+    public static final String VERIFICATION_CODE_INVALID = "验证码错误";
+    public static final String VERIFICATION_CODE_TOO_FREQUENT = "请勿重复发送验证码";
+    public static final String VERIFICATION_CODE_DAILY_LIMIT_REACHED = "您今日的请求验证次数达到上限";
+    public static final String INVALID_VERIFICATION_CODE_TYPE = "无效的验证码类型";
+    public static final String MISSING_CREDENTIALS = "缺少邮箱或验证码";
+    public static final String EMAIL_ALREADY_REGISTERED = "邮箱已经被绑定了";
 }
+

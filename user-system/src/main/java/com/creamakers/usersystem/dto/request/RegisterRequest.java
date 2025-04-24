@@ -26,5 +26,7 @@ public class RegisterRequest {
     @ApiModelProperty(value = "密码", required = true)
     private String password;
 
-    private String mailbox;
+    private String email;
+
+    private String verifyCode;
 }

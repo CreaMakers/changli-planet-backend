@@ -27,4 +27,10 @@ public interface UserAuthService {
     ResponseEntity<GeneralResponse> updatePassword(PasswordUpdateRequest request, String accessToken);
 
     ResponseEntity<GeneralResponse> updateUsername(UsernameUpdateRequest request, String accessToken);
+
+    ResponseEntity<GeneralResponse> registerVerificationCode(VerificationCodeRequest verificationCodeRequest);
+
+    ResponseEntity<GeneralResponse> loginVerificationCode(VerificationCodeRequest verificationCodeRequest);
+
+    ResponseEntity<GeneralResponse> loginByEmail(LoginByEmailRequest loginByEmailRequest, String deviceId, String accessToken);
 }

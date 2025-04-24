@@ -1,5 +1,7 @@
 package com.creamakers.usersystem.service.impl;
 
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import com.creamakers.usersystem.consts.Config;
 import com.creamakers.usersystem.consts.ErrorMessage;
 import com.creamakers.usersystem.consts.HttpCode;
 import com.creamakers.usersystem.consts.SuccessMessage;
@@ -10,11 +12,13 @@ import com.creamakers.usersystem.service.*;
 import com.creamakers.usersystem.util.JwtUtil;
 import com.creamakers.usersystem.util.PasswordEncoderUtil;
 import com.creamakers.usersystem.util.RedisUtil;
+import com.creamakers.usersystem.util.TencentCloudEmailUtil;
 import io.netty.util.internal.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,31 +44,57 @@ public class UserAuthServiceImpl implements UserAuthService {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private TencentCloudEmailUtil tencentCloudEmailUtil;
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<GeneralResponse> register(RegisterRequest registerRequest) {
         String username = registerRequest.getUsername();
         logger.info("Attempting to register user: '{}'", username);
 
-        String mailbox = registerRequest.getMailbox();
-        logger.info("注册邮箱为",mailbox);
+        String email = registerRequest.getEmail();
+        String verificationCode = registerRequest.getVerifyCode();
+        logger.info("Registration email: {}", email);
 
-        if (userExists(username)) {
-            logger.warn("User '{}' already exists, registration attempt aborted.", username);
-            return conflictResponse(ErrorMessage.USER_ALREADY_EXISTS);
-        }
-        if(!isValidEmail(registerRequest.getMailbox())){
+        // 验证邮箱格式
+        if (!isValidEmail(email)) {
             return conflictResponse(ErrorMessage.EMAIL_FORMAT_INCORRECT);
         }
 
         try {
+            // 检查邮箱是否已被绑定 - 移到try块内
+            User existingUserWithEmail = userService.getUserByEmail(email);
+            if (existingUserWithEmail != null) {
+                logger.warn("Email '{}' is already registered to user '{}'", email, existingUserWithEmail.getUsername());
+                return conflictResponse(ErrorMessage.EMAIL_ALREADY_REGISTERED);
+            }
+
+            if (userExists(username)) {
+                logger.warn("User '{}' already exists, registration attempt aborted.", username);
+                return conflictResponse(ErrorMessage.USER_ALREADY_EXISTS);
+            }
+
+            // 验证码校验
+            if (verificationCode == null || verificationCode.isEmpty()) {
+                logger.warn("Verification code is missing for user: '{}'", username);
+                return badRequest(ErrorMessage.VERIFICATION_CODE_REQUIRED);
+            }
+
+            // 验证验证码是否正确
+            if (!tencentCloudEmailUtil.verifyCode(email, verificationCode, Config.EMAIL_TYPE_REGISTER)) {
+                logger.warn("Invalid verification code for user: '{}', email: '{}'", username, email);
+                return badRequest(ErrorMessage.VERIFICATION_CODE_INVALID);
+            }
+
             User newUser = createUserAndInsert(registerRequest);
-            initializeUserProfileAndStats(newUser.getUserId(),username);
+            initializeUserProfileAndStats(newUser.getUserId(), username);
             logger.info("User '{}' successfully registered with UserId '{}'.", username, newUser.getUserId());
             return successResponse(SuccessMessage.USER_REGISTERED);
-        } catch (DuplicateKeyException e) {
-            logger.warn("Duplicate username '{}' found during registration attempt.", username, e);
-            return logAndRespondConflict("Duplicate username found during registration: ", username, e, ErrorMessage.USER_ALREADY_EXISTS);
+        } catch (DataIntegrityViolationException e) {
+            logger.error("Data integrity error during registration for user '{}' with email '{}': {}",
+                    username, email, e.getMessage(), e);
+            return logAndRespondError("Data integrity error during registration: ", username, e, ErrorMessage.EMAIL_ALREADY_REGISTERED);
         } catch (DataAccessException e) {
             logger.error("Database error occurred while registering user '{}': {}", username, e.getMessage(), e);
             return logAndRespondError("Database error during registration for user: ", username, e, ErrorMessage.DATABASE_ERROR);
@@ -72,6 +102,11 @@ public class UserAuthServiceImpl implements UserAuthService {
             logger.error("Unexpected error occurred while registering user '{}': {}", username, e.getMessage(), e);
             return logAndRespondError("Unexpected error during registration for user: ", username, e, ErrorMessage.OPERATION_FAILED);
         }
+    }
+
+    @Override
+    public ResponseEntity<GeneralResponse> checkUsernameAvailability(UsernameCheckRequest usernameCheckRequest) {
+        return null;
     }
 
 
@@ -84,9 +119,9 @@ public class UserAuthServiceImpl implements UserAuthService {
         return userService.createUserAndInsert(registerRequest, encodedPassword);
     }
 
-    private void initializeUserProfileAndStats(Integer userId,String username) {
-        userProfileService.initializeUserProfile(userId,username);
-        userStatsService.initializeUserStats(userId,username);
+    private void initializeUserProfileAndStats(Integer userId, String username) {
+        userProfileService.initializeUserProfile(userId, username);
+        userStatsService.initializeUserStats(userId, username);
     }
 
     private static boolean isValidEmail(String email) {
@@ -104,8 +139,6 @@ public class UserAuthServiceImpl implements UserAuthService {
         }
         return isValid;
     }
-
-
 
 
     @Override
@@ -127,6 +160,68 @@ public class UserAuthServiceImpl implements UserAuthService {
         logger.error("Login failed: Both access token and login request are missing for device '{}'", deviceId);
         return badRequest("Err:Both access token and login request are missing");
     }
+
+    @Override
+    public ResponseEntity<GeneralResponse> loginByEmail(LoginByEmailRequest loginByEmailRequest, String deviceId, String accessToken) {
+        if (deviceId == null || deviceId.isEmpty()) {
+            return badRequest("Missing device ID");
+        }
+
+        if (isValidAccessToken(accessToken, deviceId)) {
+            String username = jwtUtil.getUserNameFromToken(accessToken);
+            return loginAndGenerateTokens(username, deviceId);
+        }
+
+        if (loginByEmailRequest != null) {
+            return processEmailLogin(loginByEmailRequest, deviceId);
+        }
+
+        logger.error("both email and login request are missing for device '{}'", deviceId);
+        return badRequest("Err:both email and login request are missing");
+    }
+
+    private ResponseEntity<GeneralResponse> processEmailLogin(LoginByEmailRequest loginByEmailRequest, String deviceId) {
+        String email = loginByEmailRequest.getEmail();
+        String verificationCode = loginByEmailRequest.getVerifyCode();
+
+        // 验证参数
+        if (StringUtils.isEmpty(email) || StringUtils.isEmpty(verificationCode)) {
+            logger.warn("Missing email or verification code for email login");
+            return badRequest(ErrorMessage.MISSING_CREDENTIALS);
+        }
+
+        try {
+            // 验证验证码
+            if (!tencentCloudEmailUtil.verifyCode(email, verificationCode, Config.EMAIL_TYPE_LOGIN)) {
+                logger.warn("Invalid verification code for email login: {}", email);
+                return unauthorized(ErrorMessage.VERIFICATION_CODE_INVALID);
+            }
+
+            // 根据邮箱获取用户
+            User user = userService.getUserByEmail(email);
+
+            // 验证用户存在性
+            if (user == null) {
+                logger.warn("Login attempt with non-existent email: {}", email);
+                return notFound(ErrorMessage.USER_NOT_FOUND);
+            }
+
+            // 重用现有的登录和生成令牌方法
+            logger.info("User '{}' successfully verified by email, proceeding with login on device '{}'",
+                    user.getUsername(), deviceId);
+            return loginAndGenerateTokens(user.getUsername(), deviceId);
+
+        } catch (DataIntegrityViolationException e) {
+            // 确保这里能捕获到上面抛出的异常
+            logger.error("Caught DataIntegrityViolationException during email login: {}", e.getMessage(), e);
+            return logAndRespondError("Data integrity error during login: ", email, e, ErrorMessage.EMAIL_ALREADY_REGISTERED);
+        }catch (DataAccessException e) {
+            return logAndRespondError("Database error during email login for email: ", email, e, ErrorMessage.DATABASE_ERROR);
+        } catch (Exception e) {
+            return logAndRespondError("Unexpected error during email login for email: ", email, e, ErrorMessage.LOGIN_FAILED);
+        }
+    }
+
 
     private boolean isValidAccessToken(String accessToken, String deviceId) {
         // Check if the access token is null or is blacklisted
@@ -203,7 +298,7 @@ public class UserAuthServiceImpl implements UserAuthService {
             logger.info("User '{}' logged in successfully on device '{}'. Tokens generated and cached.", username, deviceId);
         } catch (Exception e) {
             logger.error("Error occurred during login process for user '{}' on device '{}': {}", username, deviceId, e.getMessage(), e);
-            return response(HttpStatus.INTERNAL_SERVER_ERROR,HttpCode.INTERNAL_SERVER_ERROR , ErrorMessage.TOKEN_GENERATION_FAILED);
+            return response(HttpStatus.INTERNAL_SERVER_ERROR, HttpCode.INTERNAL_SERVER_ERROR, ErrorMessage.TOKEN_GENERATION_FAILED);
         }
 
         return responseWithAuthHeader(newAccessToken, HttpStatus.OK, HttpCode.OK, SuccessMessage.USER_LOGGED_IN);
@@ -228,24 +323,93 @@ public class UserAuthServiceImpl implements UserAuthService {
 
     @Override
     public ResponseEntity<GeneralResponse> updateUsername(UsernameUpdateRequest request, String accessToken) {
-        return userService.updateUserUsername(request)?
-                successResponse(SuccessMessage.USER_UPDATED):
+        return userService.updateUserUsername(request) ?
+                successResponse(SuccessMessage.USER_UPDATED) :
                 notFound(ErrorMessage.USER_NOT_FOUND);
     }
 
-
     @Override
-    public ResponseEntity<GeneralResponse> checkUsernameAvailability(UsernameCheckRequest request) {
-        String username = request.getUsername();
+    public ResponseEntity<GeneralResponse> registerVerificationCode(VerificationCodeRequest verificationCodeRequest) {
+        String email = verificationCodeRequest.getEmail();
+        if (!isValidEmail(email)) {
+            logger.warn("Invalid email format: {}", email);
+            return badRequest(ErrorMessage.EMAIL_FORMAT_INCORRECT);
+        }
 
         try {
-            return userService.getUserByUsername(username) == null ?
-                    successResponse(SuccessMessage.USER_NOT_EXITS) :
-                    conflictResponse(ErrorMessage.USER_ALREADY_EXISTS);
-        } catch (DataAccessException e) {
-            return logAndRespondError("Database error during username check: ", username, e, ErrorMessage.DATABASE_ERROR);
+            // 调用发送验证码方法
+            String verificationCode = tencentCloudEmailUtil.sendVerificationCodeEmail(email, Config.EMAIL_TYPE_REGISTER);
+
+            // 如果发送成功，返回成功响应
+            if (verificationCode != null) {
+                logger.info("Verification code sent successfully to: {}", email);
+                return successResponse(SuccessMessage.VERIFICATION_CODE_SENT);
+            } else {
+                // 如果发送失败但没有抛出异常，返回错误响应
+                logger.error("Failed to send verification code to: {}", email);
+                return badRequest(ErrorMessage.VERIFICATION_CODE_SEND_FAILED);
+            }
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().contains("请勿频繁发送验证码")) {
+                logger.warn("Rate limiting applied to verification code request for email: {}", email);
+                return conflictResponse(ErrorMessage.VERIFICATION_CODE_TOO_FREQUENT);
+            } else if (e.getMessage() != null && e.getMessage().contains("验证码请求次数已达上限")) {
+                logger.warn("Daily limit reached for verification code requests for email: {}", email);
+                return conflictResponse(ErrorMessage.VERIFICATION_CODE_DAILY_LIMIT_REACHED);
+            } else if (e.getMessage() != null && e.getMessage().contains("无效的验证码类型")) {
+                logger.error("Invalid verification code type for email: {}", email);
+                return badRequest(ErrorMessage.INVALID_VERIFICATION_CODE_TYPE);
+            } else {
+                // 其他运行时异常
+                return logAndRespondError("Error sending verification code to email:", email, e, ErrorMessage.VERIFICATION_CODE_SEND_FAILED);
+            }
+        } catch (Exception e) {
+            // 如果发送过程中发生异常，记录日志并返回错误响应
+            return logAndRespondError("Error sending verification code to email:", email, e, ErrorMessage.VERIFICATION_CODE_SEND_FAILED);
         }
     }
+
+    @Override
+    public ResponseEntity<GeneralResponse> loginVerificationCode(VerificationCodeRequest verificationCodeRequest) {
+        String email = verificationCodeRequest.getEmail();
+        if (!isValidEmail(email)) {
+            logger.warn("Invalid email format: {}", email);
+            return badRequest(ErrorMessage.EMAIL_FORMAT_INCORRECT);
+        }
+
+        try {
+            // 调用发送验证码方法，指定为登录验证码类型
+            String verificationCode = tencentCloudEmailUtil.sendVerificationCodeEmail(email, Config.EMAIL_TYPE_LOGIN);
+
+            // 如果发送成功，返回成功响应
+            if (verificationCode != null) {
+                logger.info("Login verification code sent successfully to: {}", email);
+                return successResponse(SuccessMessage.VERIFICATION_CODE_SENT);
+            } else {
+                // 如果发送失败但没有抛出异常，返回错误响应
+                logger.error("Failed to send login verification code to: {}", email);
+                return badRequest(ErrorMessage.VERIFICATION_CODE_SEND_FAILED);
+            }
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().contains("请勿频繁发送验证码")) {
+                logger.warn("Rate limiting applied to verification code request for email: {}", email);
+                return conflictResponse(ErrorMessage.VERIFICATION_CODE_TOO_FREQUENT);
+            } else if (e.getMessage() != null && e.getMessage().contains("验证码请求次数已达上限")) {
+                logger.warn("Daily limit reached for verification code requests for email: {}", email);
+                return conflictResponse(ErrorMessage.VERIFICATION_CODE_DAILY_LIMIT_REACHED);
+            } else if (e.getMessage() != null && e.getMessage().contains("无效的验证码类型")) {
+                logger.error("Invalid verification code type for email: {}", email);
+                return badRequest(ErrorMessage.INVALID_VERIFICATION_CODE_TYPE);
+            } else {
+                // 其他运行时异常
+                return logAndRespondError("Error sending verification code to email:", email, e, ErrorMessage.VERIFICATION_CODE_SEND_FAILED);
+            }
+        } catch (Exception e) {
+            // 如果发送过程中发生其他异常，记录日志并返回错误响应
+            return logAndRespondError("Error sending login verification code to email:", email, e, ErrorMessage.VERIFICATION_CODE_SEND_FAILED);
+        }
+    }
+
 
     @Override
     public ResponseEntity<GeneralResponse> quit(String accessToken, String deviceId) {

@@ -45,4 +45,5 @@ public class SuccessMessage {
     public final static String FETCH_LATEST_APK_VERSION_FAILURE_MESSAGE = "获取最新apk版本失败，请练习后端人员";
 
 
+    public static final String VERIFICATION_CODE_SENT = "验证码已发送";
 }

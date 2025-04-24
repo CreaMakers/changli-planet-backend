@@ -50,12 +50,19 @@
         <caffeine.version>3.1.8</caffeine.version> <!--caffeine缓存版本-->
         <guava.version>33.2.1-jre</guava.version> <!--caffeine缓存版本-->
         <bundleVersion>3.23.9.1</bundleVersion>
+        <tencentcloudVersion>3.1.899</tencentcloudVersion>
 
     </properties>
 
     <!-- 依赖管理 -->
     <dependencyManagement>
         <dependencies>
+
+            <dependency>
+                <groupId>com.tencentcloudapi</groupId>
+                <artifactId>tencentcloud-sdk-java-ses</artifactId>
+                <version>${tencentcloudVersion}</version>
+            </dependency>
 
 
             <dependency>
