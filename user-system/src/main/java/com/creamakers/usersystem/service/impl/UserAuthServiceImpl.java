@@ -105,8 +105,16 @@ public class UserAuthServiceImpl implements UserAuthService {
     }
 
     @Override
-    public ResponseEntity<GeneralResponse> checkUsernameAvailability(UsernameCheckRequest usernameCheckRequest) {
-        return null;
+    public ResponseEntity<GeneralResponse> checkUsernameAvailability(UsernameCheckRequest request) {
+        String username = request.getUsername();
+
+        try {
+            return userService.getUserByUsername(username) == null ?
+                    successResponse(SuccessMessage.USER_NOT_EXITS) :
+                    conflictResponse(ErrorMessage.USER_ALREADY_EXISTS);
+        } catch (DataAccessException e) {
+            return logAndRespondError("Database error during username check: ", username, e, ErrorMessage.DATABASE_ERROR);
+        }
     }
 
 
