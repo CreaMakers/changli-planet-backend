@@ -1,5 +1,6 @@
 package com.creamakers.usersystem.util;
 
+import com.creamakers.usersystem.consts.Config;
 import com.tencentcloudapi.common.Credential;
 import com.tencentcloudapi.common.exception.TencentCloudSDKException;
 import com.tencentcloudapi.common.profile.ClientProfile;
@@ -13,6 +14,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 import static com.creamakers.usersystem.consts.Config.EMAIL_TYPE_LOGIN;
@@ -49,60 +52,152 @@ public class TencentCloudEmailUtil {
      * @param emailType
      * @return 返回生成的验证码
      */
+    /**
+     * 发送邮箱验证码
+     *
+     * @param toEmail 接收邮箱
+     * @param emailType 邮件类型（如登录、注册、更新邮箱等）
+     * @return 生成的验证码
+     */
     public String sendVerificationCodeEmail(String toEmail, String emailType) {
-        // 验证码类型有效性检查
-        if (emailType == null || (!EMAIL_TYPE_LOGIN.equals(emailType) && !EMAIL_TYPE_REGISTER.equals(emailType))) {
-            logger.error("Invalid email verification code type: {}", emailType);
-            throw new IllegalArgumentException("无效的验证码类型");
-        }
+        // 验证邮件类型
+        validateEmailType(emailType);
 
-        // 设置每日最大发送次数 - 根据不同类型设置不同的限制
-        final int MAX_DAILY_LOGIN_ATTEMPTS = 10; // 登录验证码每天最多10次
-        final int MAX_DAILY_REGISTER_ATTEMPTS = 5; // 注册验证码每天最多5次
+        // 获取当前类型的发送限制配置
+        EmailLimitConfig limitConfig = getEmailLimitConfig(emailType);
 
-        int maxAttempts = EMAIL_TYPE_LOGIN.equals(emailType) ?
-                MAX_DAILY_LOGIN_ATTEMPTS : MAX_DAILY_REGISTER_ATTEMPTS;
+        // 检查发送频率限制
+        checkRateLimit(toEmail);
 
-        // 检查是否在60秒内重复发送
-        if (!redisUtil.canSendVerificationCode(toEmail)) {
-            throw new RuntimeException("请勿频繁发送验证码，请60秒后再试");
-        }
-
-        // 检查是否超过每日发送限制
-        if (!redisUtil.checkDailyVerificationLimit(toEmail, maxAttempts, emailType)) {
-            throw new RuntimeException("您今日的验证码请求次数已达上限，请明天再试");
-        }
+        // 检查每日发送次数限制
+        checkDailyLimit(toEmail, limitConfig.maxDailyAttempts, emailType);
 
         // 生成验证码
         String verificationCode = generateVerificationCode();
 
-        // 根据不同的验证码类型使用不同的存储方法
-        if (EMAIL_TYPE_LOGIN.equals(emailType)) {
-            redisUtil.storeLoginVerificationCode(toEmail, verificationCode);
-            logger.info("Generated login verification code for email: {}", toEmail);
-        } else if (EMAIL_TYPE_REGISTER.equals(emailType)) {
-            redisUtil.storeRegisterVerificationCode(toEmail, verificationCode);
-            logger.info("Generated register verification code for email: {}", toEmail);
-        }
-
-        // 发送验证码邮件
         try {
-            // 根据不同类型使用不同的邮件主题
-            String subject = EMAIL_TYPE_LOGIN.equals(emailType) ?
-                    "长理星球登录验证码" : "长理星球注册验证码";
+            // 存储验证码
+            storeVerificationCode(toEmail, verificationCode, emailType);
 
+            // 获取对应的邮件主题
+            String subject = getEmailSubject(emailType);
+
+            // 发送邮件
             sendEmail(toEmail, subject, verificationCode);
             return verificationCode;
         } catch (Exception e) {
-            // 发送失败时删除验证码和限流标记
-            if (EMAIL_TYPE_LOGIN.equals(emailType)) {
-                redisUtil.deleteLoginVerificationCode(toEmail);
-            } else if (EMAIL_TYPE_REGISTER.equals(emailType)) {
-                redisUtil.deleteRegisterVerificationCode(toEmail);
-            }
-
-            redisUtil.removeRateLimit(toEmail);
+            // 发送失败时清理验证码和限流标记
+            cleanupFailedAttempt(toEmail, emailType);
             throw new RuntimeException("发送验证码邮件失败: " + e.getMessage(), e);
+        }
+    }
+
+    // 验证邮件类型
+    private void validateEmailType(String emailType) {
+        // 扩展支持的类型列表
+        List<String> validTypes = Arrays.asList(
+                Config.EMAIL_TYPE_LOGIN,
+                Config.EMAIL_TYPE_REGISTER,
+                Config.EMAIL_TYPE_UPDATE_EMAIL,
+                Config.EMAIL_TYPE_RESET_PASSWORD
+        );
+
+        if (emailType == null || !validTypes.contains(emailType)) {
+            logger.error("Invalid email verification code type: {}", emailType);
+            throw new IllegalArgumentException("无效的验证码类型");
+        }
+    }
+
+    // 获取邮件类型对应的限制配置
+    private EmailLimitConfig getEmailLimitConfig(String emailType) {
+        switch (emailType) {
+            case Config.EMAIL_TYPE_LOGIN:
+                return new EmailLimitConfig(10); // 登录每天10次
+            case Config.EMAIL_TYPE_REGISTER:
+                return new EmailLimitConfig(5);  // 注册每天5次
+            case Config.EMAIL_TYPE_UPDATE_EMAIL:
+                return new EmailLimitConfig(3);  // 更新邮箱每天3次
+            case Config.EMAIL_TYPE_RESET_PASSWORD:
+                return new EmailLimitConfig(3);  // 重置密码每天3次
+            default:
+                return new EmailLimitConfig(5);  // 默认每天5次
+        }
+    }
+
+    // 检查发送频率限制
+    private void checkRateLimit(String toEmail) {
+        if (!redisUtil.canSendVerificationCode(toEmail)) {
+            throw new RuntimeException("请勿频繁发送验证码，请60秒后再试");
+        }
+    }
+
+    // 检查每日发送次数限制
+    private void checkDailyLimit(String toEmail, int maxAttempts, String emailType) {
+        if (!redisUtil.checkDailyVerificationLimit(toEmail, maxAttempts, emailType)) {
+            throw new RuntimeException("您今日的验证码请求次数已达上限，请明天再试");
+        }
+    }
+
+    // 存储验证码
+    private void storeVerificationCode(String toEmail, String verificationCode, String emailType) {
+        switch (emailType) {
+            case Config.EMAIL_TYPE_LOGIN:
+                redisUtil.storeLoginVerificationCode(toEmail, verificationCode);
+                break;
+            case Config.EMAIL_TYPE_REGISTER:
+                redisUtil.storeRegisterVerificationCode(toEmail, verificationCode);
+                break;
+            case Config.EMAIL_TYPE_UPDATE_EMAIL:
+                redisUtil.storeUpdateEmailVerificationCode(toEmail, verificationCode);
+                break;
+            case Config.EMAIL_TYPE_RESET_PASSWORD:
+                redisUtil.storeResetPasswordVerificationCode(toEmail, verificationCode);
+                break;
+        }
+        logger.info("Generated {} verification code for email: {}", emailType, toEmail);
+    }
+
+    // 获取邮件主题
+    private String getEmailSubject(String emailType) {
+        switch (emailType) {
+            case Config.EMAIL_TYPE_LOGIN:
+                return "长理星球登录验证码";
+            case Config.EMAIL_TYPE_REGISTER:
+                return "长理星球注册验证码";
+            case Config.EMAIL_TYPE_UPDATE_EMAIL:
+                return "长理星球更改邮箱验证码";
+            case Config.EMAIL_TYPE_RESET_PASSWORD:
+                return "长理星球重置密码验证码";
+            default:
+                return "长理星球验证码";
+        }
+    }
+
+    // 清理失败的验证码和限流标记
+    private void cleanupFailedAttempt(String toEmail, String emailType) {
+        switch (emailType) {
+            case Config.EMAIL_TYPE_LOGIN:
+                redisUtil.deleteLoginVerificationCode(toEmail);
+                break;
+            case Config.EMAIL_TYPE_REGISTER:
+                redisUtil.deleteRegisterVerificationCode(toEmail);
+                break;
+            case Config.EMAIL_TYPE_UPDATE_EMAIL:
+                redisUtil.deleteUpdateEmailVerificationCode(toEmail);
+                break;
+            case Config.EMAIL_TYPE_RESET_PASSWORD:
+                redisUtil.deleteResetPasswordVerificationCode(toEmail);
+                break;
+        }
+        redisUtil.removeRateLimit(toEmail);
+    }
+
+    // 内部配置类，用于存储每种邮件类型的限制
+    private static class EmailLimitConfig {
+        final int maxDailyAttempts;
+
+        EmailLimitConfig(int maxDailyAttempts) {
+            this.maxDailyAttempts = maxDailyAttempts;
         }
     }
     /**

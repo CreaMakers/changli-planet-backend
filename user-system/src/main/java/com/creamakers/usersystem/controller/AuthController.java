@@ -62,6 +62,16 @@ public class AuthController {
         return userAuthService.loginVerificationCode(verificationCodeRequest);
     }
 
+    @PostMapping("/auth/verification-code/email-change")
+    public ResponseEntity<GeneralResponse> emailUpdateVerificationCode(@RequestHeader(value = "Authorization") String authorization,
+                                                                       @RequestBody EmailUpdateVerificationCodeRequest emailUpdateVerificationCodeRequest) {
+        String accessToken = null;
+        if (authorization != null && !authorization.isEmpty()) {
+            accessToken = authorization.substring(7);
+        }
+        return userAuthService.emailUpdateVerificationCode(emailUpdateVerificationCodeRequest,accessToken);
+    }
+
 
 
     @DeleteMapping("/session")

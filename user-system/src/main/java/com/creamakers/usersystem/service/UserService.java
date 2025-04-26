@@ -33,4 +33,5 @@ public interface UserService {
     boolean updateUserUsername(UsernameUpdateRequest request);
 
 
+    boolean existsByEmail(String newEmail);
 }

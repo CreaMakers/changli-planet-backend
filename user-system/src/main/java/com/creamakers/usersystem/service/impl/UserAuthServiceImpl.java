@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -188,6 +187,7 @@ public class UserAuthServiceImpl implements UserAuthService {
         return badRequest("Err:both email and login request are missing");
     }
 
+
     private ResponseEntity<GeneralResponse> processEmailLogin(LoginByEmailRequest loginByEmailRequest, String deviceId) {
         String email = loginByEmailRequest.getEmail();
         String verificationCode = loginByEmailRequest.getVerifyCode();
@@ -273,7 +273,6 @@ public class UserAuthServiceImpl implements UserAuthService {
         logger.info("Attempting password login for user '{}' on device '{}'", username, deviceId);
 
         User foundUser = userService.getUserByUsername(username);
-
         if (foundUser == null) {
             logger.warn("User '{}' not found for login attempt on device '{}'", username, deviceId);
             return notFound(ErrorMessage.USER_NOT_FOUND);
@@ -334,6 +333,69 @@ public class UserAuthServiceImpl implements UserAuthService {
         return userService.updateUserUsername(request) ?
                 successResponse(SuccessMessage.USER_UPDATED) :
                 notFound(ErrorMessage.USER_NOT_FOUND);
+    }
+
+
+    @Override
+    public ResponseEntity<GeneralResponse> emailUpdateVerificationCode(EmailUpdateVerificationCodeRequest verificationCodeRequest, String accessToken) {
+        String username = jwtUtil.getUserNameFromToken(accessToken);
+        logger.info("Processing email update verification code request for user: {}", username);
+
+        // 获取用户信息
+        User user = userService.getUserByUsername(username);
+        if (user == null) {
+            logger.error("User not found for username: {}", username);
+            return badRequest( ErrorMessage.USER_NOT_FOUND);
+        }
+
+        if (!passwordEncoderUtil.matches(verificationCodeRequest.getCurrentPassword(),user.getPassword())) {
+            logger.error("Passwords do not match for user: {}", username);
+            return badRequest(ErrorMessage.INVALID_PASSWORD);
+        }
+
+        String email = verificationCodeRequest.getEmail();
+        if (!isValidEmail(email)) {
+            logger.warn("Invalid email format: {}", email);
+            return badRequest(ErrorMessage.EMAIL_FORMAT_INCORRECT);
+        }
+
+        // 检查新邮箱是否已被使用
+        String newEmail = verificationCodeRequest.getEmail();
+        if (userService.existsByEmail(newEmail) && newEmail.equals(user.getMailbox())) {
+            logger.warn("Email already in use: {}", newEmail);
+            return badRequest(ErrorMessage.EMAIL_ALREADY_REGISTERED);
+        }
+
+        try {
+            // 调用发送验证码方法
+            String verificationCode = tencentCloudEmailUtil.sendVerificationCodeEmail(email, Config.EMAIL_TYPE_UPDATE_EMAIL);
+            // 如果发送成功，返回成功响应
+            if (verificationCode != null) {
+                logger.info("Verification code sent successfully to: {}", email);
+                return successResponse(SuccessMessage.VERIFICATION_CODE_SENT);
+            } else {
+                // 如果发送失败但没有抛出异常，返回错误响应
+                logger.error("Failed to send verification code to: {}", email);
+                return badRequest(ErrorMessage.VERIFICATION_CODE_SEND_FAILED);
+            }
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().contains("请勿频繁发送验证码")) {
+                logger.warn("Rate limiting applied to verification code request for email: {}", email);
+                return conflictResponse(ErrorMessage.VERIFICATION_CODE_TOO_FREQUENT);
+            } else if (e.getMessage() != null && e.getMessage().contains("验证码请求次数已达上限")) {
+                logger.warn("Daily limit reached for verification code requests for email: {}", email);
+                return conflictResponse(ErrorMessage.VERIFICATION_CODE_DAILY_LIMIT_REACHED);
+            } else if (e.getMessage() != null && e.getMessage().contains("无效的验证码类型")) {
+                logger.error("Invalid verification code type for email: {}", email);
+                return badRequest(ErrorMessage.INVALID_VERIFICATION_CODE_TYPE);
+            } else {
+                // 其他运行时异常
+                return logAndRespondError("Error sending verification code to email:", email, e, ErrorMessage.VERIFICATION_CODE_SEND_FAILED);
+            }
+        } catch (Exception e) {
+            // 如果发送过程中发生异常，记录日志并返回错误响应
+            return logAndRespondError("Error sending verification code to email:", email, e, ErrorMessage.VERIFICATION_CODE_SEND_FAILED);
+        }
     }
 
     @Override

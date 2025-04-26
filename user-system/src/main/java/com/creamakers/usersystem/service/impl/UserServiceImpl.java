@@ -149,6 +149,25 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    public boolean existsByEmail(String email) {
+        logger.info("Checking if email exists: {}", email);
+
+        try {
+            // 使用MyBatis Plus的LambdaQueryWrapper检查邮箱是否存在
+            Long count = userMapper.selectCount(new LambdaQueryWrapper<User>()
+                    .eq(User::getMailbox, email));
+
+            // 如果count > 0，表示邮箱已存在
+            boolean exists = count > 0;
+            logger.info("Email {} {}", email, exists ? "already exists" : "does not exist");
+            return exists;
+        } catch (DataAccessException e) {
+            logger.error("Database error while checking email existence: {}", email, e);
+            throw new MyBatisSystemException(e);
+        }
+    }
+
+    @Override
     public User getUserByEmail(String email) {
         logger.info("Fetching user by email: {}", email);
         List<User> users;

@@ -1,5 +1,7 @@
 package com.creamakers.usersystem.util;
 
+import com.creamakers.usersystem.consts.Config;
+import com.creamakers.usersystem.consts.RedisKeyConst;
 import com.creamakers.usersystem.service.impl.UserServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,16 +15,12 @@ import java.util.concurrent.TimeUnit;
 
 import static com.creamakers.usersystem.consts.Config.EMAIL_TYPE_LOGIN;
 import static com.creamakers.usersystem.consts.Config.EMAIL_TYPE_REGISTER;
+import static com.creamakers.usersystem.consts.RedisKeyConst.*;
 
 @Component
 public class RedisUtil {
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
-    private static final int VERIFICATION_CODE_EXPIRE_MINUTES = 5; // 验证码有效期5分钟
-    private static final String REGISTER_VERIFICATION_CODE_PREFIX = "CSUSTPLANT:EMAIL:REGISTER:VERIFICATION:";
-    private static final String LOGIN_VERIFICATION_CODE_PREFIX = "CSUSTPLANT:EMAIL:LOGIN:VERIFICATION:";
-    private static final String EMAIL_THROTTLE_PREFIX = "CSUSTPLANT:EMAIL:THROTTLE:";
-    private static final String REGISTER_DAILY_LIMIT_PREFIX = "CSUSTPLANT:EMAIL:REGISTER:DAILY:LIMIT:";
-    private static final String LOGIN_DAILY_LIMIT_PREFIX = "CSUSTPLANT:EMAIL:LOGIN:DAILY:LIMIT:";
+
 
     @Value("${REFRESH_TOKEN_PREFIX}")
     private String refreshTokenPrefix;
@@ -63,22 +61,21 @@ public class RedisUtil {
         }
     }
 
-    // 检查每日发送限制，区分不同类型
+    /**
+     * 检查邮箱验证码每日发送限制
+     *
+     * @param email 目标邮箱
+     * @param maxDailyAttempts 每日最大尝试次数
+     * @param emailType 邮件类型
+     * @return 是否未超过限制
+     */
     public boolean checkDailyVerificationLimit(String email, int maxDailyAttempts, String emailType) {
         try {
-            // 根据验证码类型选择不同的前缀
-            String prefix;
-            if (EMAIL_TYPE_LOGIN.equals(emailType)) {
-                prefix = LOGIN_DAILY_LIMIT_PREFIX;
-            } else if (EMAIL_TYPE_REGISTER.equals(emailType)) {
-                prefix = REGISTER_DAILY_LIMIT_PREFIX;
-            } else {
-                throw new IllegalArgumentException("无效的验证码类型: " + emailType);
-            }
+            // 获取对应类型的每日限制前缀
+            String prefix = getDailyLimitPrefix(emailType);
+            String dailyLimitKey = RedisKeyConst.getKey(prefix, email);
 
-            String dailyLimitKey = prefix + email;
-
-            // 获取当前计数，如果不存在则创建
+            // 获取当前计数，如果不存在则创建并返回1
             Long currentCount = redisTemplate.opsForValue().increment(dailyLimitKey, 1);
 
             // 如果是新创建的计数器，设置24小时过期时间
@@ -103,6 +100,27 @@ public class RedisUtil {
         }
     }
 
+    /**
+     * 获取对应邮件类型的每日限制前缀
+     *
+     * @param emailType 邮件类型
+     * @return Redis键前缀
+     */
+    private String getDailyLimitPrefix(String emailType) {
+        switch (emailType) {
+            case Config.EMAIL_TYPE_LOGIN:
+                return RedisKeyConst.LOGIN_DAILY_LIMIT_PREFIX;
+            case Config.EMAIL_TYPE_REGISTER:
+                return RedisKeyConst.REGISTER_DAILY_LIMIT_PREFIX;
+            case Config.EMAIL_TYPE_UPDATE_EMAIL:
+                return RedisKeyConst.UPDATE_EMAIL_DAILY_LIMIT_PREFIX;
+            case Config.EMAIL_TYPE_RESET_PASSWORD:
+                return RedisKeyConst.RESET_PASSWORD_DAILY_LIMIT_PREFIX;
+            default:
+                logger.error("Invalid email type: {}", emailType);
+                throw new IllegalArgumentException("无效的验证码类型: " + emailType);
+        }
+    }
     // 删除频率限制标记
     public void removeRateLimit(String email) {
         try {
@@ -114,14 +132,54 @@ public class RedisUtil {
         }
     }
 
-    // 登录验证码相关方法
+    /**
+     * 存储登录验证码
+     *
+     * @param email 目标邮箱
+     * @param verificationCode 验证码
+     */
     public void storeLoginVerificationCode(String email, String verificationCode) {
         try {
-            String key = LOGIN_VERIFICATION_CODE_PREFIX + email;
-            redisTemplate.opsForValue().set(key, verificationCode, VERIFICATION_CODE_EXPIRE_MINUTES, TimeUnit.MINUTES);
+            String key = RedisKeyConst.getKey(RedisKeyConst.LOGIN_VERIFICATION_CODE_PREFIX, email);
+            redisTemplate.opsForValue().set(key, verificationCode,
+                    RedisKeyConst.VERIFICATION_CODE_EXPIRE_MINUTES, TimeUnit.MINUTES);
             logger.info("Stored login verification code for user {} with key {}", email, key);
         } catch (Exception e) {
             logger.error("Error storing login verification code for user {}: {}", email, e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 存储更新邮箱验证码
+     *
+     * @param email 目标邮箱
+     * @param verificationCode 验证码
+     */
+    public void storeUpdateEmailVerificationCode(String email, String verificationCode) {
+        try {
+            String key = RedisKeyConst.getKey(RedisKeyConst.UPDATE_EMAIL_VERIFICATION_CODE_PREFIX, email);
+            redisTemplate.opsForValue().set(key, verificationCode,
+                    RedisKeyConst.VERIFICATION_CODE_EXPIRE_MINUTES, TimeUnit.MINUTES);
+            logger.info("Stored update email verification code for user {} with key {}", email, key);
+        } catch (Exception e) {
+            logger.error("Error storing update email verification code for user {}: {}", email, e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 存储重置密码验证码
+     *
+     * @param email 目标邮箱
+     * @param verificationCode 验证码
+     */
+    public void storeResetPasswordVerificationCode(String email, String verificationCode) {
+        try {
+            String key = RedisKeyConst.getKey(RedisKeyConst.RESET_PASSWORD_VERIFICATION_CODE_PREFIX, email);
+            redisTemplate.opsForValue().set(key, verificationCode,
+                    RedisKeyConst.VERIFICATION_CODE_EXPIRE_MINUTES, TimeUnit.MINUTES);
+            logger.info("Stored reset password verification code for user {} with key {}", email, key);
+        } catch (Exception e) {
+            logger.error("Error storing reset password verification code for user {}: {}", email, e.getMessage(), e);
         }
     }
 
@@ -187,6 +245,28 @@ public class RedisUtil {
             logger.error("Error deleting register verification code for user {}: {}", email, e.getMessage(), e);
         }
     }
+
+    public void deleteUpdateEmailVerificationCode(String email) {
+        try {
+            String key = UPDATE_EMAIL_VERIFICATION_CODE_PREFIX + email;
+            redisTemplate.delete(key);
+            logger.info("Deleted update email verification code for user {} with key {}", email, key);
+        } catch (Exception e) {
+            logger.error("Error deleting update email verification code for user {}: {}", email, e.getMessage(), e);
+        }
+    }
+
+    public void deleteResetPasswordVerificationCode(String email) {
+        try {
+            String key = RESET_PASSWORD_VERIFICATION_CODE_PREFIX + email;
+            redisTemplate.delete(key);
+            logger.info("Deleted reset password verification code for user {} with key {}", email, key);
+        } catch (Exception e) {
+            logger.error("Error deleting reset password verification code for user {}: {}", email, e.getMessage(), e);
+        }
+    }
+
+
     public boolean isRefreshTokenExpired(String username, String deviceId) {
         try {
             String key = refreshTokenPrefix + username + "-" + deviceId;

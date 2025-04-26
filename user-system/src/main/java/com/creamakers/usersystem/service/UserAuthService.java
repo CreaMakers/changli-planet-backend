@@ -2,9 +2,6 @@ package com.creamakers.usersystem.service;
 
 import com.creamakers.usersystem.dto.request.*;
 import com.creamakers.usersystem.dto.response.GeneralResponse;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 /**
@@ -33,4 +30,6 @@ public interface UserAuthService {
     ResponseEntity<GeneralResponse> loginVerificationCode(VerificationCodeRequest verificationCodeRequest);
 
     ResponseEntity<GeneralResponse> loginByEmail(LoginByEmailRequest loginByEmailRequest, String deviceId, String accessToken);
+
+    ResponseEntity<GeneralResponse> emailUpdateVerificationCode(EmailUpdateVerificationCodeRequest verificationCodeRequest, String accessToken);
 }
