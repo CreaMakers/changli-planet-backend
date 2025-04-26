@@ -107,13 +107,13 @@ public class UserStatsServiceImpl extends ServiceImpl<UserStatsMapper, UserStats
     }
 
     @Override
-    public Boolean initializeUserStats(Integer userId,String userName) {
+    public Boolean initializeUserStats(User user) {
         try {
-            logger.info("Initializing stats for user ID: {}", userId);
+            logger.info("Initializing stats for user ID: {}", user.getUserId());
 
             UserStats userStats = UserStats.builder()
-                    .userId(userId)
-                    .account(userName)
+                    .userId(user.getUserId())
+                    .account(user.getUsername())
                     .studentNumber("")
                     .articleCount(0)
                     .commentCount(0)
@@ -125,10 +125,10 @@ public class UserStatsServiceImpl extends ServiceImpl<UserStatsMapper, UserStats
                     .build();
 
             boolean result = save(userStats);
-            logger.info("Stats initialized successfully for user ID: {}", userId);
+            logger.info("Stats initialized successfully for user ID: {}", user.getUserId());
             return result;
         } catch (Exception e) {
-            logger.error("Error initializing stats for user ID: {}", userId, e);
+            logger.error("Error initializing stats for user ID: {}", user.getUserId(), e);
             return false;
         }
     }

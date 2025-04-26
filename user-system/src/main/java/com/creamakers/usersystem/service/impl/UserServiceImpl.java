@@ -67,7 +67,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .mailbox(registerRequest.getEmail())
                 .isDeleted((byte) 0)
                 .isBanned((byte) 0)
-
                 .build();
 
 

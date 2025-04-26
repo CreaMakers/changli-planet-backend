@@ -16,10 +16,8 @@ import java.util.Date;
 @AllArgsConstructor
 public class UserProfileRequest implements Serializable {
     private String avatarUrl;
-    private String username;
     private String account;
     private String bio;
-    private int userLevel;
     private int gender;
     private String grade;
     @JsonFormat(pattern = "yyyy-MM-dd")

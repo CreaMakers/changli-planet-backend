@@ -88,7 +88,7 @@ public class UserAuthServiceImpl implements UserAuthService {
             }
 
             User newUser = createUserAndInsert(registerRequest);
-            initializeUserProfileAndStats(newUser.getUserId(), username);
+            initializeUserProfileAndStats(newUser);
             logger.info("User '{}' successfully registered with UserId '{}'.", username, newUser.getUserId());
             return successResponse(SuccessMessage.USER_REGISTERED);
         } catch (DataIntegrityViolationException e) {
@@ -127,9 +127,9 @@ public class UserAuthServiceImpl implements UserAuthService {
         return userService.createUserAndInsert(registerRequest, encodedPassword);
     }
 
-    private void initializeUserProfileAndStats(Integer userId, String username) {
-        userProfileService.initializeUserProfile(userId, username);
-        userStatsService.initializeUserStats(userId, username);
+    private void initializeUserProfileAndStats(User user) {
+        userProfileService.initializeUserProfile(user);
+        userStatsService.initializeUserStats(user);
     }
 
     private static boolean isValidEmail(String email) {

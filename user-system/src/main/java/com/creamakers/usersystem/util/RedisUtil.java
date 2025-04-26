@@ -18,7 +18,6 @@ import static com.creamakers.usersystem.consts.Config.EMAIL_TYPE_REGISTER;
 public class RedisUtil {
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
     private static final int VERIFICATION_CODE_EXPIRE_MINUTES = 5; // 验证码有效期5分钟
-
     private static final String REGISTER_VERIFICATION_CODE_PREFIX = "CSUSTPLANT:EMAIL:REGISTER:VERIFICATION:";
     private static final String LOGIN_VERIFICATION_CODE_PREFIX = "CSUSTPLANT:EMAIL:LOGIN:VERIFICATION:";
     private static final String EMAIL_THROTTLE_PREFIX = "CSUSTPLANT:EMAIL:THROTTLE:";

@@ -65,6 +65,8 @@ public class UserProfileImpl extends ServiceImpl<UserProfileMapper, UserProfile>
             User user = userService.getUserByUsername(username);
             UserProfile userProfile = getUserProfile(user.getUserId());
 
+            userProfile.setEmailbox(maskEmail(userProfile.getEmailbox()));
+
             logger.info("Profile retrieved successfully for user: {}", username);
             return buildResponse(HttpStatus.OK, HttpCode.OK, SuccessMessage.DATA_RETRIEVED, userProfile);
         } catch (Exception e) {
@@ -73,11 +75,35 @@ public class UserProfileImpl extends ServiceImpl<UserProfileMapper, UserProfile>
         }
     }
 
+    private String maskEmail(String email) {
+        if (email == null || email.isEmpty() || !email.contains("@")) {
+            return email;
+        }
+
+        String[] parts = email.split("@");
+        String username = parts[0];
+        String domain = parts[1];
+
+        // 邮箱名称部分处理: 保留首尾字符，中间用*替代
+        if (username.length() <= 2) {
+            // 如果用户名太短，只显示第一个字符
+            username = username.charAt(0) + "*".repeat(username.length() - 1);
+        } else {
+            // 保留首尾字符，中间用*替代
+            username = username.charAt(0) +
+                    "*".repeat(username.length() - 2) +
+                    username.charAt(username.length() - 1);
+        }
+
+        return username + "@" + domain;
+    }
+
     @Override
     public ResponseEntity<GeneralResponse> getProfileByID(String userID) {
         try {
             logger.info("Fetching profile by user ID: {}", userID);
             UserProfile userProfile = getUserProfile(Integer.valueOf(userID));
+            userProfile.setEmailbox(maskEmail(userProfile.getEmailbox()));
             logger.info("Profile retrieved successfully for user ID: {}", userID);
             return buildResponse(HttpStatus.OK, HttpCode.OK, SuccessMessage.DATA_RETRIEVED, userProfile);
         } catch (Exception e) {
@@ -118,14 +144,15 @@ public class UserProfileImpl extends ServiceImpl<UserProfileMapper, UserProfile>
     }
 
     @Override
-    public Boolean initializeUserProfile(Integer userId,String userName) {
+    public Boolean initializeUserProfile(User user) {
         try {
-            logger.info("Initializing profile for user ID: {}", userId);
+            logger.info("Initializing profile for user ID: {}", user.getUserId());
             UserProfile userProfile = UserProfile.builder()
-                    .userId(userId)
+                    .userId(user.getUserId())
                     .avatarUrl("https://pic.imgdb.cn/item/671e5e17d29ded1a8c5e0dbe.jpg")
-                    .username(userName)
-                    .account(userName)
+                    .username(user.getUsername())
+                    .account(user.getUsername())
+                    .emailbox(user.getMailbox())
                     .bio("这个人很懒，没有写任何描述")
                     .userLevel(1)
                     .gender(2)
@@ -135,10 +162,10 @@ public class UserProfileImpl extends ServiceImpl<UserProfileMapper, UserProfile>
                     .build();
 
             boolean result = save(userProfile);
-            logger.info("Profile initialized successfully for user ID: {}", userId);
+            logger.info("Profile initialized successfully for user ID: {}", user.getUserId());
             return result;
         } catch (Exception e) {
-            logger.error("Error initializing profile for user ID: {}", userId, e);
+            logger.error("Error initializing profile for user ID: {}", user.getUserId(), e);
             return false;
         }
     }

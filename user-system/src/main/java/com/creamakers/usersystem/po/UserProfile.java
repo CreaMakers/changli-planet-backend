@@ -41,6 +41,8 @@ public class UserProfile implements Serializable {
     @TableField("username")
     private String username;
 
+    private String emailbox;
+
     /**
      * 用户账号名，用户自定义
      */
