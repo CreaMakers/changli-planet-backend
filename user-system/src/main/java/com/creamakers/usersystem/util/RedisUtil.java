@@ -377,4 +377,18 @@ public class RedisUtil {
             return null;
         }
     }
+
+    public String getResetPasswordVerificationCode(String email) {
+        try {
+            String key = RedisKeyConst.getKey(RedisKeyConst.RESET_PASSWORD_VERIFICATION_CODE_PREFIX, email);
+            String code = redisTemplate.opsForValue().get(key);
+            if (code == null) {
+                logger.warn("No reset password verification code found for: {}", email);
+            }
+            return code;
+        } catch (Exception e) {
+            logger.error("Error retrieving reset password verification code for: {}", email, e);
+            return null;
+        }
+    }
 }

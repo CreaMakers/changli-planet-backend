@@ -550,6 +550,61 @@ public class UserAuthServiceImpl implements UserAuthService {
     }
 
     @Override
+    public ResponseEntity<GeneralResponse> resetPassword(PasswordResetRequest passwordResetRequest) {
+        String email = passwordResetRequest.getEmail();
+        String verificationCode = passwordResetRequest.getVerificationCode();
+        String newPassword = passwordResetRequest.getNewPassword();
+        String confirmPassword = passwordResetRequest.getConfirmPassword();
+
+        // 验证参数
+        if (StringUtils.isEmpty(email) || StringUtils.isEmpty(verificationCode) ||
+                StringUtils.isEmpty(newPassword) || StringUtils.isEmpty(confirmPassword)) {
+            logger.warn("Missing required parameters for password reset");
+            return badRequest(ErrorMessage.MISSING_CREDENTIALS);
+        }
+
+        // 确认两次输入的密码一致
+        if (!newPassword.equals(confirmPassword)) {
+            logger.warn("Password mismatch for reset password request");
+            return badRequest(ErrorMessage.PASSWORD_NOT_SAME);
+        }
+
+        try {
+            // 检查邮箱是否存在
+            User user = userService.getUserByEmail(email);
+            if (user == null) {
+                logger.warn("Email not registered for password reset: {}", email);
+                return notFound(ErrorMessage.USER_NOT_FOUND);
+            }
+
+            // 验证验证码
+            if (!tencentCloudEmailUtil.verifyCode(email, verificationCode, Config.EMAIL_TYPE_RESET_PASSWORD)) {
+                logger.warn("Invalid verification code for password reset: {}", email);
+                return badRequest(ErrorMessage.VERIFICATION_CODE_INVALID);
+            }
+
+            // 更新用户密码
+            user.setPassword(passwordEncoderUtil.encodePassword(newPassword));
+            boolean updated = userService.updateUserPassword(user);
+
+            if (!updated) {
+                logger.error("Failed to update password for user: {}", user.getUsername());
+                return badRequest(ErrorMessage.UPDATE_FAILED);
+            }
+
+            logger.info("Password successfully reset for user: {}", user.getUsername());
+            return successResponse(SuccessMessage.USER_UPDATED);
+
+        } catch (DataAccessException e) {
+            return logAndRespondError("Database error during password reset for email: ",
+                    email, e, ErrorMessage.DATABASE_ERROR);
+        } catch (Exception e) {
+            return logAndRespondError("Unexpected error during password reset for email: ",
+                    email, e, ErrorMessage.SYSTEM_ERROR);
+        }
+    }
+
+    @Override
     public ResponseEntity<GeneralResponse> registerVerificationCode(VerificationCodeRequest verificationCodeRequest) {
         String email = verificationCodeRequest.getEmail();
         if (!isValidEmail(email)) {

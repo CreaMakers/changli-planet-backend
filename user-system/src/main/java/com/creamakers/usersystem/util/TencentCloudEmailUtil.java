@@ -215,8 +215,10 @@ public class TencentCloudEmailUtil {
             storedCode = redisUtil.getLoginVerificationCode(email);
         } else if (EMAIL_TYPE_REGISTER.equals(emailType)) {
             storedCode = redisUtil.getRegisterVerificationCode(email);
-        }else if (EMAIL_TYPE_UPDATE_EMAIL.equals(emailType)) {
+        } else if (EMAIL_TYPE_UPDATE_EMAIL.equals(emailType)) {
             storedCode = redisUtil.getUpdateEmailVerificationCode(email);
+        } else if (EMAIL_TYPE_RESET_PASSWORD.equals(emailType)) {
+            storedCode = redisUtil.getResetPasswordVerificationCode(email);
         } else {
             logger.error("Invalid verification code type: {}", emailType);
             return false;
@@ -235,12 +237,13 @@ public class TencentCloudEmailUtil {
             redisUtil.deleteRegisterVerificationCode(email);
         } else if (EMAIL_TYPE_UPDATE_EMAIL.equals(emailType)) {
             redisUtil.deleteUpdateEmailVerificationCode(email);
+        } else if (EMAIL_TYPE_RESET_PASSWORD.equals(emailType)) {
+            redisUtil.deleteResetPasswordVerificationCode(email);
         }
 
         logger.info("Verification successful for email: {} with code type: {}", email, emailType);
         return true;
     }
-
     /**
      * 发送邮件
      *

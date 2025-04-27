@@ -118,6 +118,10 @@ public class AuthController {
         return userAuthService.updateUsername(request, accessToken);
     }
 
+    @PutMapping("/password/reset")
+    public ResponseEntity<GeneralResponse> resetPassword(@RequestBody PasswordResetRequest passwordResetRequest) {
+        return userAuthService.resetPassword(passwordResetRequest);
+    }
 
     @GetMapping("/apk")
     public ResponseEntity<GeneralResponse> checkApkVersion(@RequestParam("versionCode") Integer versionCode,
