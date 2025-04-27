@@ -316,19 +316,50 @@ public class UserAuthServiceImpl implements UserAuthService {
     @Override
     public ResponseEntity<GeneralResponse> updatePassword(PasswordUpdateRequest request, String accessToken) {
         if (!request.getConfirmPassword().equals(request.getNewPassword())) {
+            logger.warn("Password update failed: new password and confirm password do not match");
             return badRequest(ErrorMessage.PASSWORD_NOT_SAME);
         }
 
-        String username = jwtUtil.getUserNameFromToken(accessToken);
-        User user = new User();
-        user.setUsername(username);
-        user.setPassword(passwordEncoderUtil.encodePassword(request.getNewPassword()));
+        try {
+            // 从JWT获取用户名
+            String username = jwtUtil.getUserNameFromToken(accessToken);
+            logger.info("Processing password update for user: {}", username);
 
-        return userService.updateUserPassword(user) ?
-                successResponse(SuccessMessage.USER_UPDATED) :
-                notFound(ErrorMessage.USER_NOT_FOUND);
+            // 获取用户信息
+            User currentUser = userService.getUserByUsername(username);
+            if (currentUser == null) {
+                logger.warn("User not found for username: {}", username);
+                return notFound(ErrorMessage.USER_NOT_FOUND);
+            }
+
+            // 验证旧密码是否正确
+            if (!passwordEncoderUtil.matches(request.getOldPassword(), currentUser.getPassword())) {
+                logger.warn("Password update failed: incorrect old password for user: {}", username);
+                return badRequest(ErrorMessage.INVALID_PASSWORD);
+            }
+
+            // 设置新密码
+            User userToUpdate = new User();
+            userToUpdate.setUsername(username);
+            userToUpdate.setPassword(passwordEncoderUtil.encodePassword(request.getNewPassword()));
+
+            // 更新密码
+            boolean updated = userService.updateUserPassword(userToUpdate);
+            if (!updated) {
+                logger.warn("Failed to update password for user: {}", username);
+                return notFound(ErrorMessage.UPDATE_FAILED);
+            }
+
+            // 可选：强制用户重新登录，使当前令牌无效
+            // tokenBlacklistService.invalidateUserTokens(username);
+
+            logger.info("Password successfully updated for user: {}", username);
+            return successResponse(SuccessMessage.USER_UPDATED);
+        } catch (Exception e) {
+            logger.error("Error updating password: {}", e.getMessage(), e);
+            return badRequest(ErrorMessage.UPDATE_FAILED);
+        }
     }
-
     @Override
     public ResponseEntity<GeneralResponse> updateUsername(UsernameUpdateRequest request, String accessToken) {
         return userService.updateUserUsername(request) ?

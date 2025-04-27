@@ -11,6 +11,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PasswordUpdateRequest {
+    @JsonProperty("old_password")
+    private String oldPassword;
 
     @JsonProperty("new_password")
     private String newPassword;
