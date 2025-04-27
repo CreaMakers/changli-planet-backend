@@ -70,5 +70,7 @@ public class ErrorMessage {
     public static final String INVALID_VERIFICATION_CODE_TYPE = "无效的验证码类型";
     public static final String MISSING_CREDENTIALS = "缺少邮箱或验证码";
     public static final String EMAIL_ALREADY_REGISTERED = "邮箱已经被绑定了";
+
+    public static final String UPDATE_FAILED = "更新失败";
 }
 

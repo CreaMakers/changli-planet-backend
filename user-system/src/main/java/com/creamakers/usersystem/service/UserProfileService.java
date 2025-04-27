@@ -19,4 +19,6 @@ public interface UserProfileService extends IService<UserProfile> {
     Boolean initializeUserProfile(User user);
 
     ResponseEntity<GeneralResponse> saveAvatar(MultipartFile avatar, String accessToken);
+
+    boolean updatEmailByUser(User user);
 }

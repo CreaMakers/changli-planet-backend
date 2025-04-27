@@ -364,4 +364,17 @@ public class RedisUtil {
         }
     }
 
+    public String getUpdateEmailVerificationCode(String email) {
+        try {
+            String key = RedisKeyConst.getKey(RedisKeyConst.UPDATE_EMAIL_VERIFICATION_CODE_PREFIX, email);
+            String code = redisTemplate.opsForValue().get(key);
+            if (code == null) {
+                logger.warn("No update email verification code found for: {}", email);
+            }
+            return code;
+        } catch (Exception e) {
+            logger.error("Error retrieving update email verification code for: {}", email, e);
+            return null;
+        }
+    }
 }

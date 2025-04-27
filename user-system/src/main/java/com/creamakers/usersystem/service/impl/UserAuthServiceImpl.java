@@ -13,6 +13,7 @@ import com.creamakers.usersystem.util.JwtUtil;
 import com.creamakers.usersystem.util.PasswordEncoderUtil;
 import com.creamakers.usersystem.util.RedisUtil;
 import com.creamakers.usersystem.util.TencentCloudEmailUtil;
+import com.obs.services.internal.ServiceException;
 import io.netty.util.internal.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -353,14 +354,14 @@ public class UserAuthServiceImpl implements UserAuthService {
             return badRequest(ErrorMessage.INVALID_PASSWORD);
         }
 
-        String email = verificationCodeRequest.getEmail();
+        String email = verificationCodeRequest.getNewEmail();
         if (!isValidEmail(email)) {
             logger.warn("Invalid email format: {}", email);
             return badRequest(ErrorMessage.EMAIL_FORMAT_INCORRECT);
         }
 
         // 检查新邮箱是否已被使用
-        String newEmail = verificationCodeRequest.getEmail();
+        String newEmail = verificationCodeRequest.getNewEmail();
         if (userService.existsByEmail(newEmail) && newEmail.equals(user.getMailbox())) {
             logger.warn("Email already in use: {}", newEmail);
             return badRequest(ErrorMessage.EMAIL_ALREADY_REGISTERED);
@@ -395,6 +396,76 @@ public class UserAuthServiceImpl implements UserAuthService {
         } catch (Exception e) {
             // 如果发送过程中发生异常，记录日志并返回错误响应
             return logAndRespondError("Error sending verification code to email:", email, e, ErrorMessage.VERIFICATION_CODE_SEND_FAILED);
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ResponseEntity<GeneralResponse> updateEmail(EmailUpdateRequest emailUpdateRequest, String accessToken) {
+        String email = emailUpdateRequest.getNewEmail();
+        String verificationCode = emailUpdateRequest.getVerificationCode();
+
+        // 验证参数
+        if (StringUtils.isEmpty(email) || StringUtils.isEmpty(verificationCode)) {
+            logger.warn("Missing email or verification code for email update");
+            return badRequest(ErrorMessage.MISSING_CREDENTIALS);
+        }
+
+        try {
+            // 从JWT获取用户名
+            String username = jwtUtil.getUserNameFromToken(accessToken);
+            logger.info("Processing email update for user: {}", username);
+
+            // 获取用户信息
+            User user = userService.getUserByUsername(username);
+            if (user == null) {
+                logger.warn("User not found for username: {}", username);
+                return notFound(ErrorMessage.USER_NOT_FOUND);
+            }
+
+            // 检查邮箱是否已被其他用户使用
+            if (userService.existsByEmail(email) && !email.equals(user.getMailbox())) {
+                logger.warn("Email already in use: {}", email);
+                return badRequest(ErrorMessage.EMAIL_ALREADY_REGISTERED);
+            }
+
+            // 验证验证码
+            if (!tencentCloudEmailUtil.verifyCode(email, verificationCode, Config.EMAIL_TYPE_UPDATE_EMAIL)) {
+                logger.warn("Invalid verification code for email update: {}", email);
+                return badRequest(ErrorMessage.VERIFICATION_CODE_INVALID);
+            }
+
+            // 保存旧邮箱用于可能的通知
+            String oldEmail = user.getMailbox();
+
+            user.setMailbox(email);
+            boolean userUpdated = userService.updateUserEmail(user);
+            if (!userUpdated) {
+                logger.warn("Failed to update email in user table for user: {}", username);
+                throw new ServiceException("Failed to update user email"); // 抛出异常触发回滚
+            }
+
+            // 更新用户个人资料中的邮箱
+            boolean profileUpdated = userProfileService.updatEmailByUser(user);
+            if (!profileUpdated) {
+                logger.warn("Failed to update email in user profile for user: {}", username);
+                throw new ServiceException("Failed to update user profile email"); // 抛出异常触发回滚
+            }
+
+
+            return successResponse(SuccessMessage.USER_UPDATED);
+        } catch (ServiceException e) {
+            // 业务逻辑异常，已被记录并触发回滚
+            return badRequest(e.getMessage());
+        } catch (DataIntegrityViolationException e) {
+            // 事务会自动回滚
+            return logAndRespondError("Data integrity error during email update: ", email, e, ErrorMessage.DATABASE_ERROR);
+        } catch (DataAccessException e) {
+            // 事务会自动回滚
+            return logAndRespondError("Database error during email update for email: ", email, e, ErrorMessage.DATABASE_ERROR);
+        } catch (Exception e) {
+            // 事务会自动回滚
+            return logAndRespondError("Unexpected error during email update for email: ", email, e, ErrorMessage.UPDATE_FAILED);
         }
     }
 

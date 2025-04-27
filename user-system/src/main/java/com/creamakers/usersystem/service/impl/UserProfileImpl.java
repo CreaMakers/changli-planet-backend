@@ -1,6 +1,7 @@
 package com.creamakers.usersystem.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.creamakers.usersystem.consts.HttpCode;
 import com.creamakers.usersystem.consts.SuccessMessage;
@@ -216,6 +217,37 @@ public class UserProfileImpl extends ServiceImpl<UserProfileMapper, UserProfile>
             // 其他异常
             logger.error("Unexpected error: {}", e.getMessage());
             return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, HttpCode.INTERNAL_SERVER_ERROR, "Unexpected error", null);
+        }
+    }
+
+    @Override
+    public boolean updatEmailByUser(User user) {
+        try {
+            // 获取用户的个人资料
+            UserProfile userProfile = getOne(new LambdaQueryWrapper<UserProfile>()
+                    .eq(UserProfile::getUserId, user.getUserId()));
+
+            if (userProfile == null) {
+                logger.warn("User profile not found for user ID: {}", user.getUserId());
+                return false;
+            }
+
+            // 更新用户个人资料中的邮箱
+            boolean updated = update(new LambdaUpdateWrapper<UserProfile>()
+                    .eq(UserProfile::getUserId, user.getUserId())
+                    .set(UserProfile::getEmailbox, user.getMailbox()));
+
+            if (updated) {
+                logger.info("Successfully updated email in user profile for user ID: {}", user.getUserId());
+            } else {
+                logger.warn("Failed to update email in user profile for user ID: {}", user.getUserId());
+            }
+
+            return updated;
+        } catch (Exception e) {
+            logger.error("Error updating email in user profile for user ID: {}: {}",
+                    user.getUserId(), e.getMessage(), e);
+            return false;
         }
     }
 

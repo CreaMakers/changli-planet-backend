@@ -18,8 +18,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-import static com.creamakers.usersystem.consts.Config.EMAIL_TYPE_LOGIN;
-import static com.creamakers.usersystem.consts.Config.EMAIL_TYPE_REGISTER;
+import static com.creamakers.usersystem.consts.Config.*;
 
 /**
  * 腾讯云SES邮件工具类 - 用于发送验证码邮件和验证
@@ -216,6 +215,8 @@ public class TencentCloudEmailUtil {
             storedCode = redisUtil.getLoginVerificationCode(email);
         } else if (EMAIL_TYPE_REGISTER.equals(emailType)) {
             storedCode = redisUtil.getRegisterVerificationCode(email);
+        }else if (EMAIL_TYPE_UPDATE_EMAIL.equals(emailType)) {
+            storedCode = redisUtil.getUpdateEmailVerificationCode(email);
         } else {
             logger.error("Invalid verification code type: {}", emailType);
             return false;
@@ -232,6 +233,8 @@ public class TencentCloudEmailUtil {
             redisUtil.deleteLoginVerificationCode(email);
         } else if (EMAIL_TYPE_REGISTER.equals(emailType)) {
             redisUtil.deleteRegisterVerificationCode(email);
+        } else if (EMAIL_TYPE_UPDATE_EMAIL.equals(emailType)) {
+            redisUtil.deleteUpdateEmailVerificationCode(email);
         }
 
         logger.info("Verification successful for email: {} with code type: {}", email, emailType);

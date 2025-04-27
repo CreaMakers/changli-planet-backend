@@ -72,13 +72,17 @@ public class AuthController {
         return userAuthService.emailUpdateVerificationCode(emailUpdateVerificationCodeRequest,accessToken);
     }
 
-
-
     @DeleteMapping("/session")
     public ResponseEntity<GeneralResponse> quit(@RequestHeader(value = "Authorization") String authorization,
                                                 @RequestHeader("deviceId") String deviceId) {
         String accessToken = authorization.substring(7);
         return userAuthService.quit(accessToken,deviceId);
+    }
+
+    @PutMapping("/me/email")
+    public ResponseEntity<GeneralResponse> updateEmail(@RequestBody EmailUpdateRequest emailUpdateRequest, @RequestHeader(value = "Authorization") String authorization) {
+        String accessToken = authorization.substring(7);
+        return userAuthService.updateEmail(emailUpdateRequest, accessToken);
     }
 
 

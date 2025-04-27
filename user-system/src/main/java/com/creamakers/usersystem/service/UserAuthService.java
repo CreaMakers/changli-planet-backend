@@ -32,4 +32,6 @@ public interface UserAuthService {
     ResponseEntity<GeneralResponse> loginByEmail(LoginByEmailRequest loginByEmailRequest, String deviceId, String accessToken);
 
     ResponseEntity<GeneralResponse> emailUpdateVerificationCode(EmailUpdateVerificationCodeRequest verificationCodeRequest, String accessToken);
+
+    ResponseEntity<GeneralResponse> updateEmail(EmailUpdateRequest emailUpdateRequest, String accessToken);
 }

@@ -168,6 +168,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    public boolean updateUserEmail(User user) {
+        return userMapper.update(null, Wrappers.<User>lambdaUpdate()
+                .eq(User::getUserId, user.getUserId())
+                .set(User::getMailbox, user.getMailbox())) > 0;
+    }
+    @Override
     public User getUserByEmail(String email) {
         logger.info("Fetching user by email: {}", email);
         List<User> users;
