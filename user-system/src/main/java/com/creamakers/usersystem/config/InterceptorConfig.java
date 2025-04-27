@@ -18,7 +18,9 @@ public class InterceptorConfig implements WebMvcConfigurer {
             "/app/users/sessions/*",
             "/app/users",
             "/app/users/availability/**",
-            "/app/users/auth/verification-code/*",
+            "/app/users/auth/verification-code/register",
+            "/app/users/auth/verification-code/login",
+            "/app/users/auth/verification-code/forget-password",
             "/app/users/register",
             "/app/users/me/avatar",
     };

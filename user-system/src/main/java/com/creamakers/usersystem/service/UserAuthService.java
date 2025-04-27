@@ -34,4 +34,6 @@ public interface UserAuthService {
     ResponseEntity<GeneralResponse> emailUpdateVerificationCode(EmailUpdateVerificationCodeRequest verificationCodeRequest, String accessToken);
 
     ResponseEntity<GeneralResponse> updateEmail(EmailUpdateRequest emailUpdateRequest, String accessToken);
+
+    ResponseEntity<GeneralResponse> forgetPasswordVerificationCode(VerificationCodeRequest verificationCodeRequest);
 }

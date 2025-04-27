@@ -72,6 +72,13 @@ public class AuthController {
         return userAuthService.emailUpdateVerificationCode(emailUpdateVerificationCodeRequest,accessToken);
     }
 
+
+    @PostMapping("/auth/verification-code/forget-password")
+    public ResponseEntity<GeneralResponse> forgetPasswordVerificationCode(@RequestBody VerificationCodeRequest verificationCodeRequest) {
+        return userAuthService.forgetPasswordVerificationCode(verificationCodeRequest);
+    }
+
+
     @DeleteMapping("/session")
     public ResponseEntity<GeneralResponse> quit(@RequestHeader(value = "Authorization") String authorization,
                                                 @RequestHeader("deviceId") String deviceId) {

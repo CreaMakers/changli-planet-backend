@@ -501,6 +501,55 @@ public class UserAuthServiceImpl implements UserAuthService {
     }
 
     @Override
+    public ResponseEntity<GeneralResponse> forgetPasswordVerificationCode(VerificationCodeRequest verificationCodeRequest) {
+        String email = verificationCodeRequest.getEmail();
+
+        // 验证参数
+        if (StringUtils.isEmpty(email)) {
+            logger.warn("Missing email for forget password verification code");
+            return badRequest(ErrorMessage.EMAIL_FORMAT_INCORRECT);
+        }
+
+        // 检查邮箱是否存在
+        User user = userService.getUserByEmail(email);
+        if (user == null) {
+            logger.warn("Email not registered: {}", email);
+            return notFound(ErrorMessage.USER_NOT_FOUND);
+        }
+
+        try {
+            // 调用发送验证码方法
+            String verificationCode = tencentCloudEmailUtil.sendVerificationCodeEmail(email, Config.EMAIL_TYPE_RESET_PASSWORD);
+            // 如果发送成功，返回成功响应
+            if (verificationCode != null) {
+                logger.info("Verification code sent successfully to: {}", email);
+                return successResponse(SuccessMessage.VERIFICATION_CODE_SENT);
+            } else {
+                // 如果发送失败但没有抛出异常，返回错误响应
+                logger.error("Failed to send verification code to: {}", email);
+                return badRequest(ErrorMessage.VERIFICATION_CODE_SEND_FAILED);
+            }
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().contains("请勿频繁发送验证码")) {
+                logger.warn("Rate limiting applied to verification code request for email: {}", email);
+                return conflictResponse(ErrorMessage.VERIFICATION_CODE_TOO_FREQUENT);
+            } else if (e.getMessage() != null && e.getMessage().contains("验证码请求次数已达上限")) {
+                logger.warn("Daily limit reached for verification code requests for email: {}", email);
+                return conflictResponse(ErrorMessage.VERIFICATION_CODE_DAILY_LIMIT_REACHED);
+            } else if (e.getMessage() != null && e.getMessage().contains("无效的验证码类型")) {
+                logger.error("Invalid verification code type for email: {}", email);
+                return badRequest(ErrorMessage.INVALID_VERIFICATION_CODE_TYPE);
+            } else {
+                // 其他运行时异常
+                return logAndRespondError("Error sending verification code to email:", email, e, ErrorMessage.VERIFICATION_CODE_SEND_FAILED);
+            }
+        } catch (Exception e) {
+            // 如果发送过程中发生异常，记录日志并返回错误响应
+            return logAndRespondError("Error sending verification code to email:", email, e, ErrorMessage.VERIFICATION_CODE_SEND_FAILED);
+        }
+    }
+
+    @Override
     public ResponseEntity<GeneralResponse> registerVerificationCode(VerificationCodeRequest verificationCodeRequest) {
         String email = verificationCodeRequest.getEmail();
         if (!isValidEmail(email)) {
