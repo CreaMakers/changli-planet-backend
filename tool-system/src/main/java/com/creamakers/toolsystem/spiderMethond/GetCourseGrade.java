@@ -226,11 +226,11 @@ public class GetCourseGrade {
             } else {
                 score = fifthTd.text(); // 如果没有 <a> 标签，则获取纯文本内容
             }
-            // 打印或使用提取的链接
-            if (pscjUrl != null) {
-                System.out.println("Link: " + pscjUrl);
-            }
-            System.out.println("Score: " + score);
+//            // 打印或使用提取的链接
+//            if (pscjUrl != null) {
+//                System.out.println("Link: " + pscjUrl);
+//            }
+//            System.out.println("Score: " + score);
 
             CourseGrade grade = new CourseGrade(
                     cols.get(0).text(),  // 序号

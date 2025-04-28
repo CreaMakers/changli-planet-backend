@@ -44,7 +44,6 @@ public class ViolationRecordServiceImpl extends ServiceImpl<ViolationRecordMappe
 
         if(Objects.isNull(violationRecord)){
             return createResponseEntity(HttpStatus.OK,HttpCode.OK,SuccessMessage.NO_VIOLATION_INFO,null);
-
         }
 
         return createResponseEntity(HttpStatus.OK,HttpCode.OK,SuccessMessage.DATA_RETRIEVED,violationRecord);

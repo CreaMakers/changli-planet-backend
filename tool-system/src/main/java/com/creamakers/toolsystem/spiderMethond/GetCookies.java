@@ -86,33 +86,40 @@ public class GetCookies {
     }
 
     public String getHeaderFromJW(String stuNum, String password) {
+        // 设置最大重试次数为6次
+        int maxRetryCount = 6;
+        // 当前重试次数
+        int retryCount = 0;
+        // 重试间隔（毫秒）
+        long retryInterval = 1000;
 
-        Response response = null;
-        Response updateCookieResponse = null;
-        try {
+        while (retryCount < maxRetryCount) {
+            Response response = null;
+            Response updateCookieResponse = null;
+            try {
 
 
-            String[] jwCode = getJwCode();
-            //2010AV81T974906Y80071f0Uyf1d21T5F%1%ir%8dlC63h34eg2n4g155123!
-            String encoded = encodePsd(stuNum, password, jwCode[1]);
-            OkHttpClient okHttpClient = new OkHttpClient.Builder().followRedirects(false).build();
-            FormBody formBody = new FormBody.Builder()
+                String[] jwCode = getJwCode();
+                //2010AV81T974906Y80071f0Uyf1d21T5F%1%ir%8dlC63h34eg2n4g155123!
+                String encoded = encodePsd(stuNum, password, jwCode[1]);
+                OkHttpClient okHttpClient = new OkHttpClient.Builder().followRedirects(false).build();
+                FormBody formBody = new FormBody.Builder()
 //                    .add("userAccount", stuNum)
 //                    .add("userPassword", password)
-                    //加密之后的密码 2S0g012198A20481QX05i10D0Q331172157X5%d%g80%V5C6h56fe9nlg00F123!
-                    .add("encoded", encoded).build();
-            //Request{method=POST, url=http://xk.csust.edu.cn/Logon.do?method=logon, headers=[Cookie:JSESSIONID=D45529F57ADB0287E43350D531DD3EB7, Host:xk.csust.edu.cn, Origin:http://xk.csust.edu.cn, Referer:http://xk.csust.edu.cn/]}
-            Request jwLoginRequest = new Request.Builder()
-                    .header("Cookie", "JSESSIONID=" + jwCode[0] + ";" + jwCode[2])
-                    .header("Host", "xk.csust.edu.cn")
-                    .header("Origin", "http://xk.csust.edu.cn")
-                    .header("Referer", "http://xk.csust.edu.cn/")
-                    .url(LOGIN_URL)
-                    .post(formBody)
-                    .build();
-            response = okHttpClient.newCall(jwLoginRequest).execute();
-            //Response{protocol=http/1.1, code=302, message=, url=http://xk.csust.edu.cn/Logon.do?method=logon}
-            //updateCookieUrl： http://xk.csust.edu.cn/jsxsd/xk/LoginToXk?method=jwxt&ticqzket=c910ec98ba5756eeb9f660d4dc2d080f43c1c5abded67a5633d4897d77b9c6ffbbb8594cbcfcf26f371d4308b65a6647af52aa83ecbca08e2e6bed301946493a130570b925f97f396a5de375ca35438eba0f83ba2d745c6adbe6947d891b3bcb505b21504dc53d5eda9115e985e20f4c
+                        //加密之后的密码 2S0g012198A20481QX05i10D0Q331172157X5%d%g80%V5C6h56fe9nlg00F123!
+                        .add("encoded", encoded).build();
+                //Request{method=POST, url=http://xk.csust.edu.cn/Logon.do?method=logon, headers=[Cookie:JSESSIONID=D45529F57ADB0287E43350D531DD3EB7, Host:xk.csust.edu.cn, Origin:http://xk.csust.edu.cn, Referer:http://xk.csust.edu.cn/]}
+                Request jwLoginRequest = new Request.Builder()
+                        .header("Cookie", "JSESSIONID=" + jwCode[0] + ";" + jwCode[2])
+                        .header("Host", "xk.csust.edu.cn")
+                        .header("Origin", "http://xk.csust.edu.cn")
+                        .header("Referer", "http://xk.csust.edu.cn/")
+                        .url(LOGIN_URL)
+                        .post(formBody)
+                        .build();
+                response = okHttpClient.newCall(jwLoginRequest).execute();
+                //Response{protocol=http/1.1, code=302, message=, url=http://xk.csust.edu.cn/Logon.do?method=logon}
+                //updateCookieUrl： http://xk.csust.edu.cn/jsxsd/xk/LoginToXk?method=jwxt&ticqzket=c910ec98ba5756eeb9f660d4dc2d080f43c1c5abded67a5633d4897d77b9c6ffbbb8594cbcfcf26f371d4308b65a6647af52aa83ecbca08e2e6bed301946493a130570b925f97f396a5de375ca35438eba0f83ba2d745c6adbe6947d891b3bcb505b21504dc53d5eda9115e985e20f4c
 
 
 //            Headers headers = response.headers();
@@ -128,53 +135,101 @@ public class GetCookies {
 //
 //            updateCookieUrl = headerValues.get(11);
 
+                String updateCookieUrl = response.header("Location");
+
+                if (updateCookieUrl == null) {
+                    // Location 头为空，记录重试次数并继续
+                    retryCount++;
+                    System.out.println("获取Location失败，第" + retryCount + "次重试...");
+
+                    if (retryCount < maxRetryCount) {
+                        try {
+                            Thread.sleep(retryInterval);
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                        }
+                        continue; // 继续下一次循环
+                    }
+
+                    return null; // 达到最大重试次数
+                }
+
+                OkHttpClient updateCookieClient = new OkHttpClient.Builder().followRedirects(false).build();
+                Request updateCookieRequest = new Request.Builder()
+                        .header("Cookie", "JSESSIONID=" + jwCode[0] + ";" + jwCode[2])
+                        .header("Referer", "http://xk.csust.edu.cn/")
+                        .url(updateCookieUrl)
+                        .build();
+                updateCookieResponse = updateCookieClient.newCall(updateCookieRequest).execute();
+                //JSESSIONID=83F3294B2F3361D1D91F0981ECDE5F49; Path=/jsxsd; HttpOnly
 
 
+                // 创建一个 List 来存储所有的键值对
+                List<String> headerValues = new ArrayList<>();
 
-            String updateCookieUrl = response.header("Location");
+                // 获取所有的响应头
+                Headers headers = updateCookieResponse.headers();
 
+                // 将所有的响应头名称和值添加到 headerValues 列表中
+                for (int i = 0; i < headers.size(); i++) {
+                    headerValues.add(headers.name(i));
+                    headerValues.add(headers.value(i));
+                }
 
+                // 检查headers是否包含足够的元素
+                if (headerValues.size() > 3) {
+                    String cookie = headerValues.get(3) + ";" + jwCode[2];
 
+                    // 检查cookie是否为null
+                    if (cookie != null) {
+                        return cookie; // 成功获取有效cookie，返回结果
+                    }
+                }
 
-            if (updateCookieUrl == null) {
-                return null;
-            }
+                // Cookie为null，进行重试
+                retryCount++;
+                System.out.println("获取Cookie失败，第" + retryCount + "次重试...");
 
-            OkHttpClient updateCookieClient = new OkHttpClient.Builder().followRedirects(false).build();
-            Request updateCookieRequest = new Request.Builder()
-                    .header("Cookie", "JSESSIONID=" + jwCode[0] + ";" + jwCode[2])
-                    .header("Referer", "http://xk.csust.edu.cn/")
-                    .url(updateCookieUrl)
-                    .build();
-            updateCookieResponse = updateCookieClient.newCall(updateCookieRequest).execute();
-            //JSESSIONID=83F3294B2F3361D1D91F0981ECDE5F49; Path=/jsxsd; HttpOnly
+                if (retryCount < maxRetryCount) {
+                    try {
+                        Thread.sleep(retryInterval);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                    }
+                    // 继续下一次循环
+                } else {
+                    // 达到最大重试次数，跳出循环
+                    break;
+                }
 
+            } catch (Exception e) {
+                // 发生异常，进行重试
+                retryCount++;
+                System.out.println("获取Header发生异常: " + e.getMessage() + "，第" + retryCount + "次重试...");
 
-            // 创建一个 List 来存储所有的键值对
-            List<String> headerValues = new ArrayList<>();
-
-            // 获取所有的响应头
-            Headers headers = updateCookieResponse.headers();
-
-            // 将所有的响应头名称和值添加到 headerValues 列表中
-            for (int i = 0; i < headers.size(); i++) {
-                headerValues.add(headers.name(i));
-                headerValues.add(headers.value(i));
-            }
-
-            String cookie = headerValues.get(3) + ";" + jwCode[2];
-
-
-            return cookie;
-        } catch (Exception e) {
-            return null;
-        } finally {
-            if (response != null) {
-                response.close();
-            }
-            if (updateCookieResponse != null) {
-                updateCookieResponse.close();
+                if (retryCount < maxRetryCount) {
+                    try {
+                        Thread.sleep(retryInterval);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                    }
+                    // 继续下一次循环
+                } else {
+                    // 达到最大重试次数，跳出循环
+                    break;
+                }
+            } finally {
+                if (response != null) {
+                    response.close();
+                }
+                if (updateCookieResponse != null) {
+                    updateCookieResponse.close();
+                }
             }
         }
+
+        // 所有重试都失败
+        System.out.println("获取Header失败，已重试" + maxRetryCount + "次");
+        return null;
     }
 }
