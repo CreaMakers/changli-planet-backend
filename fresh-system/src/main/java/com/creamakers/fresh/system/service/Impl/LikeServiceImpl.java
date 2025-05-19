@@ -43,7 +43,7 @@ public class LikeServiceImpl implements LikeService {
      * @return 结果
      */
     @Override
-    public ResultVo<Void> likeNews(Long newsId, Long userId) {
+    public ResultVo<Boolean> likeNews(Long newsId, Long userId) {
         // 检查该新闻是否已经点赞
         Boolean isLiked = redisTemplate.opsForSet().isMember(RedisKeyConstant.LIKE_NEWS + userId, newsId);
 
@@ -52,16 +52,15 @@ public class LikeServiceImpl implements LikeService {
             redisTemplate.opsForSet().add(RedisKeyConstant.LIKE_NEWS + userId, newsId);
             // 增加新闻的点赞数
             redisTemplate.opsForValue().increment(RedisKeyConstant.LIKE_NEWS_NUM + newsId);
-
+            return ResultVo.success(true);
             //rabbitTemplate.convertAndSend("likeNewsExchange", "likeNews",newsId);
         } else {
             // 如果已经点赞，再次点击则取消点赞
             redisTemplate.opsForSet().remove(RedisKeyConstant.LIKE_NEWS + userId, newsId);
             // 减少新闻的点赞数
             redisTemplate.opsForValue().decrement(RedisKeyConstant.LIKE_NEWS_NUM + newsId);
+            return ResultVo.success(false);
         }
-
-        return ResultVo.success(null);  // 返回成功
     }
 
     /**
@@ -114,7 +113,7 @@ public class LikeServiceImpl implements LikeService {
      * @return 结果
      */
     @Override
-    public ResultVo<Void> likeComment(Long commentId, Long userId) {
+    public ResultVo<Boolean> likeComment(Long commentId, Long userId) {
         // 检查该评论是否已经点赞
         Boolean isLiked = redisTemplate.opsForSet().isMember(RedisKeyConstant.LIKE_COMMENT + userId, commentId);
 
@@ -123,16 +122,15 @@ public class LikeServiceImpl implements LikeService {
             redisTemplate.opsForSet().add(RedisKeyConstant.LIKE_COMMENT + userId, commentId);
             // 增加评论的点赞数
             redisTemplate.opsForValue().increment(RedisKeyConstant.LIKE_COMMENT_NUM + commentId);
-
+            return ResultVo.success(true);
             //rabbitTemplate.convertAndSend("likeCommentExchange", "likeComment",commentId);
         } else {
             // 如果已经点赞，再次点击则取消点赞
             redisTemplate.opsForSet().remove(RedisKeyConstant.LIKE_COMMENT + userId, commentId);
             // 减少评论的点赞数
             redisTemplate.opsForValue().decrement(RedisKeyConstant.LIKE_COMMENT_NUM + commentId);
+            return ResultVo.success(false);
         }
-
-        return ResultVo.success();  // 返回成功
     }
 
     /**
