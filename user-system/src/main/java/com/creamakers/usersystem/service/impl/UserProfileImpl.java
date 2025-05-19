@@ -65,7 +65,9 @@ public class UserProfileImpl extends ServiceImpl<UserProfileMapper, UserProfile>
 
             User user = userService.getUserByUsername(username);
             UserProfile userProfile = getUserProfile(user.getUserId());
-
+            long expireSeconds = 900L; // 1小时
+            String temporaryUrl = HUAWEIOBSUtil.generateTemporaryUrl("userAvatar/" + userProfile.getUsername() + ".png", expireSeconds);
+            userProfile.setAvatarUrl(temporaryUrl);
             userProfile.setEmailbox(maskEmail(userProfile.getEmailbox()));
 
             logger.info("Profile retrieved successfully for user: {}", username);
@@ -105,6 +107,9 @@ public class UserProfileImpl extends ServiceImpl<UserProfileMapper, UserProfile>
             logger.info("Fetching profile by user ID: {}", userID);
             UserProfile userProfile = getUserProfile(Integer.valueOf(userID));
             userProfile.setEmailbox(maskEmail(userProfile.getEmailbox()));
+            long expireSeconds = 900L; // 1小时
+            String temporaryUrl = HUAWEIOBSUtil.generateTemporaryUrl("userAvatar/" + userProfile.getUsername() + ".png", expireSeconds);
+            userProfile.setAvatarUrl(temporaryUrl);
             logger.info("Profile retrieved successfully for user ID: {}", userID);
             return buildResponse(HttpStatus.OK, HttpCode.OK, SuccessMessage.DATA_RETRIEVED, userProfile);
         } catch (Exception e) {
