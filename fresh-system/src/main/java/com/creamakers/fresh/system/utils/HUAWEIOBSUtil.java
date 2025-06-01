@@ -38,9 +38,6 @@ public class HUAWEIOBSUtil {
 
     // 上传文件到 OBS 并设置为公开
     public static String uploadImage(MultipartFile image, String username) throws ObsException, IOException {
-        if (image == null || image.isEmpty()) {
-            return null;
-        }
         ObsClient obsClient = createObsClient();
         File tempFile = File.createTempFile(username + "_freshNewsImage_", ".png");
         image.transferTo(tempFile);
@@ -68,7 +65,7 @@ public class HUAWEIOBSUtil {
     // 设置文件为公开读取权限
     private static void setFilePublicReadPermission(ObsClient obsClient, String fileName) throws ObsException {
         // 创建 SetObjectAclRequest 请求对象
-        SetObjectAclRequest aclRequest = new SetObjectAclRequest(BUCKET_NAME, fileName, REST_CANNED_PUBLIC_READ);
+        SetObjectAclRequest aclRequest = new SetObjectAclRequest(BUCKET_NAME, fileName,REST_CANNED_PUBLIC_READ);
     }
 
 

@@ -27,8 +27,8 @@ public class CommentServiceImpl implements CommentService {
     @Autowired
     private FreshNewsCommentMapper freshNewsCommentMapper;
 
-//    @Autowired
-//    private RabbitTemplate rabbitTemplate;
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     @Autowired
     private RedisTemplate redisTemplate;
@@ -58,7 +58,7 @@ public class CommentServiceImpl implements CommentService {
             updateComment.setCommentId(commentId);
             updateComment.setRoot(commentId);  // 设置 root 字段为评论的 ID
             freshNewsCommentMapper.updateById(updateComment);  // 使用 MyBatis-Plus 更新
-            //rabbitTemplate.convertAndSend("commentExchange", "comment", updateComment);
+            rabbitTemplate.convertAndSend("commentExchange", "comment", updateComment);
             return ResultVo.success();
         } else {
             return ResultVo.fail(COMMENT_ADD_FAILED_MESSAGE);
@@ -148,7 +148,7 @@ public class CommentServiceImpl implements CommentService {
         comment.setRoot(parentComment.getRoot() != null ? parentComment.getRoot() : commentId);
 
         // 通过 RabbitMQ 发送评论消息到队列
-        //rabbitTemplate.convertAndSend("replyExchange", "reply", comment);
+        rabbitTemplate.convertAndSend("replyExchange", "reply", comment);
 
         int result = freshNewsCommentMapper.insert(comment);
         if (result > 0) {

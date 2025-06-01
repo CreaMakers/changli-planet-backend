@@ -13,7 +13,7 @@ public class LikeController {
     private LikeService likeService;
 
     @PostMapping("/{fresh_news_id}/likes/{user_id}")
-    public ResultVo<Boolean> likeNews(@PathVariable("fresh_news_id") Long newsId,
+    public ResultVo<Void> likeNews(@PathVariable("fresh_news_id") Long newsId,
                                    @PathVariable("user_id") Long userId) {
         return likeService.likeNews(newsId, userId);
     }
@@ -25,7 +25,7 @@ public class LikeController {
      * @return 结果
      */
     @PostMapping("/comments/{comment_id}/likes/{user_id}")
-    public ResultVo<Boolean> likeComment(@PathVariable("comment_id") Long commentId,
+    public ResultVo<Void> likeComment(@PathVariable("comment_id") Long commentId,
                                       @PathVariable("user_id") Long userId) {
         return likeService.likeComment(commentId, userId);
     }
