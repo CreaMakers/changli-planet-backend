@@ -23,5 +23,6 @@ public interface FreshNewsMapper extends BaseMapper<FreshNews> {
             "</foreach>" +
             "</script>")
     int updateFreshNewsLiked(@Param("list") List<FreshNews> freshNews);
+
 }
 

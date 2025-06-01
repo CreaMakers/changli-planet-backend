@@ -19,11 +19,14 @@ public class HUAWEIOBSUtil {
     private static final String BUCKET_NAME = "csustplant";
 
     // 创建 OBS 客户端
+
     private static ObsClient createObsClient() {
         ObsConfiguration configuration = new ObsConfiguration();
         configuration.setEndPoint(ENDPOINT);
         return new ObsClient(AK, SK, configuration);
     }
+
+
 
     // 校验图片扩展名是否合法
     public static boolean isValidImageExtension(String extension) {
@@ -35,6 +38,7 @@ public class HUAWEIOBSUtil {
         }
         return false;
     }
+    
 
     // 上传文件到 OBS 并设置为公开
     public static String uploadImage(MultipartFile image, String username) throws ObsException, IOException {
