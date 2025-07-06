@@ -176,15 +176,23 @@ public class GetCookies {
                     headerValues.add(headers.value(i));
                 }
 
-                // 检查headers是否包含足够的元素
-                if (headerValues.size() > 3) {
-                    String cookie = headerValues.get(3) + ";" + jwCode[2];
-
-                    // 检查cookie是否为null
-                    if (cookie != null) {
-                        return cookie; // 成功获取有效cookie，返回结果
+                // 遍历headerValue拿到
+                for (String headerValue : headerValues) {
+                    String pattern = "JSESSIONID=.*";
+                    // 判断cookie开头并合成可用cookie
+                    if (Pattern.matches(pattern, headerValue)){
+                        return headerValue + ";" + jwCode[2];
                     }
                 }
+//                if (headerValues.size() > 3) {
+//
+//                    String cookie = headerValues.get(1) + ";" + jwCode[2];
+//
+//                    // 检查cookie是否为null
+//                    if (cookie != null) {
+//                        return cookie; // 成功获取有效cookie，返回结果
+//                    }
+//                }
 
                 // Cookie为null，进行重试
                 retryCount++;
