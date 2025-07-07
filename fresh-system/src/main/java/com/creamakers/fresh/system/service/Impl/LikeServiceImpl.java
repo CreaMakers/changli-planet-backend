@@ -25,6 +25,7 @@ import static com.creamakers.fresh.system.constants.CommonConst.NEWS_LIKE_COUNT_
 
 @Service
 public class LikeServiceImpl implements LikeService {
+
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
@@ -94,6 +95,7 @@ public class LikeServiceImpl implements LikeService {
                     }
                 }
             }
+
             if (!CollectionUtils.isEmpty(freshNews)) {
                 int rows = freshNewsMapper.updateFreshNewsLiked(freshNews);
                 if (rows != freshNews.size()) {
