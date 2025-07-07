@@ -10,6 +10,7 @@ import com.creamakers.websystem.domain.dto.ViolationRecord;
 import com.creamakers.websystem.domain.vo.ResultVo;
 import com.creamakers.websystem.domain.vo.request.ViolationRecordReq;
 import com.creamakers.websystem.domain.vo.response.ViolationRecordResp;
+import com.creamakers.websystem.domain.vo.response.ViolationRecordRespCount;
 import com.creamakers.websystem.domain.vo.response.ViolationStatsResponse;
 import com.creamakers.websystem.domain.vo.response.ViolationStatsResponse1;
 import com.creamakers.websystem.service.ViolationRecordService;
@@ -31,22 +32,24 @@ public class ViolationRecordServiceImpl implements ViolationRecordService {
     @Autowired
     private ViolationRecordMapper violationRecordMapper;
     @Override
-    public ResultVo<List<ViolationRecordResp>> findAllViolations(Integer page,Integer pageSize) {
+    public ResultVo findAllViolations(Integer page,Integer pageSize) {
         Page<ViolationRecord> pageParam = new Page<>(page, pageSize);
         Page<ViolationRecord> violationPage = violationRecordMapper.selectPage(pageParam, new QueryWrapper<ViolationRecord>().eq("is_deleted", 0));
         List<ViolationRecord> records = violationPage.getRecords();
         List<ViolationRecordResp> recordRespList = records.stream().map(this::convertToViolationRecordResp).toList();
-        return ResultVo.success(recordRespList);
+        ViolationRecordRespCount response = new ViolationRecordRespCount(recordRespList.size(), recordRespList);
+        return ResultVo.success(response);
     }
 
     @Override
-    public ResultVo<List<ViolationRecordResp>>  findAllViolationsById(Long userId, Integer page, Integer pageSize) {
+    public ResultVo  findAllViolationsById(Long userId, Integer page, Integer pageSize) {
         Page<ViolationRecord> pageParam = new Page<>(page, pageSize);
         Page<ViolationRecord> violationPage = violationRecordMapper.selectPage(pageParam,
                 Wrappers.<ViolationRecord>lambdaQuery().eq(ViolationRecord::getUserId, userId));
         List<ViolationRecord> records = violationPage.getRecords();
         List<ViolationRecordResp> recordRespList = records.stream().map(this::convertToViolationRecordResp).toList();
-        return ResultVo.success(recordRespList);
+        ViolationRecordRespCount response = new ViolationRecordRespCount(recordRespList.size(), recordRespList);
+        return ResultVo.success(response);
     }
     /*
     添加违规记录
