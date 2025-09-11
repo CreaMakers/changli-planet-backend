@@ -21,4 +21,6 @@ public class RedisKeyConstant {
 
     public static final String FRESH_NEWS_COLLECT = "freshNewsCollect:";
 
+    public static final String FRESH_NEWS_LIKE_COUNT = "freshNewsLikeCount:";
+
 }
