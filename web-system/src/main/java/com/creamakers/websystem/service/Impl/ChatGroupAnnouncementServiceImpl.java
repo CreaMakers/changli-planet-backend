@@ -8,6 +8,7 @@ import com.creamakers.websystem.domain.dto.ChatGroupAnnouncement;
 import com.creamakers.websystem.domain.vo.ResultVo;
 import com.creamakers.websystem.domain.vo.request.ChatGroupAnnounceReq;
 import com.creamakers.websystem.domain.vo.response.ChatGroupAnnouncementResp;
+import com.creamakers.websystem.domain.vo.response.ChatGroupAnnouncementRespCount;
 import com.creamakers.websystem.service.ChatGroupAnnouncementService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,12 +23,15 @@ public class ChatGroupAnnouncementServiceImpl implements ChatGroupAnnouncementSe
     private ChatGroupAnnouncementMapper chatGroupAnnouncementMapper;
 
     @Override
-    public ResultVo<List<ChatGroupAnnouncementResp>> getAllAnnouncements(Integer page, Integer pageSize) {
+    public ResultVo getAllAnnouncements(Integer page, Integer pageSize) {
         Page<ChatGroupAnnouncement> pageParam = new Page<>(page, pageSize);
         Page<ChatGroupAnnouncement> Page = chatGroupAnnouncementMapper.selectPage(pageParam, new QueryWrapper<ChatGroupAnnouncement>().eq("is_deleted", 0));
         List<ChatGroupAnnouncement> records = Page.getRecords();
         List<ChatGroupAnnouncementResp> chatGroupRespList = records.stream().map(this::convertToChatGroupAnnouncementResp).toList();
-        return ResultVo.success(chatGroupRespList);
+        ChatGroupAnnouncementRespCount response =  new ChatGroupAnnouncementRespCount();
+        response.setCount(chatGroupRespList.size());
+        response.setData(chatGroupRespList);
+        return ResultVo.success(response);
     }
 
     @Override
