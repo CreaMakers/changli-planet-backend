@@ -1,5 +1,6 @@
 package com.creamakers.fresh.system.controller;
 
+import com.creamakers.fresh.system.domain.dto.FreshNews;
 import com.creamakers.fresh.system.domain.vo.ResultVo;
 import com.creamakers.fresh.system.domain.vo.request.FreshNewsRequest;
 
@@ -26,7 +27,7 @@ public class FreshNewsController {
      * 创建新鲜事
      */
     @PostMapping
-    public ResultVo<FreshNewsDetailResp> createFreshNews(@RequestParam("images")List<MultipartFile> images,
+    public ResultVo<FreshNewsResp> createFreshNews(@RequestParam("images")List<MultipartFile> images,
                                                @RequestParam("fresh_news") String s) throws IOException {
         FreshNewsRequest freshNewsRequest = JsonParser.StoJ(s);
         return freshNewsService.createFreshNews(images,freshNewsRequest);
@@ -49,24 +50,30 @@ public class FreshNewsController {
      * @return 新鲜事列表
      */
     @GetMapping("/all/by_time")
-    public ResultVo<List<FreshNewsDetailResp>> getAllFreshNews(
+    public ResultVo<List<FreshNewsResp>> getAllFreshNews(
             @RequestParam(value = "page", defaultValue = "1") Integer page,
-            @RequestParam(value = "page_size", defaultValue = "10") Integer pageSize) {
+            @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
         return freshNewsService.getAllFreshNews(page, pageSize);
     }
 
     // 获取所有按点赞排序的新鲜事
     @GetMapping("/all/by_likes")
-    public ResultVo<List<FreshNewsDetailResp>> getAllByLikes(@RequestParam(value = "page", defaultValue = "1") Integer page,
-                                                       @RequestParam(value = "page_size", defaultValue = "10") Integer pageSize) {
+    public ResultVo<List<FreshNewsResp>> getAllByLikes(@RequestParam(value = "page", defaultValue = "1") Integer page,
+                                                       @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
         return freshNewsService.getAllByLikes(page, pageSize);
     }
 
     // 根据标签获取新鲜事
     @GetMapping("/tags/{tag}")
-    public ResultVo<List<FreshNewsDetailResp>> getByTag(@PathVariable("tag") String tag,
+    public ResultVo<List<FreshNewsResp>> getByTag(@PathVariable("tag") String tag,
                                                   @RequestParam(value = "page", defaultValue = "1") Integer page,
-                                                  @RequestParam(value = "page_size", defaultValue = "10") Integer pageSize) {
+                                                  @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
         return freshNewsService.getByTag(tag, page, pageSize);
+    }
+
+    // 根据标签删除新鲜事
+    @DeleteMapping("/{fresh_news_id}")
+    public ResultVo<FreshNewsResp> deleteFreshNews(@PathVariable("fresh_news_id") Long freshNewsId) {
+        return freshNewsService.deleteFreshNews(freshNewsId);
     }
 }

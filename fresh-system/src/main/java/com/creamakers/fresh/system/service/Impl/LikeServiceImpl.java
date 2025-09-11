@@ -33,8 +33,8 @@ public class LikeServiceImpl implements LikeService {
     private FreshNewsMapper freshNewsMapper;  // 用于访问数据库中的新闻/帖子数据
     @Autowired
     private FreshNewsCommentMapper freshNewsCommentMapper; // 用于访问数据库中的评论数据
-//    @Autowired
-//    private RabbitTemplate rabbitTemplate;
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     /**
      * 点赞新闻
@@ -44,24 +44,25 @@ public class LikeServiceImpl implements LikeService {
      * @return 结果
      */
     @Override
-    public ResultVo<Boolean> likeNews(Long newsId, Long userId) {
+    public ResultVo<Void> likeNews(Long newsId, Long userId) {
         // 检查该新闻是否已经点赞
-        Boolean isLiked = redisTemplate.opsForSet().isMember(RedisKeyConstant.LIKE_NEWS + userId, newsId);
+        Boolean isLiked = redisTemplate.opsForSet().isMember(RedisKeyConstant.LIKE_NEWS + newsId, userId);
 
         if (isLiked != null && !isLiked) {
             // 如果没有点赞，则进行点赞
-            redisTemplate.opsForSet().add(RedisKeyConstant.LIKE_NEWS + userId, newsId);
+            redisTemplate.opsForSet().add(RedisKeyConstant.LIKE_NEWS + newsId, userId);
             // 增加新闻的点赞数
             redisTemplate.opsForValue().increment(RedisKeyConstant.LIKE_NEWS_NUM + newsId);
-            return ResultVo.success(true);
-            //rabbitTemplate.convertAndSend("likeNewsExchange", "likeNews",newsId);
+
+            rabbitTemplate.convertAndSend("likeNewsExchange", "likeNews",newsId);
         } else {
             // 如果已经点赞，再次点击则取消点赞
-            redisTemplate.opsForSet().remove(RedisKeyConstant.LIKE_NEWS + userId, newsId);
+            redisTemplate.opsForSet().remove(RedisKeyConstant.LIKE_NEWS + newsId, userId);
             // 减少新闻的点赞数
             redisTemplate.opsForValue().decrement(RedisKeyConstant.LIKE_NEWS_NUM + newsId);
-            return ResultVo.success(false);
         }
+
+        return ResultVo.success(null);  // 返回成功
     }
 
     /**
@@ -115,24 +116,25 @@ public class LikeServiceImpl implements LikeService {
      * @return 结果
      */
     @Override
-    public ResultVo<Boolean> likeComment(Long commentId, Long userId) {
+    public ResultVo<Void> likeComment(Long commentId, Long userId) {
         // 检查该评论是否已经点赞
-        Boolean isLiked = redisTemplate.opsForSet().isMember(RedisKeyConstant.LIKE_COMMENT + userId, commentId);
+        Boolean isLiked = redisTemplate.opsForSet().isMember(RedisKeyConstant.LIKE_COMMENT + commentId, userId);
 
         if (isLiked != null && !isLiked) {
             // 如果没有点赞，则进行点赞
-            redisTemplate.opsForSet().add(RedisKeyConstant.LIKE_COMMENT + userId, commentId);
+            redisTemplate.opsForSet().add(RedisKeyConstant.LIKE_COMMENT + commentId, userId);
             // 增加评论的点赞数
             redisTemplate.opsForValue().increment(RedisKeyConstant.LIKE_COMMENT_NUM + commentId);
-            return ResultVo.success(true);
-            //rabbitTemplate.convertAndSend("likeCommentExchange", "likeComment",commentId);
+
+            rabbitTemplate.convertAndSend("likeCommentExchange", "likeComment",commentId);
         } else {
             // 如果已经点赞，再次点击则取消点赞
-            redisTemplate.opsForSet().remove(RedisKeyConstant.LIKE_COMMENT + userId, commentId);
+            redisTemplate.opsForSet().remove(RedisKeyConstant.LIKE_COMMENT + commentId, userId);
             // 减少评论的点赞数
             redisTemplate.opsForValue().decrement(RedisKeyConstant.LIKE_COMMENT_NUM + commentId);
-            return ResultVo.success(false);
         }
+
+        return ResultVo.success();  // 返回成功
     }
 
     /**
@@ -176,5 +178,4 @@ public class LikeServiceImpl implements LikeService {
         }
         return ResultVo.success();  // 返回成功
     }
-
 }
