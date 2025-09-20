@@ -12,8 +12,10 @@ import com.creamakers.fresh.system.domain.vo.request.FreshNewsRequest;
 import com.creamakers.fresh.system.domain.vo.response.FreshNewsDetailResp;
 import com.creamakers.fresh.system.domain.vo.response.FreshNewsResp;
 import com.creamakers.fresh.system.service.FreshNewsService;
+import com.creamakers.fresh.system.service.word.WordService;
 import com.creamakers.fresh.system.utils.HUAWEIOBSUtil;
 import jodd.util.StringUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -40,6 +42,8 @@ public class FreshNewsServiceImpl implements FreshNewsService {
     private TagsMapper tagsMapper;
     @Autowired
     private RedisTemplate redisTemplate;
+    @Autowired
+    private WordService wordService;
     @Override
     @Transactional
     public ResultVo<FreshNewsResp> createFreshNews(List<MultipartFile> images, FreshNewsRequest freshNewsRequest) throws IOException {
@@ -48,6 +52,20 @@ public class FreshNewsServiceImpl implements FreshNewsService {
         }
         if (!CollectionUtils.isEmpty(images) && images.size() > 9) {
             return ResultVo.fail(IMAGE_COUNT_EXCEEDS_LIMIT_MESSAGE);
+        }
+
+        // 敏感词检查
+        if(wordService.check(freshNewsRequest.getTitle())){
+            // 标题包含敏感词，进行替换
+            freshNewsRequest.setTitle(wordService.replace(freshNewsRequest.getTitle()));
+        }
+        if(wordService.check(freshNewsRequest.getContent())){
+            // 内容包含敏感词，进行替换
+            freshNewsRequest.setContent(wordService.replace(freshNewsRequest.getContent()));
+        }
+        if(wordService.check(freshNewsRequest.getTags())){
+            // 标签包含敏感词，进行替换
+            freshNewsRequest.setTags(wordService.replace(freshNewsRequest.getTags()));
         }
 
         // 新增标签的逻辑
