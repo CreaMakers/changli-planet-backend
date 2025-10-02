@@ -6,6 +6,7 @@ import com.creamakers.websystem.domain.vo.request.UserAllInfoReq;
 import com.creamakers.websystem.domain.vo.request.UserInfoReq;
 import com.creamakers.websystem.domain.vo.response.LoginTokenResp;
 import com.creamakers.websystem.domain.vo.response.UserAllInfoResp;
+import com.creamakers.websystem.domain.vo.response.UserLoginHistoryResp;
 
 import java.util.List;
 
@@ -27,4 +28,8 @@ public interface UserService {
     ResultVo<LoginTokenResp> refreshToken(String token);
 
     ResultVo<Long> getAllUserCount();
+
+    ResultVo<List<UserAllInfoResp>> findAllUsersInFosByPage(Integer page, Integer pageSize);
+
+    ResultVo<UserLoginHistoryResp> findUserLoginHistory(Long userId);
 }

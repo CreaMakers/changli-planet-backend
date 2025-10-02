@@ -7,6 +7,7 @@ import com.creamakers.websystem.domain.vo.request.UserAllInfoReq;
 import com.creamakers.websystem.domain.vo.request.UserInfoReq;
 import com.creamakers.websystem.domain.vo.response.LoginTokenResp;
 import com.creamakers.websystem.domain.vo.response.UserAllInfoResp;
+import com.creamakers.websystem.domain.vo.response.UserLoginHistoryResp;
 import com.creamakers.websystem.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -90,5 +91,24 @@ public class UserController {
     @GetMapping("/count")
     public ResultVo<Long> getAllUserCount() {
         return userService.getAllUserCount();
+    }
+
+    /*
+    * 获取所有用户信息（分页）
+    * */
+    @GetMapping(value = "/page")
+    public ResultVo<List<UserAllInfoResp>> getAllUserInfosByPage(
+            @RequestParam(value = "page", required = false,defaultValue = "1") Integer page,
+            @RequestParam(value = "limit", required = false,defaultValue = "10") Integer pageSize
+            ){
+        return userService.findAllUsersInFosByPage(page,pageSize);
+    }
+
+    /*
+    *  查询用户的登录历史
+    **/
+    @GetMapping(value = "/{userId}/login-history")
+    public ResultVo<UserLoginHistoryResp> getUserLoginHistory(@PathVariable("userId") Long userId){
+        return userService.findUserLoginHistory(userId);
     }
 }

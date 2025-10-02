@@ -55,5 +55,7 @@ public class CommonConst {
 
     public final static String VERSION_ERROR_MESSAGE = "版本号错误";
 
+    public final static String USER_LOGIN_HISTORY_FAILED_MSG = "用户登录历史记录不存在";
+
 
 }
