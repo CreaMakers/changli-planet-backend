@@ -31,7 +31,7 @@ public class CachedWordAllow implements IWordAllow, InitializingBean {
     @Resource
     private WordAllowMapper wordAllowMapper;
 
-    public HashSet<String> allow;
+    public HashSet<String> allow = new HashSet<>();
 
     @Override
     public List<String> allow() {

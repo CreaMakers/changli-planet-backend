@@ -5,10 +5,7 @@ planet:
     db: csust_planet
     username: root
     password: 3232539921
-    #password: 1234
   redis:
     host: localhost
-    #host: 192.168.188.18
     port: 6379
     password: 3232539921
-    #password: admin
