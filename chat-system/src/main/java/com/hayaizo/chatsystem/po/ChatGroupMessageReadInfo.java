@@ -3,6 +3,7 @@ package com.hayaizo.chatsystem.po;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -48,11 +49,13 @@ public class ChatGroupMessageReadInfo implements Serializable {
     /**
     * 记录创建时间
     */
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "GMT+8")
     private Date createTime;
 
     /**
     * 记录更新时间
     */
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "GMT+8")
     private Date updateTime;
 
     public ChatGroupMessageReadInfo() {}

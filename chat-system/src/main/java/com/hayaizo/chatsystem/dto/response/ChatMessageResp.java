@@ -1,6 +1,7 @@
 package com.hayaizo.chatsystem.dto.response;
 
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.*;
 
@@ -31,6 +32,7 @@ public class ChatMessageResp implements Serializable {
         @ApiModelProperty("房间id")
         private Integer roomId;
         @ApiModelProperty("消息发送时间")
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "GMT+8")
         private Date sendTime;
         @ApiModelProperty("消息类型 1正常文本 2.撤回消息")
         private Integer type;

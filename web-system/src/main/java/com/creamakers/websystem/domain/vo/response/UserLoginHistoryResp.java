@@ -1,5 +1,6 @@
 package com.creamakers.websystem.domain.vo.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -27,6 +28,7 @@ public class UserLoginHistoryResp {
     /**
      * 最后登录时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "GMT+8")
     private LocalDateTime lastLoginTime;
     /**
      * 是否删除: 0-未删除，1-已删除

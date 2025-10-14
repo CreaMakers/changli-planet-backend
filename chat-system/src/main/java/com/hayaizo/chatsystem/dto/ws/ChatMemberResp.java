@@ -1,5 +1,6 @@
 package com.hayaizo.chatsystem.dto.ws;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,5 +30,6 @@ public class ChatMemberResp {
     private Integer roleId;
 
     @ApiModelProperty("最后一次上下线时间")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "GMT+8")
     private Date lastOptTime;
 }

@@ -38,11 +38,11 @@ public class ChatGroupResp {
     private String backgroundUrl;
 
     // 群聊更新时间
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "GMT+8")
     private LocalDateTime updateTime;
 
     // 群聊创建时间
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "GMT+8")
     private LocalDateTime createTime;
 
     // 群聊描述

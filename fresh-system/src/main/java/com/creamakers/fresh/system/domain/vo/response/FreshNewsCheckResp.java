@@ -1,5 +1,6 @@
 package com.creamakers.fresh.system.domain.vo.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -29,14 +30,17 @@ public class FreshNewsCheckResp {
     private Integer checkStatus;
 
     // 创建时间
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "GMT+8")
     private LocalDateTime createTime;
 
     // 更新时间
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "GMT+8")
     private LocalDateTime updateTime;
 
     // 是否删除
     private Integer isDeleted;
 
     // 审核时间
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "GMT+8")
     private LocalDateTime checkTime;
 }

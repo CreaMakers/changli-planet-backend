@@ -40,11 +40,11 @@ public class PostResp {
     private Integer coinCount;
 
     // 帖子创建时间
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "GMT+8")
     private LocalDateTime createTime;
 
     // 帖子更新时间
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "GMT+8")
     private LocalDateTime updateTime;
 
     // 是否删除 (0-未删除, 1-已删除)

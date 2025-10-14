@@ -34,7 +34,7 @@ public class NotificationResp {
     private Integer isDeleted;
 
     // 发送时间
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "UTC")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime sendTime;
 
     // 描述

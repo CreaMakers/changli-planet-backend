@@ -19,7 +19,7 @@ public  class ReportPostResp {
         // 举报原因
         private String reason;
 
-        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "GMT+8")
         private LocalDateTime reportTime;
         // 处理状态: 0-未处理, 1-已处理
         private Integer status;
@@ -28,10 +28,10 @@ public  class ReportPostResp {
         // 是否删除: false-未删除, true-已删除
         private Boolean isDeleted;
         // 创建时间
-        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "GMT+8")
         private LocalDateTime createTime;
         // 更新时间
-        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "GMT+8")
         private LocalDateTime updateTime;
         // 帖子举报表描述
         private String description;

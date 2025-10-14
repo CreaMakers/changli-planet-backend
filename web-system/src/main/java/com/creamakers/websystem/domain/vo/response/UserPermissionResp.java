@@ -44,7 +44,7 @@ public class UserPermissionResp {
     /**
      * 记录创建时间
      */
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "GMT+8")
     private LocalDateTime createTime;
 
     /**
