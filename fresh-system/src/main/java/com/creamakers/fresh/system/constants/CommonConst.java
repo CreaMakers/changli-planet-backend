@@ -55,7 +55,11 @@ public class CommonConst {
 
     public static final String DB_INSERT_NOTIFICATION_FAILED = "数据库notification表插入失败";
 
+    public static final String NEWS_CHECK_FAILED_MESSAGE = "新鲜事审核提交失败";
 
+    public static final String NEWS_CHECK_NOT_FIND_MASSAGE = "新鲜事审核记录不存在";
+
+    public static final String FRESH_NEWS_IMAGE_UPDATE_FAILED_MESSAGE = "新鲜事图片路径更新失败";
 
 
 }

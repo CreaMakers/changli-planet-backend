@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.creamakers.websystem.constants.CommonConst;
+import com.creamakers.websystem.constants.RedisKeyConst;
 import com.creamakers.websystem.context.TokenContext;
 import com.creamakers.websystem.context.UserContext;
 import com.creamakers.websystem.context.UserIdContext;
@@ -30,8 +31,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -88,6 +91,11 @@ public class UserServiceImpl implements UserService {
         cacheRefreshToken(user.getUsername(), refreshToken);
 
         LoginTokenResp loginTokenResp = new LoginTokenResp(accessToken, CommonConst.TOKEN_EXPIRATION_TIME);
+
+        // 更新用户登录时间
+        userStatsMapper.update(Wrappers.<UserStats>lambdaUpdate().
+                set(UserStats::getLastLoginTime,LocalDateTime.now()).
+                eq(UserStats::getUserId,user.getUserId()));
         return ResultVo.success(loginTokenResp);
     }
 
@@ -138,7 +146,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResultVo<Void> logout() {
-        String username = UserNameContext.getCurrentName();
+        String username = UserContext.getUserName();
         removeRefreshTokenByUserName(username);
         /*
          * 把token放入黑名单中
@@ -286,7 +294,36 @@ public class UserServiceImpl implements UserService {
         return ResultVo.success();
     }
 
+    @Override
+    public ResultVo<List<UserAllInfoResp>> findAllUsersInFosByPage(Integer page, Integer pageSize) {
+        Long userId = UserContext.getUserId();
+        User user = userMapper.selectById(userId);
+        if(user == null || user.getIsAdmin() == 0){
+            //权限不足，拒绝更新
+            return ResultVo.fail(ErrorEnums.FORBIDDEN.getCode(),ErrorEnums.FORBIDDEN.getMsg());
+        }
+        //无任何条件查询所有用户信息（分页）
+        return findAllUsersInFos(null,null,null,null,page,pageSize);
+    }
+
+    @Override
+    public ResultVo<UserLoginHistoryResp> findUserLoginHistory(Long userId) {
+        Long nowUserId = UserContext.getUserId();
+        User user = userMapper.selectById(nowUserId);
+        if((user == null || user.getIsAdmin() == 0) && !Objects.equals(nowUserId, userId)){
+            //权限不足，拒绝查询
+            return ResultVo.fail(ErrorEnums.FORBIDDEN.getCode(),ErrorEnums.FORBIDDEN.getMsg());
+        }
+        UserStats userStats = userStatsMapper.selectById(userId);
+        if(userStats == null){
+            //用户不存在
+            return ResultVo.fail(CommonConst.BAD_REQUEST_CODE,CommonConst.USER_LOGIN_HISTORY_FAILED_MSG);
+        }
+        UserLoginHistoryResp userLoginHistoryResp = BeanUtil.copyProperties(userStats, UserLoginHistoryResp.class);
+        return ResultVo.success(userLoginHistoryResp);
+    }
+
     private void addBlackListToken() {
-        redisUtil.setValue(CommonConst.BLACKLIST_TOKEN_PREFIX + TokenContext.getCurrentToken(), "invalid", 2, TimeUnit.HOURS);
+        redisUtil.setValue(CommonConst.BLACKLIST_TOKEN_PREFIX + UserContext.getToken(), "invalid", 2, TimeUnit.HOURS);
     }
 }

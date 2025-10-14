@@ -6,14 +6,18 @@ import com.creamakers.fresh.system.dao.FreshNewsLikesMapper;
 import com.creamakers.fresh.system.dao.FreshNewsMapper;
 import com.creamakers.fresh.system.dao.TagsMapper;
 import com.creamakers.fresh.system.domain.dto.FreshNews;
+import com.creamakers.fresh.system.domain.dto.FreshNewsCheck;
 import com.creamakers.fresh.system.domain.dto.Tags;
 import com.creamakers.fresh.system.domain.vo.ResultVo;
 import com.creamakers.fresh.system.domain.vo.request.FreshNewsRequest;
 import com.creamakers.fresh.system.domain.vo.response.FreshNewsDetailResp;
 import com.creamakers.fresh.system.domain.vo.response.FreshNewsResp;
+import com.creamakers.fresh.system.service.FreshNewsCheckService;
 import com.creamakers.fresh.system.service.FreshNewsService;
+import com.creamakers.fresh.system.service.word.WordService;
 import com.creamakers.fresh.system.utils.HUAWEIOBSUtil;
 import jodd.util.StringUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -40,14 +44,32 @@ public class FreshNewsServiceImpl implements FreshNewsService {
     private TagsMapper tagsMapper;
     @Autowired
     private RedisTemplate redisTemplate;
+    @Autowired
+    private WordService wordService;
+    @Autowired//新鲜事图片审核
+    private FreshNewsCheckService freshNewsCheckService;
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public ResultVo<FreshNewsResp> createFreshNews(List<MultipartFile> images, FreshNewsRequest freshNewsRequest) throws IOException {
         if (StringUtil.isEmpty(freshNewsRequest.getContent())) {
             return ResultVo.fail(FRESH_NEWS_CONTENT_CANNOT_BE_EMPTY_MESSAGE);
         }
         if (!CollectionUtils.isEmpty(images) && images.size() > 9) {
             return ResultVo.fail(IMAGE_COUNT_EXCEEDS_LIMIT_MESSAGE);
+        }
+
+        // 敏感词检查
+        if(wordService.check(freshNewsRequest.getTitle())){
+            // 标题包含敏感词，进行替换
+            freshNewsRequest.setTitle(wordService.replace(freshNewsRequest.getTitle()));
+        }
+        if(wordService.check(freshNewsRequest.getContent())){
+            // 内容包含敏感词，进行替换
+            freshNewsRequest.setContent(wordService.replace(freshNewsRequest.getContent()));
+        }
+        if(wordService.check(freshNewsRequest.getTags())){
+            // 标签包含敏感词，进行替换
+            freshNewsRequest.setTags(wordService.replace(freshNewsRequest.getTags()));
         }
 
         // 新增标签的逻辑
@@ -88,7 +110,7 @@ public class FreshNewsServiceImpl implements FreshNewsService {
         FreshNews freshNews = new FreshNews();
         freshNews.setUserId(freshNewsRequest.getUserId())
                 .setTitle(freshNewsRequest.getTitle())
-                .setImages(finalUrls)
+                .setImages(finalUrls.isEmpty() ? "" : "图片正在审核中")
                 .setContent(freshNewsRequest.getContent())
                 .setTags(freshNewsRequest.getTags())
                 .setLiked(0)
@@ -113,6 +135,16 @@ public class FreshNewsServiceImpl implements FreshNewsService {
                     redisTemplate.opsForSet().add("tags:" + tag, String.valueOf(freshNewsId)); // 将新鲜事 ID 加入 Redis 集合
                 }
             }
+
+            if(!finalUrls.isEmpty()){
+                // 图片非空时，上传华为云OBS，图片路径提交审核，返回"图片正在审核中"，审核通过再添加图片路径
+                try {
+                    boolean check = freshNewsCheckService.addFreshNewsCheck(freshNews, finalUrls);
+                } catch (Exception e) {
+                    throw new IOException(e);
+                }
+            }
+
             // 返回创建的新鲜事响应
             FreshNewsResp freshNewsResp = new FreshNewsResp();
             BeanUtils.copyProperties(freshNews, freshNewsResp);

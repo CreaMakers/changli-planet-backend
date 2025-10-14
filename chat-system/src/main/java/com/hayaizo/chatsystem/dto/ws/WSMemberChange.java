@@ -1,5 +1,6 @@
 package com.hayaizo.chatsystem.dto.ws;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,5 +27,6 @@ public class WSMemberChange {
     @ApiModelProperty("在线状态 1在线 2离线")
     private Integer activeStatus;
     @ApiModelProperty("最后一次上下线时间")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "GMT+8")
     private Date lastOptTime;
 }
