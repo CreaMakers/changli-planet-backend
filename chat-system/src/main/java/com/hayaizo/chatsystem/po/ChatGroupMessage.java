@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.hayaizo.chatsystem.dto.response.MessageExtra;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -78,11 +79,13 @@ public class ChatGroupMessage {
     /**
      * 消息发送时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "GMT+8")
     private Date createTime;
 
     /**
      * 消息更新时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "GMT+8")
     private Date updateTime;
 
     /**

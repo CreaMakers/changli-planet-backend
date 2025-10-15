@@ -2,10 +2,10 @@ planet:
   mysql:
     ip: localhost # 服务器ip
     port: 3306
-    db: changli-planet # database名
+    db: csust_planet
     username: root
-    password: 327589
+    password: 3232539921
   redis:
-    host: 192.168.88.14
+    host: localhost
     port: 6379
-    password: 3100433796
+    password: 3232539921
