@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.Date;
 
 @Data
@@ -20,8 +21,8 @@ public class UserProfileRequest implements Serializable {
     private String bio;
     private int gender;
     private String grade;
-    @JsonFormat(pattern = "yyyy-MM-dd",timezone = "GMT+8")
-    private Date birthDate;
+    @JsonFormat(pattern = "yyyy-MM-dd",timezone = "Asia/Shanghai")
+    private LocalDate birthDate;
     private String location;
     private String website;
 }
