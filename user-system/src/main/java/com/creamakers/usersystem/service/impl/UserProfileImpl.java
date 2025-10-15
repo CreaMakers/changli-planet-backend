@@ -34,6 +34,7 @@ import com.obs.services.model.PutObjectRequest;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.Date;
 
 @Service
@@ -164,7 +165,7 @@ public class UserProfileImpl extends ServiceImpl<UserProfileMapper, UserProfile>
                     .gender(2)
                     .grade("保密~")
                     .location("银河 地球")
-                    .birthDate(new Date())
+                    .birthDate(LocalDate.now())
                     .build();
 
             boolean result = save(userProfile);
