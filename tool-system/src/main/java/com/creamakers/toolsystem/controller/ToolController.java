@@ -8,6 +8,7 @@ import com.creamakers.toolsystem.entity.ExamArrange;
 import com.creamakers.toolsystem.entity.PscjInfo;
 import com.creamakers.toolsystem.service.ToolService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.jdbc.Null;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,7 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 
 @Slf4j
@@ -126,6 +128,12 @@ public class ToolController {
         return toolService.GetGradesDetailInfo(new GradeDetailInfoRequest(stuNum, password, pscjUrl));
     }
 
+    // 作业提醒
+    @PostMapping("/homework")
+    public ResponseEntity<GeneralResponse> homeWorkRemind(@RequestBody HomeWorkRequest homeWorkRequest) {
+        return toolService.homeWorkRemind(homeWorkRequest);
+    }
+
 //    @PostMapping("/getWeekDate")
 //    public ResponseEntity<GeneralResponse> getWeekDate(
 //            @RequestParam(value = "stuNum") String stuNum,
@@ -134,6 +142,5 @@ public class ToolController {
 //        WeekDateRequest weekDateRequest = new WeekDateRequest(stuNum, password);
 //        return toolService.getWeekDate(weekDateRequest);
 //    }
-
 
 }

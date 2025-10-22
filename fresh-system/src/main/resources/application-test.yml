@@ -9,3 +9,8 @@ planet:
     host: localhost
     port: 6379
     password: 3232539921
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: admin
+    password: admin

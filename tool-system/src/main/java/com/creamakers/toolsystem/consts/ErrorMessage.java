@@ -10,5 +10,6 @@ public class ErrorMessage {
     public static final String INCORRECT_USER = "Incorrect account number or password";
     public static final String NO_EXAM_ARRANGEMENTS_FOUND = "No exam arrangements found for the specified term and exam type.";
     public static final String DORMITORY_ELECTRICITY_NOT_FOUND = "Dormitory electricity information not found.";
-    // 添加其他错误消息
+    public static final String NO_USER_FOUND = "No user found for the provided username.";
+    public static final String HOME_WORK_ADD_FAILED = "Home work add failed";
 }

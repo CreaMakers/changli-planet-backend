@@ -1,0 +1,36 @@
+# 配置邮件发送相关属性
+spring:
+  mail:
+    # 配置 SMTP 服务器地址
+    host: smtp.163.com
+    # 端口号465
+    port: 465
+    # 关键：465端口对应smtps协议
+    protocol: smtps
+    # 默认的邮件编码为UTF-8
+    default-encoding: UTF-8
+    # 配置SSL 加密工厂
+    properties: # 设置邮件超时时间防止服务器阻塞
+      timeout: 5000
+      connection-timeout: 5000
+      write-timeout: 5000
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+#          starttls:
+#            enable: true
+          socketFactoryClass: javax.net.ssl.SSLSocketFactory
+        #表示开启 DEBUG 模式，这样，邮件发送过程的日志会在控制台打印出来，方便排查错误
+        debug: true
+
+  # 添加Thymeleaf配置
+  thymeleaf:
+    cache: false  # 开发环境关闭缓存，生产环境可开启
+    prefix: classpath:/templates/
+    suffix: .html
+    encoding: UTF-8
+    mode: HTML5
+    servlet:
+      content-type: text/html

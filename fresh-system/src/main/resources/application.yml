@@ -21,8 +21,10 @@ spring:
           time-between-eviction-runs: 10s
       password: ${planet.redis.password}
   rabbitmq:
-    host: 127.0.0.1
-    port: 5672
+    host: ${planet.rabbitmq.host}
+    port: ${planet.rabbitmq.port}
+    password: ${planet.rabbitmq.password}
+    username: ${planet.rabbitmq.username}
 
 server:
   port: 8085
