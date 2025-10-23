@@ -110,6 +110,7 @@ public class FreshNewsServiceImpl implements FreshNewsService {
         FreshNews freshNews = new FreshNews();
         freshNews.setUserId(freshNewsRequest.getUserId())
                 .setTitle(freshNewsRequest.getTitle())
+                .setAddress(freshNewsRequest.getAddress())
                 .setImages(finalUrls.isEmpty() ? "" : "图片正在审核中")
                 .setContent(freshNewsRequest.getContent())
                 .setTags(freshNewsRequest.getTags())

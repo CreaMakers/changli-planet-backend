@@ -1,9 +1,14 @@
 package com.creamakers.toolsystem.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.creamakers.toolsystem.consts.HttpCode;
 import com.creamakers.toolsystem.dto.request.*;
 import com.creamakers.toolsystem.dto.response.GeneralResponse;
 import com.creamakers.toolsystem.entity.*;
+import com.creamakers.toolsystem.mapper.HomeWorkMapper;
+import com.creamakers.toolsystem.mapper.UserMapper;
+import com.creamakers.toolsystem.po.HomeWork;
+import com.creamakers.toolsystem.po.User;
 import com.creamakers.toolsystem.spiderMethond.*;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -13,14 +18,15 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -33,6 +39,12 @@ import com.creamakers.toolsystem.consts.ErrorMessage;
 
 @Service
 public class ToolService {
+    private static final Logger log = LoggerFactory.getLogger(ToolService.class);
+    @Autowired
+    private UserMapper userMapper;
+    @Autowired
+    private HomeWorkMapper homeWorkMapper;
+
     public ResponseEntity<GeneralResponse<PscjInfo>> GetGradesDetailInfo(GradeDetailInfoRequest gradeDetailInfoRequest) throws IOException, InterruptedException {
 
         GetCookies getCookies = new GetCookies();
@@ -467,4 +479,71 @@ public class ToolService {
         return htmlText;
     }
 
+    public ResponseEntity<GeneralResponse> homeWorkRemind(HomeWorkRequest homeWorkRequest) {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("username", homeWorkRequest.getUsername()).eq("is_deleted",0);
+        User user = userMapper.selectOne(queryWrapper);
+        if(user == null){
+            // 未找到用户
+            return failResponse(HttpCode.NOT_FOUND,ErrorMessage.NO_USER_FOUND);
+        }
+        log.info("查询到用户{}",user.getUsername());
+
+        //查询作业是否已经在数据库内
+        QueryWrapper<HomeWork>  homeWorkQueryWrapper = new QueryWrapper<>();
+        homeWorkQueryWrapper.eq("user_id",user.getUserId())
+                .eq("home_work_name",homeWorkRequest.getHomeworkName())
+                .eq("is_deleted",0);
+        HomeWork homeWork = homeWorkMapper.selectOne(homeWorkQueryWrapper);
+        if(homeWork != null){
+            //作业存在
+            if(Objects.equals(homeWork.getStatus(), homeWorkRequest.getStatus()) &&
+                    homeWork.getExpireTime().equals(homeWorkRequest.getEndTime())){
+                //作业状态未改变，无需更新，直接返回
+                return successResponse(HttpCode.OK,SuccessMessage.HOME_WORK_NOT_CHARGED);
+            }
+            //作业状态更新，更新数据库
+            homeWork.setStatus(homeWorkRequest.getStatus());
+            homeWork.setExpireTime(homeWorkRequest.getEndTime());
+            if (homeWorkMapper.updateById(homeWork) <= 0){
+                //更新失败
+                return failResponse(HttpCode.INTERNAL_SERVER_ERROR,ErrorMessage.HOME_WORK_ADD_FAILED);
+            }
+            //作业状态更新，返回成功
+            return successResponse(HttpCode.OK,SuccessMessage.HOME_WORK_ADD_SUCCESS);
+        }
+
+        // 数据库不存在作业信息。作业写入数据库，便于定时任务查询
+        homeWork = HomeWork.builder()
+                .userId(user.getUserId())
+                .username(user.getUsername())
+                .mailbox(user.getMailbox())
+                .homeWorkName(homeWorkRequest.getHomeworkName())
+                .status(homeWorkRequest.getStatus())
+                .expireTime(homeWorkRequest.getEndTime())
+                .build();
+        log.info("写入数据库的作业信息为{}",homeWork);
+        if(homeWorkMapper.insert(homeWork) <= 0){
+            //写入失败
+            return failResponse(HttpCode.INTERNAL_SERVER_ERROR,ErrorMessage.HOME_WORK_ADD_FAILED);
+        }
+        return successResponse(HttpCode.OK,SuccessMessage.HOME_WORK_ADD_SUCCESS);
+    }
+
+    public ResponseEntity<GeneralResponse> successResponse(String code,String msg) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(GeneralResponse.builder()
+                        .code(code)
+                        .msg(msg)
+                        .data(null)
+                        .build());
+    }
+
+    public ResponseEntity<GeneralResponse> failResponse(String code,String msg) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(GeneralResponse.builder().code(code)
+                        .msg(msg)
+                        .data(null)
+                        .build());
+    }
 }
