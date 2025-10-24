@@ -43,6 +43,7 @@ public class ScheduledTasks implements SchedulingConfigurer {
     }
 
     @Scheduled(cron = "0 0 3 * * ?") // 每天3点执行
+    //@Scheduled(fixedRate = 10000)    // 每10秒执行一次(测试用)
     public void homeWorkRemind(){
         log.info(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))+" :Starting Home Work Remind");
         List<HomeWork> homeWorkList = getAllHomeWorks();
@@ -57,7 +58,11 @@ public class ScheduledTasks implements SchedulingConfigurer {
         log.info("select all remind home work");
         LocalDateTime time = LocalDateTime.now().plusDays(1);
         QueryWrapper<HomeWork> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("status",0).eq("is_deleted",0).le("expire_time",time);
+        queryWrapper
+                .eq("status",0)
+                .eq("is_deleted",0)
+                .gt("expire_time",LocalDateTime.now())      // now < expire_time < now+1day
+                .le("expire_time",time);
         return homeWorkMapper.selectList(queryWrapper);
     }
 
