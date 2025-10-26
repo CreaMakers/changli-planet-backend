@@ -1,37 +1,33 @@
 package com.creamakers.fresh.system.domain.vo.response;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class FreshNewsCommentResp {
+    //评论所属新鲜事ID
+    @JsonProperty(value = "fresh_news_id")
+    private Long freshNewsId;
 
-    // 评论ID
-    private Long commentId;
+    //一级评论的数量
+    @JsonProperty(value = "first_comment_count")
+    private Integer firstCommentCount;
 
-    // 用户ID
-    private Long userId;
+    //是否显示评论区
+    @JsonProperty(value = "is_active")
+    private Integer isActive;
 
-    // 父评论ID，如果是一级评论则为0
-    private Long parentId;
+    //一级评论区列表
+    @JsonProperty(value = "comments_list")
+    private List<FreshNewsFatherCommentResp> commentsList;
 
-    // 评论内容
-    private String content;
-
-    // 点赞数量
-    private Integer liked;
-
-    // 创建时间
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "GMT+8")
-    private LocalDateTime createTime;
-
-    // 更新时间
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "GMT+8")
-    private LocalDateTime updateTime;
 }

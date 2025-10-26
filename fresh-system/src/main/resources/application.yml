@@ -23,8 +23,8 @@ spring:
   rabbitmq:
     host: ${planet.rabbitmq.host}
     port: ${planet.rabbitmq.port}
-    password: ${planet.rabbitmq.password}
     username: ${planet.rabbitmq.username}
+    password: ${planet.rabbitmq.password}
 
 server:
   port: 8085

@@ -61,5 +61,10 @@ public class CommonConst {
 
     public static final String FRESH_NEWS_IMAGE_UPDATE_FAILED_MESSAGE = "新鲜事图片路径更新失败";
 
+    public static final String USER_NOT_FOUND_MESSAGE = "用户不存在";
+
+    public static final String CHILD_COMMENT_DELETE_FAILED_MESSAGE = "子评论删除失败";
+
+    public static final String NOT_CHILD_COMMENT = "该评论不是子评论";
 
 }

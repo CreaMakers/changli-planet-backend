@@ -22,12 +22,14 @@ public class LikeController {
      * 点赞评论
      * @param commentId 评论ID
      * @param userId 用户ID
+     * @param isParent 是否是父评论（0：子评论，1：父评论）
      * @return 结果
      */
-    @PostMapping("/comments/{comment_id}/likes/{user_id}")
+    @PostMapping("/comments/{comment_id}/likes/{user_id}/{is_Parent}")
     public ResultVo<Void> likeComment(@PathVariable("comment_id") Long commentId,
-                                      @PathVariable("user_id") Long userId) {
-        return likeService.likeComment(commentId, userId);
+                                      @PathVariable("user_id") Long userId,
+                                      @PathVariable("is_Parent") Integer isParent) {
+        return likeService.likeComment(commentId, userId, isParent);
     }
 
     /**

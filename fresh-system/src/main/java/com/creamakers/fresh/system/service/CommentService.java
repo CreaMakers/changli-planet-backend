@@ -2,18 +2,19 @@ package com.creamakers.fresh.system.service;
 
 import com.creamakers.fresh.system.domain.vo.ResultVo;
 import com.creamakers.fresh.system.domain.vo.request.FreshNewsCommentRequest;
+import com.creamakers.fresh.system.domain.vo.response.FreshNewsChildCommentResp;
 import com.creamakers.fresh.system.domain.vo.response.FreshNewsCommentResp;
 
 import java.util.List;
 
 public interface CommentService {
-    ResultVo<Void> addComment(Long freshNewsId, FreshNewsCommentRequest freshNewsCommentRequest);
+    ResultVo<Void> addComment(FreshNewsCommentRequest freshNewsCommentRequest);
 
-    ResultVo<List<FreshNewsCommentResp>> listComments(Long freshNewsId, Integer page, Integer pageSize);
+    ResultVo<FreshNewsCommentResp> listComments(Long freshNewsId, Integer page, Integer pageSize);
 
-    ResultVo<Void> deleteComment(Long commentId, Long userId);
+    ResultVo<Void> deleteComment(Long freshNewsId, Long commentId, Integer isParent);
 
-    ResultVo<List<FreshNewsCommentResp>> listReplies(Long commentId, Integer page, Integer pageSize);
+    ResultVo<List<FreshNewsChildCommentResp>> listReplies(Long freshNewsId, Long commentId, Integer page, Integer pageSize);
 
-    ResultVo<Void> addReply(Long commentId, FreshNewsCommentRequest freshNewsCommentRequest);
+    ResultVo<Void> addReply(FreshNewsCommentRequest freshNewsCommentRequest);
 }

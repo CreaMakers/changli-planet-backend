@@ -12,16 +12,21 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class FreshNewsCommentRequest {
+    @JsonProperty("fresh_news_id")
+    private Long newsId;            // 新鲜事ID
 
     @JsonProperty("user_id")
-    private Long userId;  // 用户ID
+    private Long userId;            // 用户ID
+
+    @JsonProperty("user_avatar")
+    private String userAvatar;      //用户头像URL
 
     @JsonProperty("content")
-    private String content;  // 评论内容
+    private String content;         // 评论内容
 
-    @JsonProperty("parent_id")
-    private Long parentId = 0L; // 父评论ID，默认为0表示一级评论
+    @JsonProperty("parent_comment_id")
+    private Long parentId = 0L;     // 父评论ID，默认为0表示一级评论
 
-    @JsonProperty("news_id")
-    private Long newsId;  // 新鲜事ID
+    @JsonProperty("comment_ip")
+    private String commentIp;       //用户评论的地址
 }
