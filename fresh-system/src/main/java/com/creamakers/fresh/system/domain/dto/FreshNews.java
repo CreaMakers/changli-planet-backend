@@ -34,6 +34,10 @@ public class FreshNews {
     @TableField(value = "content")
     private String content;
 
+    // 发布地址
+    @TableField(value = "address")
+    private String address;
+
     // 图片路径
     @TableField(value = "images")
     private String images;

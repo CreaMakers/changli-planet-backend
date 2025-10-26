@@ -25,6 +25,9 @@ public class FreshNewsDetailResp {
     // 新鲜事内容
     private String content;
 
+    // 新鲜事发布地址
+    private String address;
+
     // 新鲜事图片列表
     private List<String> images;
 

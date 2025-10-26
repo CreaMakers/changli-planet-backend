@@ -22,6 +22,8 @@ public class FreshNewsRequest {
     @JsonProperty("content")
     private String content;  // 新鲜事内容
 
+    @JsonProperty("address")
+    private String address;  // 新鲜事发布地址
 
     @JsonProperty("tags")
     private String tags;     // 新鲜事的标签 (可选)

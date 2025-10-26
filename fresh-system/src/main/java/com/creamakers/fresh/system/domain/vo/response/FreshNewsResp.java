@@ -25,6 +25,9 @@ public class FreshNewsResp {
     // 内容
     private String content;
 
+    // 发布地址
+    private String address;
+
     // 图片路径，以逗号分隔
     private String images;
 
