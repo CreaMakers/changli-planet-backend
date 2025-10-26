@@ -1,12 +1,8 @@
 package com.creamakers.fresh.system.utils;
 
 
-import com.creamakers.fresh.system.dao.FreshNewsCommentMapper;
-import com.creamakers.fresh.system.dao.FreshNewsMapper;
-import com.creamakers.fresh.system.dao.NotificationMapper;
-import com.creamakers.fresh.system.domain.dto.FreshNews;
-import com.creamakers.fresh.system.domain.dto.FreshNewsComment;
-import com.creamakers.fresh.system.domain.dto.Notification;
+import com.creamakers.fresh.system.dao.*;
+import com.creamakers.fresh.system.domain.dto.*;
 import com.creamakers.fresh.system.domain.vo.ResultVo;
 import com.creamakers.fresh.system.domain.vo.response.FreshNewsDetailResp;
 import com.creamakers.fresh.system.domain.vo.response.NotificationResp;
@@ -30,8 +26,12 @@ public class MqListener {
 
     @Resource
     private CommentService commentsService;
+//    @Resource
+//    private FreshNewsCommentMapper freshNewsCommentMapper;
     @Resource
-    private FreshNewsCommentMapper freshNewsCommentMapper;
+    private FreshNewsFatherCommentMapper freshNewsFatherCommentMapper;
+    @Resource
+    private FreshNewsChildCommentMapper freshNewsChildCommentMapper;
     @Resource
     private FreshNewsMapper freshNewsMapper;
     @Resource
@@ -47,7 +47,7 @@ public class MqListener {
         log.info("收到新的评论: {}", comments.getContent());
 
         // 查找新鲜事的创建者
-        Long newsId = comments.getNewsId();
+        Long newsId = comments.getId();
         FreshNews freshNews = freshNewsMapper.selectById(newsId);
         Long userId = freshNews.getUserId();
 
@@ -72,9 +72,11 @@ public class MqListener {
 
     // 2. 处理新的回复
     @RabbitListener(queues = "replyQueue")
-    public void handleNewReply(FreshNewsComment comments) {
+    public void handleNewReply(FreshNewsChildComment comments) {
         log.info("收到新的回复: {}", comments.getContent());
-        Long parentId = comments.getParentId();
+        Long f = comments.getFatherCommentId();
+        FreshNewsFatherComment freshNewsFatherComment = freshNewsFatherCommentMapper.selectById(f);
+        Long parentId = freshNewsFatherComment.getUserId();
 
         // 创建推送的通知消息
         Notification notification = new Notification();
@@ -128,12 +130,23 @@ public class MqListener {
 
     // 4. 处理点赞评论
     @RabbitListener(queues = "likeCommentQueue")
-    public void handleLikeComment(Long commentId) {
+    public void handleLikeComment(Long commentId,Long isParent) {
         log.info("收到点赞评论的消息: commentId={}", commentId);
 
         // 查找评论的创建者
-        FreshNewsComment comment = freshNewsCommentMapper.selectById(commentId);
-        Long userId = comment.getUserId();
+
+        //FreshNewsComment comment = freshNewsCommentMapper.selectById(commentId);
+        //Long userId = comment.getUserId();
+        Long userId = null;
+        if(isParent == 0){
+            // 子评论
+            FreshNewsChildComment freshNewsChildComment = freshNewsChildCommentMapper.selectById(commentId);
+            userId = freshNewsChildComment.getUserId();
+        }else {
+            // 父评论
+            FreshNewsFatherComment freshNewsFatherComment = freshNewsFatherCommentMapper.selectById(commentId);
+            userId = freshNewsFatherComment.getUserId();
+        }
 
         // 创建推送的通知消息
         Notification notification = new Notification();

@@ -1,11 +1,5 @@
 package com.creamakers.fresh.system.domain.dto;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
@@ -13,50 +7,73 @@ import java.time.LocalDateTime;
 /**
  * 新鲜事评论DTO类
  */
-@Data
-@EqualsAndHashCode(callSuper = false)
+
 @Accessors(chain = true)
-@TableName("fresh_news_comments")
-public class FreshNewsComment {
+public interface FreshNewsComment {
 
-    @TableId(value = "comment_id", type = IdType.AUTO)
-    private Long commentId;
 
-    // 用户ID
-    @TableField(value = "user_id")
-    private Long userId;
+    // 评论ID
+    Long getId();
 
-    // 新鲜事ID
-    @TableField(value = "news_id")
-    private Long newsId;
+    FreshNewsComment setId(Long id);
 
-    // 父评论ID
-    @TableField(value = "parent_id")
-    private Long parentId;
+    // 关联的新鲜事ID
+    Long getFreshNewsId();
 
-    // 根评论ID
-    @TableField(value = "root")
-    private Long root;
-
-    // 评论内容
-    @TableField(value = "content")
-    private String content;
+    FreshNewsComment setFreshNewsId(Long freshNewsId);
 
     // 点赞数量
-    @TableField(value = "liked")
-    private Integer liked;
+    Integer getLikedCount();
 
-    // 是否删除
-    @TableField(value = "is_deleted")
-    private Integer isDeleted;
+    FreshNewsComment setLikedCount(Integer likedCount);
 
+    // 评论内容
+    String getContent();
+
+    FreshNewsComment setContent(String content);
+
+    // 用户ID
+    Long getUserId();
+
+    FreshNewsComment setUserId(Long userId);
+
+    // 用户名
+    String getUserName();
+
+    FreshNewsComment setUserName(String userName);
+
+    // 用户头像URL
+    String getUserAvatar();
+
+    FreshNewsComment setUserAvatar(String userAvatar);
+
+    // 评论发布的地址
+    String getCommentIp();
+
+    FreshNewsComment setCommentIp(String commentIp);
+
+    // 评论发布的时间
+    LocalDateTime getCommentTime();
+
+    FreshNewsComment setCommentTime(LocalDateTime commentTime);
+
+    // 是否有效: 0-未有效, 1-已有效
+    Integer getIsActive();
+
+    FreshNewsComment setIsActive(Integer isActive);
+
+    // 是否删除: 0-未删除, 1-已删除
+    Integer getIsDeleted();
+
+    FreshNewsComment setIsDeleted(Integer isDeleted);
 
     // 创建时间
-    @TableField(value = "create_time")
-    private LocalDateTime createTime;
+    LocalDateTime getCreateTime();
+
+    FreshNewsComment setCreateTime(LocalDateTime createTime);
 
     // 更新时间
-    @TableField(value = "update_time")
-    private LocalDateTime updateTime;
+    LocalDateTime getUpdateTime();
 
+    FreshNewsComment setUpdateTime(LocalDateTime updateTime);
 }
