@@ -47,7 +47,7 @@ public class MqListener {
         log.info("收到新的评论: {}", comments.getContent());
 
         // 查找新鲜事的创建者
-        Long newsId = comments.getId();
+        Long newsId = comments.getFreshNewsId();
         FreshNews freshNews = freshNewsMapper.selectById(newsId);
         Long userId = freshNews.getUserId();
 
