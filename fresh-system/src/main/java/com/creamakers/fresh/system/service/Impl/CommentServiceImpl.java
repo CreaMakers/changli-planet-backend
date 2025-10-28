@@ -71,49 +71,30 @@ public class CommentServiceImpl implements CommentService {
             return ResultVo.fail(BAD_REQUEST_CODE, USER_NOT_FOUND_MESSAGE);
         }
 
-        if (freshNewsCommentRequest.getParentId() == 0L) {
-            FreshNewsFatherComment freshNewsFatherComment = new FreshNewsFatherComment()
-                    .setFreshNewsId(freshNewsCommentRequest.getNewsId())    // 关联的新鲜事ID
-                    .setLikedCount(0)                                       // 点赞数量
-                    .setContent(freshNewsCommentRequest.getContent())       // 评论内容
-                    .setUserId(freshNewsCommentRequest.getUserId())         // 用户ID
-                    .setUserName(user.getUsername())                        // 用户名
-                    .setUserAvatar(freshNewsCommentRequest.getUserAvatar()) // 用户头像URL
-                    .setCommentIp(freshNewsCommentRequest.getCommentIp())   // 评论发布的地址
-                    .setCommentTime(LocalDateTime.now())                    // 评论发布的时间
-                    .setIsActive(0)                                         // 评论是否有效: 0-未有效, 1-已有效
-                    .setIsDeleted(0)                                        // 评论是否删除: 0-未删除, 1-已删除
-                    .setCreateTime(LocalDateTime.now())                     // 创建时间
-                    .setUpdateTime(LocalDateTime.now());                    // 更新时间
-            int result = freshNewsFatherCommentMapper.insert(freshNewsFatherComment);
-            if (result > 0) {
-                rabbitTemplate.convertAndSend("commentExchange", "comment", freshNewsFatherComment);
-                return ResultVo.success();
-            } else {
-                return ResultVo.fail(COMMENT_ADD_FAILED_MESSAGE);
-            }
+        if (freshNewsCommentRequest.getParentId() != 0L) {
+            // 不是父评论,返回错误
+            return ResultVo.fail(BAD_REQUEST_CODE, NOT_FATHER_COMMENT);
+        }
+        FreshNewsFatherComment freshNewsFatherComment = new FreshNewsFatherComment()
+                .setFreshNewsId(freshNewsCommentRequest.getNewsId())    // 关联的新鲜事ID
+                .setLikedCount(0)                                       // 点赞数量
+                .setChildCount(0)                                       // 子评论数量
+                .setContent(freshNewsCommentRequest.getContent())       // 评论内容
+                .setUserId(freshNewsCommentRequest.getUserId())         // 用户ID
+                .setUserName(user.getUsername() == null ? "长理学子" : user.getUsername())   // 用户名
+                .setUserAvatar(user.getAvatarUrl())                     // 用户头像URL
+                .setCommentIp(freshNewsCommentRequest.getCommentIp())   // 评论发布的地址
+                .setCommentTime(LocalDateTime.now())                    // 评论发布的时间
+                .setIsActive(0)                                         // 评论是否有效: 0-未有效, 1-已有效
+                .setIsDeleted(0)                                        // 评论是否删除: 0-未删除, 1-已删除
+                .setCreateTime(LocalDateTime.now())                     // 创建时间
+                .setUpdateTime(LocalDateTime.now());                    // 更新时间
+        int result = freshNewsFatherCommentMapper.insert(freshNewsFatherComment);
+        if (result > 0) {
+            rabbitTemplate.convertAndSend("commentExchange", "comment", freshNewsFatherComment);
+            return ResultVo.success();
         } else {
-            FreshNewsChildComment freshNewsChildComment = new FreshNewsChildComment()
-                    .setFatherCommentId(freshNewsCommentRequest.getParentId())  // 关联的父评论ID
-                    .setFreshNewsId(freshNewsCommentRequest.getNewsId())        // 关联的新鲜事ID
-                    .setLikedCount(0)                                           // 点赞数量
-                    .setContent(freshNewsCommentRequest.getContent())           // 评论内容
-                    .setUserId(freshNewsCommentRequest.getUserId())             // 用户ID
-                    .setUserName(user.getUsername())                            // 用户名
-                    .setUserAvatar(freshNewsCommentRequest.getUserAvatar())     // 用户头像URL
-                    .setCommentIp(freshNewsCommentRequest.getCommentIp())       // 评论发布的地址
-                    .setCommentTime(LocalDateTime.now())                        // 评论发布的时间
-                    .setIsActive(0)                                             // 评论是否有效: 0-未有效, 1-已有效
-                    .setIsDeleted(0)                                            // 评论是否删除: 0-未删除, 1-已删除
-                    .setCreateTime(LocalDateTime.now())                         // 创建时间
-                    .setUpdateTime(LocalDateTime.now());                        // 更新时间
-            int result = freshNewsChildCommentMapper.insert(freshNewsChildComment);
-            if (result > 0) {
-                rabbitTemplate.convertAndSend("commentExchange", "comment", freshNewsChildComment);
-                return ResultVo.success();
-            } else {
-                return ResultVo.fail(COMMENT_ADD_FAILED_MESSAGE);
-            }
+            return ResultVo.fail(COMMENT_ADD_FAILED_MESSAGE);
         }
 
 //        FreshNewsComment comment = new FreshNewsComment();
@@ -157,52 +138,14 @@ public class CommentServiceImpl implements CommentService {
         // 查询父评论
         Page<FreshNewsFatherComment> selectPage = freshNewsFatherCommentMapper.selectPage(pageParam, queryWrapper);
 
-        List<FreshNewsFatherComment> freshNewsFatherCommentList = selectPage.getRecords();
-        // 提取父评论ID列表
-        List<Long> fatherCommentIds = freshNewsFatherCommentList
+        List<FreshNewsFatherCommentResp> freshNewsFatherCommentRespList = selectPage
+                .getRecords()
                 .stream()
-                .map(FreshNewsFatherComment::getId)
-                .collect(Collectors.toList());
-
-        //根据父评论ID查询子评论
-        QueryWrapper<FreshNewsChildComment> childQueryWrapper = new QueryWrapper<>();
-        childQueryWrapper
-                .eq("fresh_news_id", freshNewsId)
-                .in("father_comment_id", fatherCommentIds)
-                .eq("is_deleted", 0)
-                .orderByDesc("liked_count", "create_time"); // 按点赞数正序，创建时间倒序排列
-        // 查询子评论
-        List<FreshNewsChildComment> freshNewsChildCommentList = freshNewsChildCommentMapper.selectList(childQueryWrapper);
-
-        List<FreshNewsFatherCommentResp> fatherCommentRespList = new ArrayList<>(fatherCommentIds.size());
-        HashMap<Long,FreshNewsFatherCommentResp> fatherCommentMap = new HashMap<>(fatherCommentIds.size());
-        HashMap<Long,List<FreshNewsChildCommentResp> > childCommentMap = new HashMap<>(fatherCommentIds.size());
-
-        freshNewsFatherCommentList
-                .forEach(fatherComment -> {
-                    // 构造父评论响应对象
-                    FreshNewsFatherCommentResp fatherCommentResp = new FreshNewsFatherCommentResp();
-                    BeanUtils.copyProperties(fatherComment,fatherCommentResp);
-                    // 根据ID放入哈希表
-                    fatherCommentMap.put(fatherComment.getId(),fatherCommentResp);
-                    // 初始化子评论列表
-                    childCommentMap.put(fatherComment.getId(),new ArrayList<>());
-                });
-
-        // 遍历子评论列表，将每个子评论添加到对应父评论的子评论列表中
-        freshNewsChildCommentList
-                .forEach(childComment ->{
-                    FreshNewsChildCommentResp childCommentResp = new FreshNewsChildCommentResp();
-                    BeanUtils.copyProperties(childComment,childCommentResp);
-                    childCommentMap.get(childComment.getFatherCommentId()).add(childCommentResp);
-                });
-
-        // 为每个父评论设置子评论列表
-        fatherCommentMap
-                .forEach((fatherId,fatherCommentResp)->{
-                    fatherCommentResp.setChildCommentsList(childCommentMap.get(fatherId));
-                    fatherCommentRespList.add(fatherCommentResp);
-        });
+                .map(father -> {
+                    FreshNewsFatherCommentResp fatherResp = new FreshNewsFatherCommentResp();
+                    BeanUtils.copyProperties(father, fatherResp);
+                    return fatherResp;
+                }).toList();
 
         // 使用 ZINCRBY 命令增加有序集合中该 freshNewsId 的分数（浏览量）
         redisTemplate.opsForZSet().incrementScore(VIEW_COUNT_ZSET_KEY, freshNewsId, 1);
@@ -214,9 +157,9 @@ public class CommentServiceImpl implements CommentService {
         // 返回分页查询结果
         FreshNewsCommentResp response = new FreshNewsCommentResp(
                 freshNewsId,                            // 新鲜事ID
-                fatherCommentRespList.size(),           // 一级评论数量
+                freshNewsFatherCommentRespList.size(),  // 一级评论数量
                 1,                                      // 是否显示评论区(默认显示)
-                fatherCommentRespList);                 // 一级评论列表(以对应的包含二级评论列表）
+                freshNewsFatherCommentRespList);        // 一级评论列表
         return ResultVo.success(response);
 
 //        // 创建分页对象
@@ -272,13 +215,25 @@ public class CommentServiceImpl implements CommentService {
                     .set("is_deleted", 1);
             int result = freshNewsChildCommentMapper.update(updateWrapper);
 
-            if (result > 0) {
-                // 子评论删除成功
-                return ResultVo.success();
-            } else {
-                // 子评论删除失败
+            if (result <= 0) {
                 return ResultVo.fail(CHILD_COMMENT_DELETE_FAILED_MESSAGE);
             }
+
+            // 子评论删除成功,更新父评论子评论数量
+            FreshNewsChildComment childComment = freshNewsChildCommentMapper.selectById(commentId);
+            FreshNewsFatherComment fatherComment = freshNewsFatherCommentMapper.selectById(childComment.getFatherCommentId());
+            // 检查父评论是否存在
+            if (fatherComment == null) {
+                return ResultVo.fail(CHILD_COMMENT_DELETE_FAILED_MESSAGE);
+            }
+            // 更新父评论子评论数量
+            int updated = freshNewsFatherCommentMapper.updateById(fatherComment.setChildCount(fatherComment.getChildCount() - 1));
+            if (updated <= 0) {
+                // 更新父评论子评论数量失败,回滚子评论删除
+                throw new RuntimeException(CHILD_COMMENT_DELETE_FAILED_MESSAGE);
+            }
+            // 子评论删除成功，返回成功结果
+            return ResultVo.success();
         } else {
             // 删除父评论
             UpdateWrapper<FreshNewsFatherComment> updateWrapper = new UpdateWrapper<>();
@@ -287,37 +242,33 @@ public class CommentServiceImpl implements CommentService {
                     .set("is_deleted", 1);
             int result = freshNewsFatherCommentMapper.update(updateWrapper);
 
-            if (result > 0) {
-                try {
-                    //获取子评论个数
-                    Long childCount = freshNewsChildCommentMapper.selectCount(
-                            new QueryWrapper<FreshNewsChildComment>()
-                                    .eq("fresh_news_id", freshNewsId)
-                                    .eq("father_comment_id", commentId)
-                                    .eq("is_deleted", 0)
-                    );
-
-                    // 删除关联子评论
-                    UpdateWrapper<FreshNewsChildComment> childUpdateWrapper = new UpdateWrapper<>();
-                    childUpdateWrapper.eq("fresh_news_id",freshNewsId)
-                            .eq("father_comment_id",commentId)
-                            .set("is_deleted", 1);
-                    int childUpdate = freshNewsChildCommentMapper.update(childUpdateWrapper);
-
-                    if (childUpdate == childCount) {
-                        // 关联子评论删除成功
-                        return ResultVo.success();
-                    } else {
-                        // 关联子评论删除失败，回滚父评论删除
-                        throw new RuntimeException(CHILD_COMMENT_DELETE_FAILED_MESSAGE);
-                    }
-                } catch (Exception e) {
-                    // 关联子评论删除失败，回滚父评论删除
-                    throw new RuntimeException(e);
-                }
-            } else {
+            if (result <= 0) {
                 // 父评论删除失败
                 return ResultVo.fail(COMMENT_DELETE_FAILED_MESSAGE);
+            }
+
+            try {
+                //获取子评论个数
+                Integer childCount = freshNewsFatherCommentMapper.selectById(commentId).getChildCount();
+
+                // 删除关联子评论
+                UpdateWrapper<FreshNewsChildComment> childUpdateWrapper = new UpdateWrapper<>();
+                childUpdateWrapper.eq("fresh_news_id", freshNewsId)
+                        .eq("father_comment_id", commentId)
+                        .eq("is_deleted", 0)
+                        .set("is_deleted", 1);
+                int childUpdate = freshNewsChildCommentMapper.update(childUpdateWrapper);
+
+                if (childUpdate == childCount) {
+                    // 关联子评论删除成功
+                    return ResultVo.success();
+                } else {
+                    // 关联子评论删除失败，回滚父评论删除
+                    throw new RuntimeException(CHILD_COMMENT_DELETE_FAILED_MESSAGE);
+                }
+            } catch (Exception e) {
+                // 关联子评论删除失败，回滚父评论删除
+                throw new RuntimeException(e);
             }
         }
 //        int result = freshNewsCommentMapper.deleteByIdAndUserId(commentId, userId);
@@ -329,7 +280,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     /**
-    回复评论（添加子评论）
+     * 回复评论（添加子评论）
      */
     @Override
     public ResultVo<Void> addReply(FreshNewsCommentRequest freshNewsCommentRequest) {
@@ -339,33 +290,44 @@ public class CommentServiceImpl implements CommentService {
             return ResultVo.fail(BAD_REQUEST_CODE, USER_NOT_FOUND_MESSAGE);
         }
 
-        if (freshNewsCommentRequest.getParentId() != 0L) {
-            FreshNewsChildComment freshNewsChildComment = new FreshNewsChildComment()
-                    .setFreshNewsId(freshNewsCommentRequest.getNewsId())    // 关联的新鲜事ID
-                    .setFatherCommentId(freshNewsCommentRequest.getParentId())  // 关联的父评论ID
-                    .setLikedCount(0)                                       // 点赞数量
-                    .setContent(freshNewsCommentRequest.getContent())       // 评论内容
-                    .setUserId(freshNewsCommentRequest.getUserId())         // 用户ID
-                    .setUserName(user.getUsername())                        // 用户名
-                    .setUserAvatar(freshNewsCommentRequest.getUserAvatar()) // 用户头像URL
-                    .setCommentIp(freshNewsCommentRequest.getCommentIp())   // 评论发布的地址
-                    .setCommentTime(LocalDateTime.now())                    // 评论发布的时间
-                    .setIsActive(0)                                         // 评论是否有效: 0-未有效, 1-已有效
-                    .setIsDeleted(0)                                        // 评论是否删除: 0-未删除, 1-已删除
-                    .setCreateTime(LocalDateTime.now())                     // 创建时间
-                    .setUpdateTime(LocalDateTime.now());                    // 更新时间
-            int result = freshNewsChildCommentMapper.insert(freshNewsChildComment);
-            if (result > 0) {
-                // 通过 RabbitMQ 发送评论消息到队列
-                rabbitTemplate.convertAndSend("replyExchange", "reply", freshNewsChildComment);
-
-                return ResultVo.success();
-            } else {
-                return ResultVo.fail(COMMENT_ADD_FAILED_MESSAGE);
-            }
-        }else {
+        if (freshNewsCommentRequest.getParentId() == 0L) {
+            // 父评论不存在,不是子评论
             return ResultVo.fail(BAD_REQUEST_CODE, NOT_CHILD_COMMENT);
         }
+
+        FreshNewsChildComment freshNewsChildComment = new FreshNewsChildComment()
+                .setFreshNewsId(freshNewsCommentRequest.getNewsId())    // 关联的新鲜事ID
+                .setFatherCommentId(freshNewsCommentRequest.getParentId())  // 关联的父评论ID
+                .setLikedCount(0)                                       // 点赞数量
+                .setContent(freshNewsCommentRequest.getContent())       // 评论内容
+                .setUserId(freshNewsCommentRequest.getUserId())         // 用户ID
+                .setUserName(user.getUsername() == null ? "长理学子" : user.getUsername())   // 用户名
+                .setUserAvatar(user.getAvatarUrl())                     // 用户头像URL
+                .setCommentIp(freshNewsCommentRequest.getCommentIp())   // 评论发布的地址
+                .setCommentTime(LocalDateTime.now())                    // 评论发布的时间
+                .setIsActive(0)                                         // 评论是否有效: 0-未有效, 1-已有效
+                .setIsDeleted(0)                                        // 评论是否删除: 0-未删除, 1-已删除
+                .setCreateTime(LocalDateTime.now())                     // 创建时间
+                .setUpdateTime(LocalDateTime.now());                    // 更新时间
+        int result = freshNewsChildCommentMapper.insert(freshNewsChildComment);
+        if (result <= 0) {
+            // 子评论添加失败
+            return ResultVo.fail(COMMENT_ADD_FAILED_MESSAGE);
+        }
+        //父评论回复数量+1
+        FreshNewsFatherComment fatherComment = freshNewsFatherCommentMapper.selectById(freshNewsCommentRequest.getParentId());
+        if (fatherComment == null) {
+            // 父评论不存在
+            return ResultVo.fail(BAD_REQUEST_CODE, PARENT_COMMENT_NOT_FOUND_MESSAGE);
+        }
+
+        // 子评论回复数量+1
+        fatherComment.setChildCount(fatherComment.getChildCount() + 1);
+        freshNewsFatherCommentMapper.updateById(fatherComment);
+
+        // 通过 RabbitMQ 发送评论消息到队列
+        rabbitTemplate.convertAndSend("replyExchange", "reply", freshNewsChildComment);
+        return ResultVo.success();
 
 //        // 创建一个新的评论对象
 //        FreshNewsComment comment = new FreshNewsComment();

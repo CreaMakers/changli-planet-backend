@@ -18,7 +18,7 @@ public class CommentsController {
     private CommentService commentService;
 
     /**
-     * 添加评论
+     * 添加评论(一级评论)
      */
     @PostMapping("/fresh_news/add")
     public ResultVo<Void> addComment(@RequestBody FreshNewsCommentRequest freshNewsCommentRequest) {
@@ -26,7 +26,7 @@ public class CommentsController {
     }
 
     /**
-     * 获取新鲜事的评论列表
+     * 获取新鲜事的评论列表(一级评论)
      * @param freshNewsId 新鲜事ID
      * @param page 页码
      * @param pageSize 每页大小
