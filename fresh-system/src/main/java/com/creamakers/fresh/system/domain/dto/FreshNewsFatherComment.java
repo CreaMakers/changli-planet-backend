@@ -38,6 +38,10 @@ public class FreshNewsFatherComment implements FreshNewsComment , Serializable {
     @TableField(value = "liked_count")
     private Integer likedCount;
 
+    // 子评论数量
+    @TableField(value = "child_count")
+    private Integer childCount;
+
     // 评论内容
     @TableField(value = "content")
     private String content;

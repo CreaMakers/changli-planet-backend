@@ -18,9 +18,6 @@ public class FreshNewsCommentRequest {
     @JsonProperty("user_id")
     private Long userId;            // 用户ID
 
-    @JsonProperty("user_avatar")
-    private String userAvatar;      //用户头像URL
-
     @JsonProperty("content")
     private String content;         // 评论内容
 

@@ -1,14 +1,14 @@
 package com.creamakers.fresh.system.domain.dto;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * 用户DTO类
@@ -16,37 +16,103 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("user")
+@TableName("user_profile") // 用户展示信息表(便于查询用户名和用户头像)
 public class User {
 
-    @TableId(value = "user_id", type = IdType.AUTO)
-    private Long userId;
+    /**
+     * 用户id
+     */
+    @TableId(type = IdType.AUTO)
+    private Integer userId;
 
-    // 用户名
-    @TableField(value = "username")
+    /**
+     * 用户头像url
+     */
+    @TableField(value = "avatar_url")
+    private String avatarUrl;
+
+    /**
+     * 用户姓名注册登录用
+     */
+    @TableField("username")
     private String username;
 
-    // 密码
-    @TableField(value = "password")
-    private String password;
+    /**
+     * 用户邮箱
+     */
+    @TableField(value = "emailbox")
+    private String emailbox;
 
-    // 管理员权限
-    @TableField(value = "is_admin")
-    private Integer isAdmin;
+    /**
+     * 用户账号名，用户自定义
+     */
+    @TableField("account")
+    private String account;
 
-    // 创建时间
-    @TableField(value = "create_time")
-    private LocalDateTime createTime;
+    /**
+     * 个性标签/个人描述
+     */
+    @TableField(value = "bio")
+    private String bio;
 
-    // 最后更新时间
-    @TableField(value = "update_time")
-    private LocalDateTime updateTime;
+    /**
+     * 用户展示信息描述
+     */
+    @TableField(value = "description")
+    private String description;
 
-    // 是否删除: 0-未删除, 1-已删除
-    @TableField(value = "is_deleted")
+    /**
+     * 用户等级
+     */
+    @TableField(value = "user_level")
+    private Integer userLevel;
+
+    /**
+     * 性别: 0-男， 1-女， 2-其他
+     */
+    @TableField(value = "gender")
+    private Integer gender;
+
+    /**
+     * 年级
+     */
+    @TableField(value = "grade")
+    private String grade;
+
+    /**
+     * 出生日期
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd",timezone = "Asia/Shanghai")
+    @TableField(value = "birth_date")
+    private LocalDate birthDate;
+
+    /**
+     * 所在地
+     */
+    @TableField(value = "location")
+    private String location;
+
+    /**
+     * 个人网站或社交链接
+     */
+    @TableField(value = "website")
+    private String website;
+
+    /**
+     * 记录创建时间
+     */
+    @TableField(value = "create_time", fill = FieldFill.INSERT)
+    private Date createTime;
+
+    /**
+     * 记录更新时间
+     */
+    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
+    private Date updateTime;
+
+    /**
+     * 是否删除: 0-未删除，1-已删除
+     */
+    @TableField(value = "is_deleted", fill = FieldFill.INSERT)
     private Integer isDeleted;
-
-    // 是否封禁: 0-未封禁, 1-已封禁
-    @TableField(value = "is_banned")
-    private Integer isBanned;
 }

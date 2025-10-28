@@ -24,6 +24,10 @@ public class FreshNewsFatherCommentResp {
     @JsonProperty(value = "liked")
     private Integer likedCount;
 
+    // 子评论数量
+    @JsonProperty(value = "child_count")
+    private Integer childCount;
+
     // 评论内容
     @JsonProperty(value = "content")
     private String content;
@@ -51,8 +55,4 @@ public class FreshNewsFatherCommentResp {
     // 是否有效: 0-未有效, 1-已有效
     @JsonProperty(value = "is_active")
     private Integer isActive;
-
-    // 子评论列表
-    @JsonProperty(value = "reply_list")
-    private List<FreshNewsChildCommentResp> childCommentsList;
 }

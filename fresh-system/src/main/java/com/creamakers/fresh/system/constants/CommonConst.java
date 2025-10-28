@@ -67,4 +67,6 @@ public class CommonConst {
 
     public static final String NOT_CHILD_COMMENT = "该评论不是子评论";
 
+    public static final String NOT_FATHER_COMMENT = "该评论不是父评论";
+
 }
