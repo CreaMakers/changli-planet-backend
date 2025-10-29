@@ -8,7 +8,7 @@ import com.creamakers.fresh.system.domain.vo.response.FreshNewsCommentResp;
 import java.util.List;
 
 public interface CommentService {
-    ResultVo<Void> addComment(FreshNewsCommentRequest freshNewsCommentRequest);
+    ResultVo<Long> addComment(FreshNewsCommentRequest freshNewsCommentRequest);
 
     ResultVo<FreshNewsCommentResp> listComments(Long freshNewsId, Integer page, Integer pageSize);
 
@@ -16,5 +16,5 @@ public interface CommentService {
 
     ResultVo<List<FreshNewsChildCommentResp>> listReplies(Long freshNewsId, Long commentId, Integer page, Integer pageSize);
 
-    ResultVo<Void> addReply(FreshNewsCommentRequest freshNewsCommentRequest);
+    ResultVo<Long> addReply(FreshNewsCommentRequest freshNewsCommentRequest);
 }

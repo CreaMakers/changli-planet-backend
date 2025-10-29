@@ -64,7 +64,7 @@ public class CommentServiceImpl implements CommentService {
      * @return 结果
      */
     @Override
-    public ResultVo<Void> addComment(FreshNewsCommentRequest freshNewsCommentRequest) {
+    public ResultVo<Long> addComment(FreshNewsCommentRequest freshNewsCommentRequest) {
         User user = userMapper.selectById(freshNewsCommentRequest.getUserId());
         if (user == null) {
             // 用户不存在
@@ -92,7 +92,7 @@ public class CommentServiceImpl implements CommentService {
         int result = freshNewsFatherCommentMapper.insert(freshNewsFatherComment);
         if (result > 0) {
             rabbitTemplate.convertAndSend("commentExchange", "comment", freshNewsFatherComment);
-            return ResultVo.success();
+            return ResultVo.success(freshNewsFatherComment.getId());
         } else {
             return ResultVo.fail(COMMENT_ADD_FAILED_MESSAGE);
         }
@@ -283,7 +283,7 @@ public class CommentServiceImpl implements CommentService {
      * 回复评论（添加子评论）
      */
     @Override
-    public ResultVo<Void> addReply(FreshNewsCommentRequest freshNewsCommentRequest) {
+    public ResultVo<Long> addReply(FreshNewsCommentRequest freshNewsCommentRequest) {
         User user = userMapper.selectById(freshNewsCommentRequest.getUserId());
         if (user == null) {
             // 用户不存在
@@ -327,7 +327,7 @@ public class CommentServiceImpl implements CommentService {
 
         // 通过 RabbitMQ 发送评论消息到队列
         rabbitTemplate.convertAndSend("replyExchange", "reply", freshNewsChildComment);
-        return ResultVo.success();
+        return ResultVo.success(freshNewsChildComment.getId());
 
 //        // 创建一个新的评论对象
 //        FreshNewsComment comment = new FreshNewsComment();
