@@ -21,7 +21,7 @@ public class CommentsController {
      * 添加评论(一级评论)
      */
     @PostMapping("/fresh_news/add")
-    public ResultVo<Void> addComment(@RequestBody FreshNewsCommentRequest freshNewsCommentRequest) {
+    public ResultVo<Long> addComment(@RequestBody FreshNewsCommentRequest freshNewsCommentRequest) {
         return commentService.addComment(freshNewsCommentRequest);
     }
 
@@ -73,7 +73,7 @@ public class CommentsController {
      * 添加评论回复
      */
     @PostMapping("/replies/add")
-    public ResultVo<Void> addReply(@RequestBody FreshNewsCommentRequest freshNewsCommentRequest) {
+    public ResultVo<Long> addReply(@RequestBody FreshNewsCommentRequest freshNewsCommentRequest) {
         return commentService.addReply(freshNewsCommentRequest);
     }
 }
