@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourcePerFileMappings">
-    <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/da95c547-0d14-4ce5-aa71-38376ede8ffd/console.sql" value="da95c547-0d14-4ce5-aa71-38376ede8ffd" />
-    <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/da95c547-0d14-4ce5-aa71-38376ede8ffd/console_1.sql" value="da95c547-0d14-4ce5-aa71-38376ede8ffd" />
     <file url="file://$PROJECT_DIR$/fresh-system/src/main/java/com/creamakers/fresh/system/dao/FreshNewsChildCommentMapper.java" value="da95c547-0d14-4ce5-aa71-38376ede8ffd" />
     <file url="file://$PROJECT_DIR$/fresh-system/src/main/java/com/creamakers/fresh/system/dao/FreshNewsFatherCommentMapper.java" value="da95c547-0d14-4ce5-aa71-38376ede8ffd" />
     <file url="file://$PROJECT_DIR$/fresh-system/src/main/java/com/creamakers/fresh/system/dao/WordAllowMapper.java" value="899cb5fd-a4c3-4632-9f5f-5687bc0a88c0" />

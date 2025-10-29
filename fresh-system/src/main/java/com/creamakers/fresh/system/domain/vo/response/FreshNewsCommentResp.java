@@ -15,19 +15,19 @@ import java.util.List;
 @NoArgsConstructor
 public class FreshNewsCommentResp {
     //评论所属新鲜事ID
-    @JsonProperty(value = "fresh_news_id")
+    @JsonProperty(value = "freshNewsId")
     private Long freshNewsId;
 
     //一级评论的数量
-    @JsonProperty(value = "first_comment_count")
+    @JsonProperty(value = "firstCommentCount")
     private Integer firstCommentCount;
 
     //是否显示评论区
-    @JsonProperty(value = "is_active")
+    @JsonProperty(value = "isActive")
     private Integer isActive;
 
     //一级评论区列表
-    @JsonProperty(value = "comments_list")
+    @JsonProperty(value = "commentsList")
     private List<FreshNewsFatherCommentResp> commentsList;
 
 }
