@@ -95,7 +95,7 @@ public class FreshNewsServiceImpl implements FreshNewsService {
 
         // 图片上传逻辑
         StringBuilder urls = new StringBuilder();
-        if (!CollectionUtils.isEmpty(images)) {
+        if (!CollectionUtils.isEmpty(images) && !images.getFirst().getOriginalFilename().isEmpty()) {
             for (MultipartFile image : images) {
                 String s = HUAWEIOBSUtil.uploadImage(image, UUID.randomUUID().toString());
                 if (urls.length() > 0) {
