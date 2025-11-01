@@ -2,11 +2,14 @@ package com.creamakers.fresh.system.service.Impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.creamakers.fresh.system.dao.FreshNewsChildCommentMapper;
 import com.creamakers.fresh.system.dao.FreshNewsFatherCommentMapper;
+import com.creamakers.fresh.system.dao.FreshNewsMapper;
 import com.creamakers.fresh.system.dao.UserMapper;
+import com.creamakers.fresh.system.domain.dto.FreshNews;
 import com.creamakers.fresh.system.domain.dto.FreshNewsChildComment;
 import com.creamakers.fresh.system.domain.dto.FreshNewsFatherComment;
 import com.creamakers.fresh.system.domain.dto.User;
@@ -43,6 +46,10 @@ public class CommentServiceImpl implements CommentService {
 
     @Autowired
     private FreshNewsChildCommentMapper freshNewsChildCommentMapper;
+
+    @Autowired
+    private FreshNewsMapper freshNewsMapper;
+
 
     @Autowired
     private UserMapper userMapper;
@@ -91,6 +98,11 @@ public class CommentServiceImpl implements CommentService {
                 .setUpdateTime(LocalDateTime.now());                    // 更新时间
         int result = freshNewsFatherCommentMapper.insert(freshNewsFatherComment);
         if (result > 0) {
+            // 更新新鲜事的评论数量
+            FreshNews freshNews = freshNewsMapper.selectById(freshNewsCommentRequest.getNewsId());
+            freshNews.setComments(freshNews.getComments() + 1);
+            freshNewsMapper.updateById(freshNews);
+
             rabbitTemplate.convertAndSend("commentExchange", "comment", freshNewsFatherComment);
             return ResultVo.success(freshNewsFatherComment.getId());
         } else {
