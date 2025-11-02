@@ -12,6 +12,7 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -130,41 +131,51 @@ public class MqListener {
 
     // 4. 处理点赞评论
     @RabbitListener(queues = "likeCommentQueue")
-    public void handleLikeComment(Long commentId,Long isParent) {
-        log.info("收到点赞评论的消息: commentId={}", commentId);
+    public void handleLikeComment(String message) {
+        log.info("收到点赞评论的消息: message={}", message);
 
         // 查找评论的创建者
-
         //FreshNewsComment comment = freshNewsCommentMapper.selectById(commentId);
         //Long userId = comment.getUserId();
-        Long userId = null;
-        if(isParent == 0){
-            // 子评论
-            FreshNewsChildComment freshNewsChildComment = freshNewsChildCommentMapper.selectById(commentId);
-            userId = freshNewsChildComment.getUserId();
-        }else {
-            // 父评论
-            FreshNewsFatherComment freshNewsFatherComment = freshNewsFatherCommentMapper.selectById(commentId);
-            userId = freshNewsFatherComment.getUserId();
+        try {
+            String[] parts = message.split(":");
+            if (parts.length != 2) {
+                log.error("点赞评论消息格式错误: {}", message);
+                return;
+            }
+            Long commentId = Long.parseLong(parts[0]);
+            Long isParent = Long.parseLong(parts[1]);
+            Long userId = null;
+            if(isParent == 0){
+                // 子评论
+                FreshNewsChildComment freshNewsChildComment = freshNewsChildCommentMapper.selectById(commentId);
+                userId = freshNewsChildComment.getUserId();
+            }else {
+                // 父评论
+                FreshNewsFatherComment freshNewsFatherComment = freshNewsFatherCommentMapper.selectById(commentId);
+                userId = freshNewsFatherComment.getUserId();
+            }
+
+            // 创建推送的通知消息
+            Notification notification = new Notification();
+            notification.setContent("有人点赞了您的评论")
+                    .setSenderId(1L) // 假设1L为系统或某个固定用户的ID
+                    .setReceiverId(userId)
+                    .setIsRead(0)
+                    .setIsDeleted(0)
+                    .setSendTime(LocalDateTime.now())
+                    .setNotificationType(2)
+                    .setDescription("评论收到点赞");
+            int insert = notificationMapper.insert(notification);
+            if(insert<=0) ResultVo.fail(DB_INSERT_NOTIFICATION_FAILED);
+            NotificationResp notificationResp = new NotificationResp();
+            BeanUtils.copyProperties(notification, notificationResp);
+
+            // 通过 WebSocket 向该用户发送通知
+            webSocketService.sendMessageToUser(userId, notificationResp);
+        } catch (Exception  e) {
+            log.error("处理点赞评论消息失败: {}", message, e);
         }
-
-        // 创建推送的通知消息
-        Notification notification = new Notification();
-        notification.setContent("有人点赞了您的评论")
-                .setSenderId(1L) // 假设1L为系统或某个固定用户的ID
-                .setReceiverId(userId)
-                .setIsRead(0)
-                .setIsDeleted(0)
-                .setSendTime(LocalDateTime.now())
-                .setNotificationType(2)
-                .setDescription("评论收到点赞");
-        int insert = notificationMapper.insert(notification);
-        if(insert<=0) ResultVo.fail(DB_INSERT_NOTIFICATION_FAILED);
-        NotificationResp notificationResp = new NotificationResp();
-        BeanUtils.copyProperties(notification, notificationResp);
-
-        // 通过 WebSocket 向该用户发送通知
-        webSocketService.sendMessageToUser(userId, notificationResp);
     }
 
 

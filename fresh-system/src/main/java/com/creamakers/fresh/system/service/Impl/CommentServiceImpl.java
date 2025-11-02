@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.creamakers.fresh.system.constants.RedisKeyConstant;
 import com.creamakers.fresh.system.dao.FreshNewsChildCommentMapper;
 import com.creamakers.fresh.system.dao.FreshNewsFatherCommentMapper;
 import com.creamakers.fresh.system.dao.FreshNewsMapper;
@@ -19,6 +20,7 @@ import com.creamakers.fresh.system.domain.vo.response.FreshNewsChildCommentResp;
 import com.creamakers.fresh.system.domain.vo.response.FreshNewsCommentResp;
 import com.creamakers.fresh.system.domain.vo.response.FreshNewsFatherCommentResp;
 import com.creamakers.fresh.system.service.CommentService;
+import org.apache.velocity.util.ArrayListWrapper;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -139,7 +142,7 @@ public class CommentServiceImpl implements CommentService {
      * @return 评论列表
      */
     @Override
-    public ResultVo<FreshNewsCommentResp> listComments(Long freshNewsId, Integer page, Integer pageSize) {
+    public ResultVo<FreshNewsCommentResp<FreshNewsFatherCommentResp>> listComments(Long freshNewsId, Integer page, Integer pageSize, Integer userId) {
         // 构造父评论查询参数
         Page<FreshNewsFatherComment> pageParam = new Page<>(page, pageSize);
         QueryWrapper<FreshNewsFatherComment> queryWrapper = new QueryWrapper<>();
@@ -149,15 +152,33 @@ public class CommentServiceImpl implements CommentService {
                 .orderByDesc("liked_count", "create_time"); // 按点赞数正序，创建时间倒序排列
         // 查询父评论
         Page<FreshNewsFatherComment> selectPage = freshNewsFatherCommentMapper.selectPage(pageParam, queryWrapper);
+        List<FreshNewsFatherComment> freshNewsFatherCommentList = selectPage.getRecords();
 
-        List<FreshNewsFatherCommentResp> freshNewsFatherCommentRespList = selectPage
-                .getRecords()
+        //用户是否点赞列表
+        List<Boolean> isLikedList = new ArrayList<>(freshNewsFatherCommentList.size());
+
+        List<FreshNewsFatherCommentResp> freshNewsFatherCommentRespList = freshNewsFatherCommentList
                 .stream()
                 .map(father -> {
                     FreshNewsFatherCommentResp fatherResp = new FreshNewsFatherCommentResp();
                     BeanUtils.copyProperties(father, fatherResp);
+
+                    //合并redis中的点赞数
+                    String redisKey = RedisKeyConstant.LIKE_COMMENT_NUM + fatherResp.getId() + ":1";
+                    Integer redisLiked = (Integer) redisTemplate.opsForValue().get(redisKey);
+                    Integer dbLike = fatherResp.getLikedCount();
+                    fatherResp.setLikedCount(redisLiked == null ? dbLike : redisLiked + dbLike);
+
                     return fatherResp;
-                }).toList();
+                })
+                .sorted(Comparator.comparing(FreshNewsFatherCommentResp::getLikedCount).reversed())// 按点赞数降序排序
+                .peek(fatherResp -> {
+                    //判断用户是否点赞
+                    String redisKey = RedisKeyConstant.LIKE_COMMENT + fatherResp.getId() + ":1";
+                    Boolean isLiked = redisTemplate.opsForSet().isMember(redisKey, userId);
+                    isLikedList.add(isLiked);
+                })
+                .toList();
 
         // 使用 ZINCRBY 命令增加有序集合中该 freshNewsId 的分数（浏览量）
         redisTemplate.opsForZSet().incrementScore(VIEW_COUNT_ZSET_KEY, freshNewsId, 1);
@@ -171,7 +192,8 @@ public class CommentServiceImpl implements CommentService {
                 freshNewsId,                            // 新鲜事ID
                 freshNewsFatherCommentRespList.size(),  // 一级评论数量
                 1,                                      // 是否显示评论区(默认显示)
-                freshNewsFatherCommentRespList);        // 一级评论列表
+                freshNewsFatherCommentRespList,         // 一级评论列表
+                isLikedList);                           // 一级评论是否点赞列表
         return ResultVo.success(response);
 
 //        // 创建分页对象
@@ -378,7 +400,7 @@ public class CommentServiceImpl implements CommentService {
      * @return 子评论列表
      */
     @Override
-    public ResultVo<List<FreshNewsChildCommentResp>> listReplies(Long freshNewsId, Long commentId, Integer page, Integer pageSize) {
+    public ResultVo<FreshNewsCommentResp<FreshNewsChildCommentResp>> listReplies(Long freshNewsId, Long commentId, Integer userId, Integer page, Integer pageSize) {
         // 创建分页对象
         Page<FreshNewsChildComment> pageParam = new Page<>(page, pageSize);
         Page<FreshNewsChildComment> pageResult = freshNewsChildCommentMapper.selectPage(
@@ -389,12 +411,42 @@ public class CommentServiceImpl implements CommentService {
                         .eq("is_deleted", 0)         // 确保评论没有被删除
                         .orderByDesc("liked_count", "create_time")
         );
+        List<FreshNewsChildComment> freshNewsChildCommentList = pageResult.getRecords();
 
-        List<FreshNewsChildCommentResp> freshNewsChildCommentRespsList = pageResult.getRecords()
+        // 点赞状态列表
+        List<Boolean> isLikedList = new ArrayList<>(freshNewsChildCommentList.size());
+
+        List<FreshNewsChildCommentResp> freshNewsChildCommentRespsList = freshNewsChildCommentList
                 .stream()
-                .map(freshNewsChildComment -> BeanUtil.copyProperties(freshNewsChildComment, FreshNewsChildCommentResp.class))
+                .map(child -> {
+                    FreshNewsChildCommentResp childResp = new FreshNewsChildCommentResp();
+                    BeanUtils.copyProperties(child, childResp);
+
+                    //合并redis中的点赞数
+                    String redisKey = RedisKeyConstant.LIKE_COMMENT_NUM + childResp.getId() + ":0";
+                    Integer redisLiked = (Integer) redisTemplate.opsForValue().get(redisKey);
+                    Integer dbLike = childResp.getLikedCount();
+                    childResp.setLikedCount(redisLiked == null ? dbLike : redisLiked + dbLike);
+
+                    return childResp;
+                })
+                .sorted(Comparator.comparingInt(FreshNewsChildCommentResp::getLikedCount).reversed()) // 按点赞数降序排序
+                .peek(childResp -> {
+                    //判断用户是否点赞
+                    String redisKey = RedisKeyConstant.LIKE_COMMENT + childResp.getId() + ":0";
+                    Boolean isLiked = redisTemplate.opsForSet().isMember(redisKey, userId);
+                    isLikedList.add(isLiked);
+                })
                 .collect(Collectors.toList());
-        return ResultVo.success(freshNewsChildCommentRespsList);
+
+        // 返回分页查询结果
+        FreshNewsCommentResp<FreshNewsChildCommentResp> response = new FreshNewsCommentResp<>(
+                freshNewsId,                            // 新鲜事ID
+                freshNewsChildCommentRespsList.size(),  // 子评论数量
+                1,                                      // 是否显示评论区(默认显示)
+                freshNewsChildCommentRespsList,         // 子评论列表
+                isLikedList);                           // 子评论是否点赞列表
+        return ResultVo.success(response);
 
 //        // 创建分页对象
 //        Page<FreshNewsComment> pageParam = new Page<>(page, pageSize);
