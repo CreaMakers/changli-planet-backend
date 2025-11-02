@@ -2,6 +2,7 @@ package com.creamakers.fresh.system.service.Impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.creamakers.fresh.system.constants.RedisKeyConstant;
 import com.creamakers.fresh.system.dao.FreshNewsLikesMapper;
 import com.creamakers.fresh.system.dao.FreshNewsMapper;
 import com.creamakers.fresh.system.dao.TagsMapper;
@@ -20,6 +21,7 @@ import jodd.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -114,7 +116,7 @@ public class FreshNewsServiceImpl implements FreshNewsService {
                 .setImages(finalUrls.isEmpty() ? "" : "图片正在审核中")
                 .setContent(freshNewsRequest.getContent())
                 .setTags(freshNewsRequest.getTags())
-                .setLiked(0)
+                .setLiked(0L)
                 .setIsDeleted(0)
                 .setFavoritesCount(0)
                 .setCreateTime(LocalDateTime.now())
@@ -181,6 +183,11 @@ public class FreshNewsServiceImpl implements FreshNewsService {
                 freshNewsDetailResp.setTags(new ArrayList<>());  // 空字符串或 null 时返回空数组
             }
 
+            //合并redis中的点赞数
+            Integer redisLiked = (Integer) redisTemplate.opsForValue().get( RedisKeyConstant.LIKE_NEWS_NUM+freshNewsId);
+            Integer dbLike = freshNewsDetailResp.getLiked();
+            freshNewsDetailResp.setLiked(redisLiked==null ? dbLike : redisLiked+dbLike);
+
             return ResultVo.success(freshNewsDetailResp);
         } else {
             return ResultVo.fail( FRESH_NEWS_NOT_FOUND_MESSAGE);
@@ -200,6 +207,12 @@ public class FreshNewsServiceImpl implements FreshNewsService {
                     .map(freshNews -> {
                         FreshNewsResp resp = new FreshNewsResp();
                         BeanUtils.copyProperties(freshNews, resp);
+
+                        //合并redis中的点赞数
+                        Integer redisLiked = (Integer) redisTemplate.opsForValue().get( RedisKeyConstant.LIKE_NEWS_NUM+resp.getFreshNewsId());
+                        Integer dbLike = resp.getLiked();
+                        resp.setLiked(redisLiked==null ? dbLike : redisLiked+dbLike);
+
                         return resp;
                     })
                     .collect(Collectors.toList());
@@ -223,10 +236,16 @@ public class FreshNewsServiceImpl implements FreshNewsService {
                 .map(freshNews -> {
                     FreshNewsResp resp = new FreshNewsResp();
                     BeanUtils.copyProperties(freshNews, resp);
+
+                    //合并redis中的点赞数
+                    Integer redisLiked = (Integer) redisTemplate.opsForValue().get(RedisKeyConstant.LIKE_NEWS_NUM + resp.getFreshNewsId());
+                    Integer dbLike = resp.getLiked();
+                    resp.setLiked(redisLiked == null ? dbLike : redisLiked + dbLike);
+
                     return resp;
                 })
+                .sorted(Comparator.comparingInt(FreshNewsResp::getLiked).reversed())//根据点赞数排序
                 .collect(Collectors.toList());
-
         // 返回分页结果
         return ResultVo.success(freshNewsRespList);
     }
@@ -253,6 +272,12 @@ public class FreshNewsServiceImpl implements FreshNewsService {
                 .map(freshNews -> {
                     FreshNewsResp resp = new FreshNewsResp();
                     BeanUtils.copyProperties(freshNews, resp);
+
+                    //合并redis中的点赞数
+                    Integer redisLiked = (Integer) redisTemplate.opsForValue().get(RedisKeyConstant.LIKE_NEWS_NUM + ":" + resp.getFreshNewsId());
+                    Integer dbLike = resp.getLiked();
+                    resp.setLiked(redisLiked == null ? dbLike : redisLiked + dbLike);
+
                     return resp;
                 })
                 .collect(Collectors.toList());

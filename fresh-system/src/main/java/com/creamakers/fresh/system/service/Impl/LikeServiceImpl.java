@@ -92,7 +92,11 @@ public class LikeServiceImpl implements LikeService {
                     // 如果过期时间小于10分钟，则刷新点赞数
                     if (expireTime.before(new Date(System.currentTimeMillis() + (10 * 60 * 1000)))) {
                         Long freshNewsId = Long.valueOf(key.substring(key.lastIndexOf(":") + 1));
-                        Integer likeNum = (Integer) redisTemplate.opsForValue().get(key);
+                        Object value = redisTemplate.opsForValue().get(key);
+                        if (value == null) {
+                            continue;
+                        }
+                        Long likeNum = Long.valueOf(value.toString());
                         if (likeNum == null || likeNum == 0) {
                             continue;
                         }

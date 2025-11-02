@@ -48,7 +48,7 @@ public class FreshNews {
 
     // 点赞数量
     @TableField(value = "liked")
-    private Integer liked;
+    private Long liked;
 
     // 评论数量
     @TableField(value = "comments")

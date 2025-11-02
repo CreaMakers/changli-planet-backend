@@ -35,7 +35,7 @@ public class CollectServiceImpl implements CollectService {
     @Override
     public ResultVo<Void> collectNews(Long userId, Long newsId) {
         // 使用 Redis 检查是否已经收藏
-        Boolean isFavorited = redisTemplate.opsForSet().isMember(RedisKeyConstant.LIKE_NEWS + newsId, userId);
+        Boolean isFavorited = redisTemplate.opsForSet().isMember(RedisKeyConstant.FRESH_NEWS_COLLECT + newsId, userId);
         if (isFavorited != null && isFavorited) {
             return ResultVo.fail(ALREADY_FAVORITED_FRESH_NEWS_MESSAGE);
         }
@@ -85,7 +85,7 @@ public class CollectServiceImpl implements CollectService {
     @Override
     public ResultVo<Void> deleteFavorite(Long userId, Long newsId) {
         // 使用 Redis 检查是否已收藏
-        Boolean isFavorited = redisTemplate.opsForSet().isMember(RedisKeyConstant.LIKE_NEWS + newsId, userId);
+        Boolean isFavorited = redisTemplate.opsForSet().isMember(RedisKeyConstant.FRESH_NEWS_COLLECT + newsId, userId);
 
         if (isFavorited == null || !isFavorited) {
             return ResultVo.fail(NOT_FAVORITED_FRESH_NEWS_MESSAGE);

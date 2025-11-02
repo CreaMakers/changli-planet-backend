@@ -13,7 +13,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class FreshNewsCommentResp {
+public class FreshNewsCommentResp<T> {
     //评论所属新鲜事ID
     @JsonProperty(value = "freshNewsId")
     private Long freshNewsId;
@@ -28,6 +28,10 @@ public class FreshNewsCommentResp {
 
     //一级评论区列表
     @JsonProperty(value = "commentsList")
-    private List<FreshNewsFatherCommentResp> commentsList;
+    private List<T> commentsList;
+
+    // 一级评论是否点赞列表
+    @JsonProperty(value = "isLikedList")
+    private List<Boolean> isLikedList;
 
 }
