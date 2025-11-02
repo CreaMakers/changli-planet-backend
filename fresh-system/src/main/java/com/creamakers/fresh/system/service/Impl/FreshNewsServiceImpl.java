@@ -210,7 +210,7 @@ public class FreshNewsServiceImpl implements FreshNewsService {
 
                         //合并redis中的点赞数
                         Integer redisLiked = (Integer) redisTemplate.opsForValue().get( RedisKeyConstant.LIKE_NEWS_NUM+resp.getFreshNewsId());
-                        Integer dbLike = resp.getLiked();
+                        Long dbLike = resp.getLiked();
                         resp.setLiked(redisLiked==null ? dbLike : redisLiked+dbLike);
 
                         return resp;
@@ -239,12 +239,12 @@ public class FreshNewsServiceImpl implements FreshNewsService {
 
                     //合并redis中的点赞数
                     Integer redisLiked = (Integer) redisTemplate.opsForValue().get(RedisKeyConstant.LIKE_NEWS_NUM + resp.getFreshNewsId());
-                    Integer dbLike = resp.getLiked();
+                    Long dbLike = resp.getLiked();
                     resp.setLiked(redisLiked == null ? dbLike : redisLiked + dbLike);
 
                     return resp;
                 })
-                .sorted(Comparator.comparingInt(FreshNewsResp::getLiked).reversed())//根据点赞数排序
+                .sorted(Comparator.comparingLong(FreshNewsResp::getLiked).reversed())//根据点赞数排序
                 .collect(Collectors.toList());
         // 返回分页结果
         return ResultVo.success(freshNewsRespList);
@@ -275,7 +275,7 @@ public class FreshNewsServiceImpl implements FreshNewsService {
 
                     //合并redis中的点赞数
                     Integer redisLiked = (Integer) redisTemplate.opsForValue().get(RedisKeyConstant.LIKE_NEWS_NUM + ":" + resp.getFreshNewsId());
-                    Integer dbLike = resp.getLiked();
+                    Long dbLike = resp.getLiked();
                     resp.setLiked(redisLiked == null ? dbLike : redisLiked + dbLike);
 
                     return resp;
