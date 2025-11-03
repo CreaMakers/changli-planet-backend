@@ -24,6 +24,10 @@ public class FreshNewsFatherCommentResp {
     @JsonProperty(value = "likedCount")
     private Integer likedCount;
 
+    // 子评论数量
+    @JsonProperty(value = "childCount")
+    private Integer childCount;
+
     // 评论内容
     @JsonProperty(value = "content")
     private String content;
