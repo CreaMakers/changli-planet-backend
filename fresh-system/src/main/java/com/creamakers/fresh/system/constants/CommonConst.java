@@ -69,4 +69,6 @@ public class CommonConst {
 
     public static final String NOT_FATHER_COMMENT = "该评论不是父评论";
 
+    public static final String IMAGE_NEED_CHECK = "https://csustplant.obs.cn-south-1.myhuaweicloud.com/freshNewsImage/needCheck.png";
+
 }

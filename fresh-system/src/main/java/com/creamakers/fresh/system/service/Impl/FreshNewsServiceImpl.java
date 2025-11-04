@@ -113,7 +113,7 @@ public class FreshNewsServiceImpl implements FreshNewsService {
         freshNews.setUserId(freshNewsRequest.getUserId())
                 .setTitle(freshNewsRequest.getTitle())
                 .setAddress(freshNewsRequest.getAddress())
-                .setImages(finalUrls.isEmpty() ? "" : "图片正在审核中")
+                .setImages(finalUrls.isEmpty() ? "" : IMAGE_NEED_CHECK)
                 .setContent(freshNewsRequest.getContent())
                 .setTags(freshNewsRequest.getTags())
                 .setLiked(0L)
@@ -185,7 +185,7 @@ public class FreshNewsServiceImpl implements FreshNewsService {
 
             //合并redis中的点赞数
             Integer redisLiked = (Integer) redisTemplate.opsForValue().get( RedisKeyConstant.LIKE_NEWS_NUM+freshNewsId);
-            Integer dbLike = freshNewsDetailResp.getLiked();
+            Long dbLike = freshNewsDetailResp.getLiked();
             freshNewsDetailResp.setLiked(redisLiked==null ? dbLike : redisLiked+dbLike);
 
             return ResultVo.success(freshNewsDetailResp);

@@ -35,7 +35,7 @@ public class FreshNewsDetailResp {
     private List<String> tags;
 
     // 点赞数量
-    private Integer liked;
+    private Long liked;
 
     // 评论数量
     private Integer comments;
