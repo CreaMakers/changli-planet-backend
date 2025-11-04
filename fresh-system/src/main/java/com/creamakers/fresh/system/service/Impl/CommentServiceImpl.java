@@ -91,7 +91,7 @@ public class CommentServiceImpl implements CommentService {
                 .setChildCount(0)                                       // 子评论数量
                 .setContent(freshNewsCommentRequest.getContent())       // 评论内容
                 .setUserId(freshNewsCommentRequest.getUserId())         // 用户ID
-                .setUserName(user.getUsername() == null ? "长理学子" : user.getUsername())   // 用户名
+                .setUserName(user.getAccount() == null ? "长理学子" : user.getAccount())   // 用户名
                 .setUserAvatar(user.getAvatarUrl())                     // 用户头像URL
                 .setCommentIp(freshNewsCommentRequest.getCommentIp())   // 评论发布的地址
                 .setCommentTime(LocalDateTime.now())                    // 评论发布的时间
@@ -335,7 +335,7 @@ public class CommentServiceImpl implements CommentService {
                 .setLikedCount(0)                                       // 点赞数量
                 .setContent(freshNewsCommentRequest.getContent())       // 评论内容
                 .setUserId(freshNewsCommentRequest.getUserId())         // 用户ID
-                .setUserName(user.getUsername() == null ? "长理学子" : user.getUsername())   // 用户名
+                .setUserName(user.getAccount() == null ? "长理学子" : user.getAccount())   // 用户名
                 .setUserAvatar(user.getAvatarUrl())                     // 用户头像URL
                 .setCommentIp(freshNewsCommentRequest.getCommentIp())   // 评论发布的地址
                 .setCommentTime(LocalDateTime.now())                    // 评论发布的时间
