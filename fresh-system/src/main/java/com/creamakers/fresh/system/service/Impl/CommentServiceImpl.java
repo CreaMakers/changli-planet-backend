@@ -169,6 +169,11 @@ public class CommentServiceImpl implements CommentService {
                     Integer dbLike = fatherResp.getLikedCount();
                     fatherResp.setLikedCount(redisLiked == null ? dbLike : redisLiked + dbLike);
 
+                    // 查询用户信息
+                    User user = userMapper.selectById(father.getUserId());
+                    fatherResp.setUserName(user==null|| user.getAccount()==null? father.getUserName() : user.getAccount());
+                    fatherResp.setUserAvatar(user==null|| user.getAvatarUrl()==null? father.getUserAvatar() : user.getAvatarUrl());
+
                     return fatherResp;
                 })
                 .sorted(Comparator.comparing(FreshNewsFatherCommentResp::getLikedCount).reversed())// 按点赞数降序排序
@@ -427,6 +432,11 @@ public class CommentServiceImpl implements CommentService {
                     Integer redisLiked = (Integer) redisTemplate.opsForValue().get(redisKey);
                     Integer dbLike = childResp.getLikedCount();
                     childResp.setLikedCount(redisLiked == null ? dbLike : redisLiked + dbLike);
+
+                    // 查询用户信息
+                    User user = userMapper.selectById(child.getUserId());
+                    childResp.setUserName(user==null|| user.getAccount()==null? child.getUserName() : user.getAccount());
+                    childResp.setUserAvatar(user==null|| user.getAvatarUrl()==null? child.getUserAvatar() : user.getAvatarUrl());
 
                     return childResp;
                 })
