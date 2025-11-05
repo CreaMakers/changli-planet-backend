@@ -171,7 +171,7 @@ public class CommentServiceImpl implements CommentService {
 
                     // 查询用户信息
                     User user = userMapper.selectById(father.getUserId());
-                    fatherResp.setUserName(user==null|| user.getUsername()==null? father.getUserName() : user.getUsername());
+                    fatherResp.setUserName(user==null|| user.getAccount()==null? father.getUserName() : user.getAccount());
                     fatherResp.setUserAvatar(user==null|| user.getAvatarUrl()==null? father.getUserAvatar() : user.getAvatarUrl());
 
                     return fatherResp;
@@ -435,7 +435,7 @@ public class CommentServiceImpl implements CommentService {
 
                     // 查询用户信息
                     User user = userMapper.selectById(child.getUserId());
-                    childResp.setUserName(user==null|| user.getUsername()==null? child.getUserName() : user.getUsername());
+                    childResp.setUserName(user==null|| user.getAccount()==null? child.getUserName() : user.getAccount());
                     childResp.setUserAvatar(user==null|| user.getAvatarUrl()==null? child.getUserAvatar() : user.getAvatarUrl());
 
                     return childResp;
