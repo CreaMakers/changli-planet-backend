@@ -20,6 +20,7 @@ import com.creamakers.fresh.system.domain.vo.response.FreshNewsChildCommentResp;
 import com.creamakers.fresh.system.domain.vo.response.FreshNewsCommentResp;
 import com.creamakers.fresh.system.domain.vo.response.FreshNewsFatherCommentResp;
 import com.creamakers.fresh.system.service.CommentService;
+import com.creamakers.fresh.system.service.word.WordService;
 import org.apache.velocity.util.ArrayListWrapper;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
@@ -53,7 +54,6 @@ public class CommentServiceImpl implements CommentService {
     @Autowired
     private FreshNewsMapper freshNewsMapper;
 
-
     @Autowired
     private UserMapper userMapper;
 
@@ -62,6 +62,9 @@ public class CommentServiceImpl implements CommentService {
 
     @Autowired
     private RedisTemplate redisTemplate;
+
+    @Autowired
+    private WordService wordService;
 
     // redis记录浏览量
     private static final String VIEW_COUNT_ZSET_KEY = "freshNews:viewCounts:zset";  // 定义 ZSET 键名
@@ -85,6 +88,13 @@ public class CommentServiceImpl implements CommentService {
             // 不是父评论,返回错误
             return ResultVo.fail(BAD_REQUEST_CODE, NOT_FATHER_COMMENT);
         }
+
+        //敏感词过滤
+        if(wordService.check(freshNewsCommentRequest.getContent())){
+            // 包含敏感词，替换敏感词
+            freshNewsCommentRequest.setContent(wordService.replace(freshNewsCommentRequest.getContent()));
+        }
+
         FreshNewsFatherComment freshNewsFatherComment = new FreshNewsFatherComment()
                 .setFreshNewsId(freshNewsCommentRequest.getNewsId())    // 关联的新鲜事ID
                 .setLikedCount(0)                                       // 点赞数量
@@ -332,6 +342,12 @@ public class CommentServiceImpl implements CommentService {
         if (freshNewsCommentRequest.getParentId() == 0L) {
             // 父评论不存在,不是子评论
             return ResultVo.fail(BAD_REQUEST_CODE, NOT_CHILD_COMMENT);
+        }
+
+        //敏感词过滤
+        if(wordService.check(freshNewsCommentRequest.getContent())){
+            // 包含敏感词，替换敏感词
+            freshNewsCommentRequest.setContent(wordService.replace(freshNewsCommentRequest.getContent()));
         }
 
         FreshNewsChildComment freshNewsChildComment = new FreshNewsChildComment()

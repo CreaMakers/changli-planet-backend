@@ -47,9 +47,9 @@ public class CachedWordDeny implements IWordDeny, InitializingBean {
                     .map(WordDeny::getWord)
                     .collect(Collectors.toList())
             );
-            log.info("加载允许词汇成功，数量：{}", this.deny.size());
+            log.info("加载拒绝词汇成功，数量：{}", this.deny.size());
         } catch (Exception e) {
-            log.error("加载允许词汇失败，使用空列表兜底", e);
+            log.error("加载拒绝词汇失败，使用空列表兜底", e);
             this.deny = new HashSet<>();
         }
     }
