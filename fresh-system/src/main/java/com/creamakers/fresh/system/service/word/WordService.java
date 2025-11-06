@@ -58,7 +58,7 @@ public class WordService {
             int inserted = wordDenyMapper.batchInsertWords(words);
             log.info("刷新敏感词汇成功，数量：{}，数据库插入：{}条", words.size(), inserted);
         } catch (Exception e) {
-            log.error("数据库批量插入允许词汇失败", e);
+            log.error("数据库批量插入拒绝词汇失败", e);
         }
         if(!removed.isEmpty()){
             try {
