@@ -26,6 +26,8 @@ import com.creamakers.websystem.utils.PasswordEncoderUtil;
 import com.creamakers.websystem.utils.RedisUtil;
 import io.netty.util.internal.StringUtil;
 import io.swagger.models.auth.In;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -40,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserServiceImpl implements UserService {
+    private final static Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Autowired
     private UserMapper userMapper;
@@ -92,6 +95,7 @@ public class UserServiceImpl implements UserService {
 
         LoginTokenResp loginTokenResp = new LoginTokenResp(accessToken, CommonConst.TOKEN_EXPIRATION_TIME);
 
+        logger.info("用户 {} 登录成功", user.getUsername());
         // 更新用户登录时间
         userStatsMapper.update(Wrappers.<UserStats>lambdaUpdate().
                 set(UserStats::getLastLoginTime,LocalDateTime.now()).
@@ -158,6 +162,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResultVo<UserAllInfoResp> getCurrentUserProfile() {
         Long userId = UserContext.getUserId();
+        logger.info("查询当期用户 {} 的全部信息", userId);
         if(userId == null) {
             return ResultVo.fail(CommonConst.ACCOUNT_NOT_FOUND);
         }
@@ -193,6 +198,7 @@ public class UserServiceImpl implements UserService {
     * */
     @Override
     public ResultVo<UserAllInfoResp> findUserById(Long userId) {
+        logger.info("根据用户ID {} 去查询用户的全部信息", userId);
         User user = userMapper.selectById(userId);
         UserProfile userProfile = userProfileMapper.selectById(userId);
         UserStats userStats = userStatsMapper.selectById(userId);
@@ -211,6 +217,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResultVo<List<UserAllInfoResp>> findAllUsersInFos(String username, Integer isAdmin, Integer isDeleted, Integer isBanned, Integer page, Integer pageSize) {
+        logger.info("根据搜索条件去查询符合的所有用户的全部信息, username: {}, isAdmin: {}, isDeleted: {}, isBanned: {}, page: {}, pageSize: {}", username, isAdmin, isDeleted, isBanned, page, pageSize);
         Page<User> pageParam = new Page<>(page, pageSize);
         Page<User> userPage = userMapper.selectPage(pageParam, Wrappers.<User>lambdaQuery()
                 .eq(!StringUtil.isNullOrEmpty(username), User::getUsername, username)
@@ -235,7 +242,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResultVo<UserAllInfoResp> updateUserInfos(UserAllInfoReq userAllInfoReq) {
-
+        logger.info("根据用户ID去更新用户信息, userAllInfoReq: {}", userAllInfoReq);
         UserReq userReq = userAllInfoReq.getUserReq();
         UserProfileReq userProfileReq = userAllInfoReq.getUserProfileReq();
         UserStatsReq userStatsReq = userAllInfoReq.getUserStatsReq();
@@ -308,6 +315,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResultVo<UserLoginHistoryResp> findUserLoginHistory(Long userId) {
+        logger.info("根据用户ID {} 查询用户的登录历史", userId);
         Long nowUserId = UserContext.getUserId();
         User user = userMapper.selectById(nowUserId);
         if((user == null || user.getIsAdmin() == 0) && !Objects.equals(nowUserId, userId)){
