@@ -4,7 +4,10 @@ planet:
     port: 3306
     db: csust_planet # database名
     username: root
-    password: CreaMaker1@
+    password: 3232539921
+
+
   redis:
     host: localhost
     port: 6379
+    password: 3232539921

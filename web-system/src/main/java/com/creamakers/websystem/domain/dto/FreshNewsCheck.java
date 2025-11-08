@@ -11,20 +11,20 @@ import lombok.experimental.Accessors;
 import java.time.LocalDateTime;
 
 /**
- * 新鲜事DTO类
+ * 新鲜事审核DTO类
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("fresh_news")
-public class FreshNews {
+@TableName("fresh_news_check")
+public class FreshNewsCheck {
+    // 主键ID
+    @TableId(value = "fresh_news_check_id", type = IdType.AUTO)
+    private Long freshNewsCheckId;
 
-    @TableId(value = "fresh_news_id", type = IdType.AUTO)
+    // 关联的新鲜事ID
+    @TableField(value = "fresh_news_id")
     private Long freshNewsId;
-
-    // 用户ID
-    @TableField(value = "user_id")
-    private Long userId;
 
     // 标题
     @TableField(value = "title")
@@ -34,21 +34,13 @@ public class FreshNews {
     @TableField(value = "content")
     private String content;
 
-    // 图片路径
-    @TableField(value = "images")
-    private String images;
+    // 审核图片URL
+    @TableField(value = "image_url")
+    private String imageUrl;
 
-    // 标签
-    @TableField(value = "tags")
-    private String tags;
-
-    // 点赞数量
-    @TableField(value = "liked")
-    private Integer liked;
-
-    // 评论数量
-    @TableField(value = "comments")
-    private Integer comments;
+    // 审核状态（0：待审核，1：通过，2：拒绝）
+    @TableField(value = "check_status")
+    private Integer checkStatus;
 
     // 创建时间
     @TableField(value = "create_time")
@@ -62,15 +54,7 @@ public class FreshNews {
     @TableField(value = "is_deleted")
     private Integer isDeleted;
 
-    // 是否通过审核 0-未审核，1-已审核
-    @TableField(value = "is_active")
-    private Integer isActive;
-
-    // 是否允许评论
-    @TableField(value = "allow_comments")
-    private Integer allowComments;
-
-    // 被收藏数
-    @TableField(value = "favorites_count")
-    private Integer favoritesCount;
+    // 审核时间
+    @TableField(value = "check_time")
+    private LocalDateTime checkTime;
 }

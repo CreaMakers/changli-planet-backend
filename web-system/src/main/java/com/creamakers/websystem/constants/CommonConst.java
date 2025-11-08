@@ -57,5 +57,8 @@ public class CommonConst {
 
     public final static String USER_LOGIN_HISTORY_FAILED_MSG = "用户登录历史记录不存在";
 
+    public static final String NEWS_CHECK_NOT_FIND_MASSAGE = "新鲜事审核记录不存在";
+    public static final String NEWS_CHECK_FAILED_MESSAGE = "新鲜事审核提交失败";
+    public static final String FRESH_NEWS_IMAGE_UPDATE_FAILED_MESSAGE = "新鲜事图片路径更新失败";
 
 }

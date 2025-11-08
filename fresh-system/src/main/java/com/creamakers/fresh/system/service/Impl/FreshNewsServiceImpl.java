@@ -121,7 +121,8 @@ public class FreshNewsServiceImpl implements FreshNewsService {
                 .setFavoritesCount(0)
                 .setCreateTime(LocalDateTime.now())
                 .setUpdateTime(LocalDateTime.now())
-                .setAllowComments(freshNewsRequest.getAllowComments());
+                .setAllowComments(freshNewsRequest.getAllowComments())
+                .setIsActive(finalUrls.isEmpty() ? 1 : 0);
 
         int rows = freshNewsMapper.insert(freshNews);
         if (rows > 0) {
@@ -199,7 +200,7 @@ public class FreshNewsServiceImpl implements FreshNewsService {
         // 创建分页对象
         Page<FreshNews> pageParam = new Page<>(page, pageSize);
 
-        Page<FreshNews> pageResult = freshNewsMapper.selectPage(pageParam, new QueryWrapper<FreshNews>().eq("is_deleted", 0).orderByDesc("create_time"));
+        Page<FreshNews> pageResult = freshNewsMapper.selectPage(pageParam, new QueryWrapper<FreshNews>().eq("is_deleted", 0).eq("is_active", 1).orderByDesc("create_time"));
 
         List<FreshNews> records = pageResult.getRecords();
 
@@ -224,9 +225,9 @@ public class FreshNewsServiceImpl implements FreshNewsService {
         // 创建分页对象
         Page<FreshNews> pageParam = new Page<>(page, pageSize);
 
-        // 执行分页查询，过滤已删除的记录，并按点赞数降序排列
+        // 执行分页查询，过滤已删除的记录和未通过审核的记录，并按点赞数降序排列
         Page<FreshNews> pageResult = freshNewsMapper.selectPage(pageParam,
-                new QueryWrapper<FreshNews>().eq("is_deleted", 0).orderByDesc("liked", "create_time"));
+                new QueryWrapper<FreshNews>().eq("is_deleted", 0).eq("is_active", 1).orderByDesc("liked", "create_time"));
 
         // 获取查询结果
         List<FreshNews> records = pageResult.getRecords();
@@ -264,6 +265,7 @@ public class FreshNewsServiceImpl implements FreshNewsService {
         Page<FreshNews> pageResult = freshNewsMapper.selectPage(pageParam,
                 new QueryWrapper<FreshNews>()
                         .eq("is_deleted", 0)
+                        .eq("is_active", 1)
                         .in("fresh_news_id", freshNewsIdList)
                         .orderByDesc("create_time")
         );

@@ -70,7 +70,6 @@ public class UserProfileImpl extends ServiceImpl<UserProfileMapper, UserProfile>
             String temporaryUrl = HUAWEIOBSUtil.generateTemporaryUrl("userAvatar/" + userProfile.getUsername() + ".png", expireSeconds);
             userProfile.setAvatarUrl(temporaryUrl);
             userProfile.setEmailbox(maskEmail(userProfile.getEmailbox()));
-
             logger.info("Profile retrieved successfully for user: {}", username);
             return buildResponse(HttpStatus.OK, HttpCode.OK, SuccessMessage.DATA_RETRIEVED, userProfile);
         } catch (Exception e) {
