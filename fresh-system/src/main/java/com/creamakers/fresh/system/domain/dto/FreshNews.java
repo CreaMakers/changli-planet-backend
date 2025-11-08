@@ -66,6 +66,10 @@ public class FreshNews {
     @TableField(value = "is_deleted")
     private Integer isDeleted;
 
+    // 是否通过审核 0-未审核，1-已审核
+    @TableField(value = "is_active")
+    private Integer isActive;
+
     // 是否允许评论
     @TableField(value = "allow_comments")
     private Integer allowComments;

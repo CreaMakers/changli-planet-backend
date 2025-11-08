@@ -1,15 +1,16 @@
-package com.creamakers.fresh.system.controller;
+package com.creamakers.websystem.controller;
 
-import com.creamakers.fresh.system.domain.vo.ResultVo;
-import com.creamakers.fresh.system.domain.vo.response.FreshNewsCheckResp;
-import com.creamakers.fresh.system.service.FreshNewsCheckService;
+
+import com.creamakers.websystem.domain.vo.ResultVo;
+import com.creamakers.websystem.domain.vo.response.FreshNewsCheckResp;
+import com.creamakers.websystem.service.FreshNewsCheckService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/app/fresh_news/check")
+@RequestMapping("/web/fresh_news/check")
 public class FreshNewsCheckController {
     @Autowired
     private FreshNewsCheckService freshNewsCheckService;
