@@ -1,11 +1,13 @@
 package com.creamakers.fresh.system.domain.vo;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import static com.creamakers.fresh.system.constants.CommonConst.*;
 
+@Builder
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
