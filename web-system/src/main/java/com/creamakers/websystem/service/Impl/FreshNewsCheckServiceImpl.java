@@ -92,6 +92,7 @@ public class FreshNewsCheckServiceImpl implements FreshNewsCheckService {
         FreshNewsUpdateWrapper
                 .eq("fresh_news_id",freshNewsCheck.getFreshNewsId())
                 .set("images",freshNewsCheck.getImageUrl())
+                .set("is_active",checkStatus == 2? 0 : 1)
                 .set("update_time",LocalDateTime.now());
         int FreshNewsUpdated = freshNewsMapper.update(FreshNewsUpdateWrapper);
         if(FreshNewsUpdated <= 0){
@@ -99,6 +100,22 @@ public class FreshNewsCheckServiceImpl implements FreshNewsCheckService {
             return ResultVo.fail(CommonConst.FRESH_NEWS_IMAGE_UPDATE_FAILED_MESSAGE);
         }
         log.info("新鲜事审核通过，审核记录ID：{}，新鲜事ID：{}", freshNewsCheckId,freshNewsCheck.getFreshNewsId());
+        return ResultVo.success();
+    }
+
+    @Override
+    public ResultVo<Void> deleteFreshNewsCheck(Long freshNewsCheckId) {
+        UpdateWrapper<FreshNewsCheck> updateWrapper = new UpdateWrapper<>();
+        updateWrapper
+                .eq("fresh_news_check_id",freshNewsCheckId)
+                .set("is_deleted",1)
+                .set("update_time",LocalDateTime.now());
+        int freshNewsCheckDeleted = freshNewsCheckMapper.update(null, updateWrapper);
+        if(freshNewsCheckDeleted <= 0){
+            // 新鲜事审核记录删除失败
+            return ResultVo.fail(CommonConst.NEWS_CHECK_DELETE_FAILED_MESSAGE);
+        }
+        log.info("删除新鲜事审核记录，审核记录ID：{}", freshNewsCheckId);
         return ResultVo.success();
     }
 }

@@ -15,4 +15,6 @@ public interface FreshNewsCheckService {
     ResultVo<List<FreshNewsCheckResp>> findFreshNewsCheckByQuery(Long freshNewsCheckId, Long freshNewsId, Integer checkStatus, Integer page, Integer pageSize);
 
     ResultVo<Void> checkFreshNews(Long freshNewsCheckId, Integer checkStatus);
+
+    ResultVo<Void> deleteFreshNewsCheck(Long freshNewsCheckId);
 }

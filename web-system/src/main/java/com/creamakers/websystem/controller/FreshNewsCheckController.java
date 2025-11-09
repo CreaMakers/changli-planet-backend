@@ -57,4 +57,14 @@ public class FreshNewsCheckController {
             @RequestParam("freshNewsCheckId") Long freshNewsCheckId, @RequestParam("checkStatus") Integer checkStatus){
         return freshNewsCheckService.checkFreshNews(freshNewsCheckId,checkStatus);
     }
+
+    /**
+     * 删除新鲜事审核图片记录
+     * @param freshNewsCheckId 审核记录ID
+     * @return 删除结果
+     */
+    @DeleteMapping(value = "/delete")
+    public ResultVo<Void> deleteFreshNewsCheck(@RequestParam("freshNewsCheckId") Long freshNewsCheckId){
+        return freshNewsCheckService.deleteFreshNewsCheck(freshNewsCheckId);
+    }
 }
