@@ -2,6 +2,7 @@ package com.creamakers.websystem.service;
 
 import com.creamakers.websystem.domain.vo.ResultVo;
 import com.creamakers.websystem.domain.vo.request.PenaltyReq;
+import com.creamakers.websystem.domain.vo.response.FreshNewsResp;
 import com.creamakers.websystem.domain.vo.response.ReportCommentResp;
 import com.creamakers.websystem.domain.vo.response.ReportNewsResp;
 
@@ -15,4 +16,6 @@ public interface FreshNewsService {
     ResultVo<List<ReportCommentResp>> getAllCommentReports(Integer page, Integer pageSize);
 
     ResultVo<ReportCommentResp> handleReportCommentPenalty(PenaltyReq penaltyReq);
+
+    ResultVo<FreshNewsResp> deleteFreshNews(Long freshNewsId);
 }

@@ -3,6 +3,7 @@ package com.creamakers.fresh.system.service.Impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.creamakers.fresh.system.constants.RedisKeyConstant;
+import com.creamakers.fresh.system.context.UserContext;
 import com.creamakers.fresh.system.dao.FreshNewsLikesMapper;
 import com.creamakers.fresh.system.dao.FreshNewsMapper;
 import com.creamakers.fresh.system.dao.TagsMapper;
@@ -294,10 +295,16 @@ public class FreshNewsServiceImpl implements FreshNewsService {
         }
 
         FreshNews freshNews = freshNewsMapper.selectById(freshNewsId);
+        //判断用户是否是新鲜事的作者
+        if(!UserContext.getUserId().equals(freshNews.getUserId())){
+            //不是作者，返回错误
+            return ResultVo.fail(NOT_FRESH_NEWS_AUTHOR);
+        }
+
         FreshNewsResp resp = new FreshNewsResp();
         BeanUtils.copyProperties(freshNews, resp);
 
-        freshNewsMapper.deleteById(freshNewsId);
+        freshNewsMapper.updateById(freshNews.setIsDeleted(1));
 
         return ResultVo.success(resp);
     }

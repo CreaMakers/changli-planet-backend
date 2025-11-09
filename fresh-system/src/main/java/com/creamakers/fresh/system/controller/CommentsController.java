@@ -44,16 +44,14 @@ public class CommentsController {
 
     /**
      * 删除评论
-     * @param freshNewsId 新鲜事ID
      * @param commentId 评论ID
      * @param isParent 是否是父评论 (0:子评论, 1:父评论)
      * @return 结果
      */
-    @DeleteMapping("/{fresh_news_id}/{comment_id}/{is_parent}")
-    public ResultVo<Void> deleteComment(@PathVariable("fresh_news_id") Long freshNewsId,
-                                        @PathVariable("comment_id") Long commentId,
+    @DeleteMapping("/{comment_id}/{is_parent}")
+    public ResultVo<Void> deleteComment(@PathVariable("comment_id") Long commentId,
                                         @PathVariable("is_parent") Integer isParent) {
-        return commentService.deleteComment(freshNewsId,commentId, isParent);
+        return commentService.deleteComment(commentId, isParent);
     }
 
     /**
