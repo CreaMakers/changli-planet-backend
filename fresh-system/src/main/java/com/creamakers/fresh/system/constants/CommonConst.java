@@ -71,4 +71,19 @@ public class CommonConst {
 
     public static final String IMAGE_NEED_CHECK = "https://csustplant.obs.cn-south-1.myhuaweicloud.com/freshNewsImage/needCheck.png";
 
+    public final static String TOKEN_NOT_FOUND = "token不存在，请重新登陆";
+
+    public final static String ACCOUNT_NOT_FOUND = "用户不存在，请重新登陆";
+
+    public final static String TOKEN_INVALID = "无效token，请重新登陆";
+
+    public final static String BLACKLIST_TOKEN_PREFIX = "web:blacklist:token:";
+
+    public final static String ACCOUNT_DISABLED_OR_BANNED = "账号异常，已被删除或封禁";
+
+    public final static String NOT_FRESH_NEWS_COMMENT_AUTHOR = "您不是该评论的作者";
+
+    public final static String NOT_FRESH_NEWS_AUTHOR = "您不是该新鲜事的作者";
+
+    public final static String DATABASE_OPERATION_ERROR = "与数据库交互失败，请检查配置";
 }

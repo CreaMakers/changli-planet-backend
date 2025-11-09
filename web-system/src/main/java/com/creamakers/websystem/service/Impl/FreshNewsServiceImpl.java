@@ -6,9 +6,11 @@ import com.creamakers.websystem.dao.*;
 import com.creamakers.websystem.domain.dto.*;
 import com.creamakers.websystem.domain.vo.ResultVo;
 import com.creamakers.websystem.domain.vo.request.PenaltyReq;
+import com.creamakers.websystem.domain.vo.response.FreshNewsResp;
 import com.creamakers.websystem.domain.vo.response.NotificationResp;
 import com.creamakers.websystem.domain.vo.response.ReportCommentResp;
 import com.creamakers.websystem.domain.vo.response.ReportNewsResp;
+import com.creamakers.websystem.service.FreshNewsCommentService;
 import com.creamakers.websystem.service.FreshNewsService;
 import com.creamakers.websystem.utils.HUAWEIOBSUtil;
 import com.creamakers.websystem.utils.WebSocketService;
@@ -22,14 +24,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.creamakers.websystem.constants.CommonConst.FRESH_NEWS_NOT_FOUND_MESSAGE;
+
 @Service
 public class FreshNewsServiceImpl implements FreshNewsService {
 
     @Autowired
     private FreshNewsMapper freshNewsMapper;
-
-    @Autowired
-    private FreshNewsCommentMapper commentMapper;
 
     @Autowired
     private ReportFreshNewsMapper reportFreshNewsMapper;
@@ -38,13 +39,13 @@ public class FreshNewsServiceImpl implements FreshNewsService {
     private ReportCommentMapper reportCommentMapper;
 
     @Autowired
-    private FreshNewsCommentMapper freshNewsCommentMapper;
-
-    @Autowired
     private WebSocketService webSocketService;
 
     @Autowired
     private NotificationMapper notificationMapper;
+
+    @Autowired
+    private FreshNewsCommentService freshNewsCommentService;
 
     // 获取所有新鲜事举报
     @Override
@@ -133,9 +134,8 @@ public class FreshNewsServiceImpl implements FreshNewsService {
             reportCommentMapper.updateById(reportComment);
         }
         else if(penaltyReq.getPenaltyType().equals(1)){
-            FreshNewsComment freshNewsComment = commentMapper.selectById(reportComment.getCommentId());
-            freshNewsComment.setIsDeleted(1);
-            freshNewsCommentMapper.updateById(freshNewsComment);
+            // 删除评论
+            freshNewsCommentService.deleteComment(reportComment.getCommentId(),reportComment.getIsParent());
             reportCommentMapper.updateById(reportComment);
         } else{
             ResultVo.fail("处罚类型错误");
@@ -162,6 +162,25 @@ public class FreshNewsServiceImpl implements FreshNewsService {
         BeanUtils.copyProperties(reportComment,reportCommentResp);
         sendMessageToReporter(reportComment);
         return ResultVo.success(reportCommentResp);
+    }
+
+    @Override
+    @Transactional
+    public ResultVo<FreshNewsResp> deleteFreshNews(Long freshNewsId) {
+
+        if (freshNewsMapper.selectById(freshNewsId) == null) {
+            return ResultVo.fail(FRESH_NEWS_NOT_FOUND_MESSAGE);
+        }
+
+        FreshNews freshNews = freshNewsMapper.selectById(freshNewsId);
+        FreshNewsResp resp = new FreshNewsResp();
+        BeanUtils.copyProperties(freshNews, resp);
+
+        // 删除新鲜事
+        freshNewsMapper.updateById(freshNews.setIsDeleted(1));
+        // 删除评论
+        freshNewsCommentService.deleteCommentByFreshNewsId(freshNewsId);
+        return ResultVo.success(resp);
     }
 
     private ReportNewsResp convertToReportNewsResp(ReportFreshNews reportFreshNews) {

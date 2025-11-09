@@ -3,6 +3,7 @@ package com.creamakers.websystem.controller;
 import com.creamakers.websystem.domain.vo.ResultVo;
 import com.creamakers.websystem.domain.vo.request.PenaltyReq;
 
+import com.creamakers.websystem.domain.vo.response.FreshNewsResp;
 import com.creamakers.websystem.domain.vo.response.ReportCommentResp;
 import com.creamakers.websystem.domain.vo.response.ReportNewsResp;
 import com.creamakers.websystem.service.FreshNewsService;
@@ -44,5 +45,11 @@ public class FreshNewsController {
     @PostMapping("/comments/reports/penalties")
     public ResultVo<ReportCommentResp> handleReportCommentPenalty(@RequestBody PenaltyReq penaltyReq) {
         return freshNewsService.handleReportCommentPenalty(penaltyReq);
+    }
+
+    // 根据标签删除新鲜事
+    @DeleteMapping("/{fresh_news_id}")
+    public ResultVo<FreshNewsResp> deleteFreshNews(@PathVariable("fresh_news_id") Long freshNewsId) {
+        return freshNewsService.deleteFreshNews(freshNewsId);
     }
 }

@@ -13,7 +13,7 @@ public interface CommentService {
 
     ResultVo<FreshNewsCommentResp<FreshNewsFatherCommentResp>> listComments(Long freshNewsId, Integer page, Integer pageSize, Integer userId);
 
-    ResultVo<Void> deleteComment(Long freshNewsId, Long commentId, Integer isParent);
+    ResultVo<Void> deleteComment(Long commentId, Integer isParent);
 
     ResultVo<FreshNewsCommentResp<FreshNewsChildCommentResp>> listReplies(Long freshNewsId, Long commentId, Integer userId, Integer page, Integer pageSize);
 

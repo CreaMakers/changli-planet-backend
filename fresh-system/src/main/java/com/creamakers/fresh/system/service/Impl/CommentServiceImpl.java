@@ -1,19 +1,16 @@
 package com.creamakers.fresh.system.service.Impl;
 
-import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.creamakers.fresh.system.constants.CommonConst;
 import com.creamakers.fresh.system.constants.RedisKeyConstant;
+import com.creamakers.fresh.system.context.UserContext;
 import com.creamakers.fresh.system.dao.FreshNewsChildCommentMapper;
 import com.creamakers.fresh.system.dao.FreshNewsFatherCommentMapper;
 import com.creamakers.fresh.system.dao.FreshNewsMapper;
 import com.creamakers.fresh.system.dao.UserMapper;
-import com.creamakers.fresh.system.domain.dto.FreshNews;
-import com.creamakers.fresh.system.domain.dto.FreshNewsChildComment;
-import com.creamakers.fresh.system.domain.dto.FreshNewsFatherComment;
-import com.creamakers.fresh.system.domain.dto.User;
+import com.creamakers.fresh.system.domain.dto.*;
 import com.creamakers.fresh.system.domain.vo.ResultVo;
 import com.creamakers.fresh.system.domain.vo.request.FreshNewsCommentRequest;
 import com.creamakers.fresh.system.domain.vo.response.FreshNewsChildCommentResp;
@@ -21,7 +18,6 @@ import com.creamakers.fresh.system.domain.vo.response.FreshNewsCommentResp;
 import com.creamakers.fresh.system.domain.vo.response.FreshNewsFatherCommentResp;
 import com.creamakers.fresh.system.service.CommentService;
 import com.creamakers.fresh.system.service.word.WordService;
-import org.apache.velocity.util.ArrayListWrapper;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,12 +28,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static com.creamakers.fresh.system.constants.CommonConst.*;
 
 @Service
 public class CommentServiceImpl implements CommentService {
@@ -81,12 +75,12 @@ public class CommentServiceImpl implements CommentService {
         User user = userMapper.selectById(freshNewsCommentRequest.getUserId());
         if (user == null) {
             // 用户不存在
-            return ResultVo.fail(BAD_REQUEST_CODE, USER_NOT_FOUND_MESSAGE);
+            return ResultVo.fail(CommonConst.USER_NOT_FOUND_MESSAGE);
         }
 
         if (freshNewsCommentRequest.getParentId() != 0L) {
             // 不是父评论,返回错误
-            return ResultVo.fail(BAD_REQUEST_CODE, NOT_FATHER_COMMENT);
+            return ResultVo.fail(CommonConst.NOT_FATHER_COMMENT);
         }
 
         //敏感词过滤
@@ -119,7 +113,7 @@ public class CommentServiceImpl implements CommentService {
             rabbitTemplate.convertAndSend("commentExchange", "comment", freshNewsFatherComment);
             return ResultVo.success(freshNewsFatherComment.getId());
         } else {
-            return ResultVo.fail(COMMENT_ADD_FAILED_MESSAGE);
+            return ResultVo.fail(CommonConst.COMMENT_ADD_FAILED_MESSAGE);
         }
 
 //        FreshNewsComment comment = new FreshNewsComment();
@@ -247,25 +241,36 @@ public class CommentServiceImpl implements CommentService {
 
     /**
      * 删除评论
-     *
-     * @param freshNewsId 新鲜事ID
      * @param commentId   评论ID
      * @param isParent    是否是父评论 (0:子评论, 1:父评论)
      * @return 结果
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ResultVo<Void> deleteComment(Long freshNewsId, Long commentId, Integer isParent) {
+    public ResultVo<Void> deleteComment(Long commentId, Integer isParent) {
+        //判断用户是否是评论的作者
+        Long userId = UserContext.getUserId();
+        FreshNewsComment comment;
+        if(isParent == 0){
+            comment = freshNewsChildCommentMapper.selectById(commentId);
+        }else{
+            comment = freshNewsFatherCommentMapper.selectById(commentId);
+        }
+        if(!comment.getUserId().equals(userId)){
+            // 非评论作者,返回失败结果
+            return ResultVo.fail(CommonConst.NOT_FRESH_NEWS_COMMENT_AUTHOR);
+        }
+
         if (isParent == 0) {
             // 删除子评论
             UpdateWrapper<FreshNewsChildComment> updateWrapper = new UpdateWrapper<>();
-            updateWrapper.eq("fresh_news_id", freshNewsId)
+            updateWrapper
                     .eq("id", commentId)
                     .set("is_deleted", 1);
             int result = freshNewsChildCommentMapper.update(updateWrapper);
 
             if (result <= 0) {
-                return ResultVo.fail(CHILD_COMMENT_DELETE_FAILED_MESSAGE);
+                return ResultVo.fail(CommonConst.CHILD_COMMENT_DELETE_FAILED_MESSAGE);
             }
 
             // 子评论删除成功,更新父评论子评论数量
@@ -273,27 +278,27 @@ public class CommentServiceImpl implements CommentService {
             FreshNewsFatherComment fatherComment = freshNewsFatherCommentMapper.selectById(childComment.getFatherCommentId());
             // 检查父评论是否存在
             if (fatherComment == null) {
-                return ResultVo.fail(CHILD_COMMENT_DELETE_FAILED_MESSAGE);
+                return ResultVo.fail(CommonConst.CHILD_COMMENT_DELETE_FAILED_MESSAGE);
             }
             // 更新父评论子评论数量
             int updated = freshNewsFatherCommentMapper.updateById(fatherComment.setChildCount(fatherComment.getChildCount() - 1));
             if (updated <= 0) {
                 // 更新父评论子评论数量失败,回滚子评论删除
-                throw new RuntimeException(CHILD_COMMENT_DELETE_FAILED_MESSAGE);
+                throw new RuntimeException(CommonConst.CHILD_COMMENT_DELETE_FAILED_MESSAGE);
             }
             // 子评论删除成功，返回成功结果
             return ResultVo.success();
         } else {
             // 删除父评论
             UpdateWrapper<FreshNewsFatherComment> updateWrapper = new UpdateWrapper<>();
-            updateWrapper.eq("fresh_news_id", freshNewsId)
+            updateWrapper
                     .eq("id", commentId)
                     .set("is_deleted", 1);
             int result = freshNewsFatherCommentMapper.update(updateWrapper);
 
             if (result <= 0) {
                 // 父评论删除失败
-                return ResultVo.fail(COMMENT_DELETE_FAILED_MESSAGE);
+                return ResultVo.fail(CommonConst.COMMENT_DELETE_FAILED_MESSAGE);
             }
 
             try {
@@ -302,7 +307,7 @@ public class CommentServiceImpl implements CommentService {
 
                 // 删除关联子评论
                 UpdateWrapper<FreshNewsChildComment> childUpdateWrapper = new UpdateWrapper<>();
-                childUpdateWrapper.eq("fresh_news_id", freshNewsId)
+                childUpdateWrapper
                         .eq("father_comment_id", commentId)
                         .eq("is_deleted", 0)
                         .set("is_deleted", 1);
@@ -313,7 +318,7 @@ public class CommentServiceImpl implements CommentService {
                     return ResultVo.success();
                 } else {
                     // 关联子评论删除失败，回滚父评论删除
-                    throw new RuntimeException(CHILD_COMMENT_DELETE_FAILED_MESSAGE);
+                    throw new RuntimeException(CommonConst.CHILD_COMMENT_DELETE_FAILED_MESSAGE);
                 }
             } catch (Exception e) {
                 // 关联子评论删除失败，回滚父评论删除
@@ -336,12 +341,12 @@ public class CommentServiceImpl implements CommentService {
         User user = userMapper.selectById(freshNewsCommentRequest.getUserId());
         if (user == null) {
             // 用户不存在
-            return ResultVo.fail(BAD_REQUEST_CODE, USER_NOT_FOUND_MESSAGE);
+            return ResultVo.fail(CommonConst.BAD_REQUEST_CODE, CommonConst.USER_NOT_FOUND_MESSAGE);
         }
 
         if (freshNewsCommentRequest.getParentId() == 0L) {
             // 父评论不存在,不是子评论
-            return ResultVo.fail(BAD_REQUEST_CODE, NOT_CHILD_COMMENT);
+            return ResultVo.fail(CommonConst.BAD_REQUEST_CODE, CommonConst.NOT_CHILD_COMMENT);
         }
 
         //敏感词过滤
@@ -367,13 +372,13 @@ public class CommentServiceImpl implements CommentService {
         int result = freshNewsChildCommentMapper.insert(freshNewsChildComment);
         if (result <= 0) {
             // 子评论添加失败
-            return ResultVo.fail(COMMENT_ADD_FAILED_MESSAGE);
+            return ResultVo.fail(CommonConst.COMMENT_ADD_FAILED_MESSAGE);
         }
         //父评论回复数量+1
         FreshNewsFatherComment fatherComment = freshNewsFatherCommentMapper.selectById(freshNewsCommentRequest.getParentId());
         if (fatherComment == null) {
             // 父评论不存在
-            return ResultVo.fail(BAD_REQUEST_CODE, PARENT_COMMENT_NOT_FOUND_MESSAGE);
+            return ResultVo.fail(CommonConst.BAD_REQUEST_CODE, CommonConst.PARENT_COMMENT_NOT_FOUND_MESSAGE);
         }
 
         // 子评论回复数量+1

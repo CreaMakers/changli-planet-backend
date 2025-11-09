@@ -27,6 +27,10 @@ public class ReportComment {
     @TableField(value = "comment_id")
     private Long commentId;
 
+    // 是否是父评论
+    @TableField(value = "is_parent")
+    private Integer isParent;
+
     // 举报者的用户ID
     @TableField(value = "reporter_id")
     private Long reporterId;
