@@ -9,6 +9,12 @@ public class CommonConst {
 
     public final static String BAD_REQUEST_CODE = "400";
 
+    public final static String UNAUTHORIZED = "401";
+
+    public static final String UNAUTHORIZED_ACCESS = "Unauthorized access";
+
+    public static final String NOT_FOUND = "404";
+
     public final static String RESULT_FAILURE_MSG = "failure";
 
     public final static String ALREADY_FAVORITED_FRESH_NEWS_MESSAGE = "您已经收藏过此新鲜事";

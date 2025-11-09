@@ -39,11 +39,13 @@ mybatis-plus:
 planet:
   jwt:
     secret:
-      creamakerscreamakeres
+      CSUST_PLANT
     expiration_time:
       7200000
     refresh_expiration_time:
-      86400000
+      2592000000
   bloom:
     expected_insertions: 20000000
     fpp: 0.000001
+  redis:
+    tokenKey: "CSUSTPLANT:REFRESHTOKEN:"
