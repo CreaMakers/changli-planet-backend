@@ -109,7 +109,7 @@ public class JobServer {
         if (!com.baomidou.mybatisplus.core.toolkit.CollectionUtils.isEmpty(fatherKeys)) {
             for (String key : fatherKeys) {
                 Long expire = redisTemplate.getExpire(key);
-                if (expire != null && expire > 0) {
+                if (expire != null && expire > 0 || expire == -1) {
                     Date expireTime = new Date(System.currentTimeMillis() + expire);
                     // 如果过期时间小于10分钟，则刷新点赞数
                     if (expireTime.before(new Date(System.currentTimeMillis() + (10 * 60 * 1000)))) {
@@ -137,7 +137,7 @@ public class JobServer {
         if (!com.baomidou.mybatisplus.core.toolkit.CollectionUtils.isEmpty(childKeys)) {
             for (String key : childKeys) {
                 Long expire = redisTemplate.getExpire(key);
-                if (expire != null && expire > 0) {
+                if (expire != null && expire > 0 || expire == -1) {
                     Date expireTime = new Date(System.currentTimeMillis() + expire);
                     // 如果过期时间小于10分钟，则刷新点赞数
                     if (expireTime.before(new Date(System.currentTimeMillis() + (10 * 60 * 1000)))) {
