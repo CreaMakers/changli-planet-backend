@@ -2,22 +2,22 @@ package com.creamakers.toolsystem.controller;
 
 import com.creamakers.toolsystem.dto.request.*;
 import com.creamakers.toolsystem.dto.response.GeneralResponse;
-import com.creamakers.toolsystem.entity.CourseGrade;
-import com.creamakers.toolsystem.entity.CourseInfo;
-import com.creamakers.toolsystem.entity.ExamArrange;
-import com.creamakers.toolsystem.entity.PscjInfo;
+import com.creamakers.toolsystem.dto.response.TopicSkinResponse;
+import com.creamakers.toolsystem.entity.*;
 import com.creamakers.toolsystem.service.ToolService;
+import com.creamakers.toolsystem.service.TopicSkinService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.jdbc.Null;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 
 @Slf4j
@@ -27,6 +27,9 @@ public class ToolController {
 
     @Autowired
     private ToolService toolService;
+
+    @Autowired
+    private TopicSkinService topicSkinService;
 
     @GetMapping("/courses")
     public ResponseEntity<GeneralResponse<List<CourseInfo>>> GetCourseInfo(@RequestParam(value = "stuNum") String stuNum,
@@ -132,6 +135,33 @@ public class ToolController {
     @PostMapping("/homework")
     public ResponseEntity<GeneralResponse> homeWorkRemind(@RequestBody HomeWorkRequest homeWorkRequest) {
         return toolService.homeWorkRemind(homeWorkRequest);
+    }
+
+    //上传主题皮肤apk包
+    @PostMapping("/skin")
+    public ResponseEntity<GeneralResponse<TopicSkinResponse>> uploadSkin(@RequestParam(value = "file") MultipartFile file){
+        return topicSkinService.uploadSkin(file);
+    }
+
+    //删除主题皮肤apk包
+    @DeleteMapping("/skin")
+    public ResponseEntity<GeneralResponse> deleteSkin(@RequestParam(value = "id",required = false) Integer id,
+                                                      @RequestParam(value = "name",required = false) String name){
+        if(id == null && name == null){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(GeneralResponse
+                            .builder()
+                            .code("400")
+                            .msg("id或name参数不能全为空")
+                            .build());
+        }
+        return topicSkinService.deleteSkin(id,name);
+    }
+
+    //获取主题皮肤apk包
+    @GetMapping("/skin")
+    public ResponseEntity<Resource> getSkin(@RequestParam(value = "name") String name){
+        return topicSkinService.getSkin(name);
     }
 
 //    @PostMapping("/getWeekDate")
