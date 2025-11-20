@@ -34,6 +34,10 @@ public class TopicSkin {
     @TableField("path")
     private String path;
 
+    @ApiModelProperty(value = "皮肤图片预览路径",example = "http://localhost:8080/topic-skin/123456.png")
+    @TableField("image_url")
+    private String imageUrl;
+
     @ApiModelProperty(value = "资源完整性校验值",example = "123456")
     @TableField("hash_md5")
     private String hashMd5;

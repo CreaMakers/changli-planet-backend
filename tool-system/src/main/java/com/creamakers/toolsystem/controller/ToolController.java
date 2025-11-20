@@ -6,6 +6,7 @@ import com.creamakers.toolsystem.dto.response.TopicSkinResponse;
 import com.creamakers.toolsystem.entity.*;
 import com.creamakers.toolsystem.service.ToolService;
 import com.creamakers.toolsystem.service.TopicSkinService;
+import io.micrometer.common.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -137,17 +138,19 @@ public class ToolController {
         return toolService.homeWorkRemind(homeWorkRequest);
     }
 
-    //上传主题皮肤apk包
+    //上传主题皮肤apk包(内部使用)
     @PostMapping("/skin")
-    public ResponseEntity<GeneralResponse<TopicSkinResponse>> uploadSkin(@RequestParam(value = "file") MultipartFile file){
-        return topicSkinService.uploadSkin(file);
+    public ResponseEntity<GeneralResponse<TopicSkinResponse>> uploadSkin(
+            @RequestParam(value = "file") MultipartFile file,
+            @RequestParam(value = "image") MultipartFile image){
+        return topicSkinService.uploadSkin(file,image);
     }
 
-    //删除主题皮肤apk包
+    //删除主题皮肤apk包(内部使用)
     @DeleteMapping("/skin")
     public ResponseEntity<GeneralResponse> deleteSkin(@RequestParam(value = "id",required = false) Integer id,
                                                       @RequestParam(value = "name",required = false) String name){
-        if(id == null && name == null){
+        if(id == null && StringUtils.isBlank(name)){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(GeneralResponse
                             .builder()
@@ -158,10 +161,23 @@ public class ToolController {
         return topicSkinService.deleteSkin(id,name);
     }
 
-    //获取主题皮肤apk包
+    //获取主题皮肤apk包 (? 参数避免了返回类型不匹配的问题)
     @GetMapping("/skin")
-    public ResponseEntity<Resource> getSkin(@RequestParam(value = "name") String name){
-        return topicSkinService.getSkin(name);
+    public ResponseEntity<?> getSkin(@RequestParam(value = "id",required = false) Integer id,
+                                     @RequestParam(value = "name",required = false) String name){
+        if(id == null && StringUtils.isBlank(name)){
+            return ResponseEntity.badRequest()
+                    .body(new GeneralResponse<>("400", "资源不存在",null));
+        }
+        return topicSkinService.getSkin(id,name);
+    }
+
+    //展示所有主题皮肤
+    @GetMapping("/skin/list")
+    public ResponseEntity<GeneralResponse<List<TopicSkinResponse>>> getAllSkin(
+            @RequestParam(value = "page",defaultValue = "1") Integer page,
+            @RequestParam(value = "pageSize",defaultValue = "10") Integer pageSize){
+        return topicSkinService.getAllSkin(page,pageSize);
     }
 
 //    @PostMapping("/getWeekDate")
