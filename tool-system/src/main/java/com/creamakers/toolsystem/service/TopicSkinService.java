@@ -3,10 +3,14 @@ package com.creamakers.toolsystem.service;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.creamakers.toolsystem.dto.response.GeneralResponse;
 import com.creamakers.toolsystem.dto.response.TopicSkinResponse;
 import com.creamakers.toolsystem.mapper.TopicSkinMapper;
 import com.creamakers.toolsystem.po.TopicSkin;
+import com.creamakers.toolsystem.util.HUAWEIOBSUtil;
+import com.obs.services.exception.ObsException;
+import io.swagger.models.auth.In;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +27,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class TopicSkinService {
@@ -33,11 +40,20 @@ public class TopicSkinService {
     private TopicSkinMapper topicSkinMapper;
 
     //上传主题皮肤资源
-    public ResponseEntity<GeneralResponse<TopicSkinResponse>> uploadSkin(MultipartFile file) {
+    public ResponseEntity<GeneralResponse<TopicSkinResponse>> uploadSkin(MultipartFile file, MultipartFile image) {
         //获取文件名并插入数据库
         String name = file.getName();
         String filePath = path + name + ".apk";
         TopicSkin topicSkin = new TopicSkin().setName(name).setPath(filePath);
+
+        try {
+            //上传主题皮肤图片到OBS
+            String imageUrl = HUAWEIOBSUtil.uploadAvatar(image, UUID.randomUUID().toString());
+            topicSkin.setImageUrl(imageUrl);
+        } catch (IOException | ObsException e) {
+            logger.error("主题皮肤图片上传失败", e);
+            return ResponseEntity.badRequest().body(new GeneralResponse<>("400", "上传失败",null));
+        }
 
         try {
             //计算文件的md5值,用于文件完整性检测
@@ -111,21 +127,33 @@ public class TopicSkinService {
     }
 
     //根据name查询主题皮肤资源
-    public ResponseEntity<Resource> getSkin(String name) {
-        //根据name查询主题皮肤资源
-        QueryWrapper<TopicSkin> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("name",name);
-        TopicSkin topicSkin = topicSkinMapper.selectOne(queryWrapper);
+    public ResponseEntity<?> getSkin(Integer id, String name) {
+        logger.info("根据id-{} 或者name-{} 查询主题皮肤资源", id, name);
+
+        TopicSkin topicSkin = null;
+        //优先根据ID查询
+        if(id != null){
+            //根据id查询主题皮肤资源
+            topicSkin = topicSkinMapper.selectById(id);
+        }else {
+            //根据name查询主题皮肤资源
+            QueryWrapper<TopicSkin> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("name",name);
+            topicSkin = topicSkinMapper.selectOne(queryWrapper);
+        }
+
         if(topicSkin == null){
             logger.info("根据name-{} 查询主题皮肤资源不存在", name);
-            return ResponseEntity.badRequest().body(null);
+            return ResponseEntity.badRequest()
+                    .body(new GeneralResponse<>("400", "资源不存在",null));
         }
 
         String filePath = topicSkin.getPath();
         File file = new File(filePath);
         if(!file.exists()){
             logger.info("{} 主题皮肤资源不存在", filePath);
-            return ResponseEntity.badRequest().body(null);
+            return ResponseEntity.badRequest()
+                    .body(new GeneralResponse<>("400", "资源不存在",null));
         }
 
         try {
@@ -146,5 +174,26 @@ public class TopicSkinService {
             logger.error("获取主题皮肤资源失败{}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    //分页查询所有主题皮肤资源
+    public ResponseEntity<GeneralResponse<List<TopicSkinResponse>>> getAllSkin(Integer page, Integer pageSize) {
+        logger.info("查询所有主题皮肤资源，分页参数：page={}, pageSize={}", page, pageSize);
+
+        // 分页查询
+        Page<TopicSkin> topicSkinPage = new Page<>(page, pageSize);
+        topicSkinMapper.selectPage(topicSkinPage, null);
+
+        // 转换为响应体
+        List<TopicSkinResponse> topicSkinResponses = topicSkinPage.getRecords()
+                .stream()
+                .map(topicSkin -> {
+                    TopicSkinResponse response = new TopicSkinResponse();
+                    BeanUtil.copyProperties(topicSkin,response);
+                    return response;
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(new GeneralResponse<>("200", "查询成功", topicSkinResponses));
     }
 }
