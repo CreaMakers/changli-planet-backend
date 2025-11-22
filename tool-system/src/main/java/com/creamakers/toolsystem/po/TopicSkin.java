@@ -38,6 +38,10 @@ public class TopicSkin {
     @TableField("image_url")
     private String imageUrl;
 
+    @ApiModelProperty(value = "皮肤描述",example = "这是一个默认皮肤")
+    @TableField("description")
+    private String description;
+
     @ApiModelProperty(value = "资源完整性校验值",example = "123456")
     @TableField("hash_md5")
     private String hashMd5;

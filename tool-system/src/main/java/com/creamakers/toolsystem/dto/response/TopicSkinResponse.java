@@ -23,4 +23,6 @@ public class TopicSkinResponse {
     private String hashMd5;
     @ApiModelProperty(value = "皮肤图片url",example = "http://localhost:8080/topic-skin/123456.png")
     private String imageUrl;
+    @ApiModelProperty(value = "皮肤描述",example = "这是一个默认皮肤")
+    private String description;
 }
