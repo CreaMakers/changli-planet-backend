@@ -142,8 +142,10 @@ public class ToolController {
     @PostMapping("/skin")
     public ResponseEntity<GeneralResponse<TopicSkinResponse>> uploadSkin(
             @RequestParam(value = "file") MultipartFile file,
-            @RequestParam(value = "image") MultipartFile image){
-        return topicSkinService.uploadSkin(file,image);
+            @RequestParam(value = "image") MultipartFile image,
+            @RequestParam(value = "name") String name,
+            @RequestParam(value = "description") String description){
+        return topicSkinService.uploadSkin(file,image,name,description);
     }
 
     //删除主题皮肤apk包(内部使用)

@@ -40,11 +40,10 @@ public class TopicSkinService {
     private TopicSkinMapper topicSkinMapper;
 
     //上传主题皮肤资源
-    public ResponseEntity<GeneralResponse<TopicSkinResponse>> uploadSkin(MultipartFile file, MultipartFile image) {
+    public ResponseEntity<GeneralResponse<TopicSkinResponse>> uploadSkin(MultipartFile file, MultipartFile image, String name, String description) {
         //获取文件名并插入数据库
-        String name = file.getName();
         String filePath = path + name + ".apk";
-        TopicSkin topicSkin = new TopicSkin().setName(name).setPath(filePath);
+        TopicSkin topicSkin = new TopicSkin().setName(name).setPath(filePath).setDescription(description);
 
         try {
             //上传主题皮肤图片到OBS
