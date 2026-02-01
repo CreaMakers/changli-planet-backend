@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.creamakers.fresh.system.domain.dto.FreshNews;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
@@ -24,5 +25,13 @@ public interface FreshNewsMapper extends BaseMapper<FreshNews> {
             "</script>")
     int updateFreshNewsLiked(@Param("list") List<FreshNews> freshNews);
 
+    /**
+     * 分页查询新鲜事id列表
+     * @param offset 偏移量
+     * @param pageSize 每页大小
+     * @return 新鲜事id列表
+     */
+    @Select("select fresh_news_id from fresh_news where is_deleted = 0 and is_active = 1 order by create_time limit #{offset},#{pageSize}")
+    List<Long> selectFreshNewsIdsByPageOrderByCreateTime(@Param("offset") Integer offset, @Param("pageSize") Integer pageSize);
 }
 

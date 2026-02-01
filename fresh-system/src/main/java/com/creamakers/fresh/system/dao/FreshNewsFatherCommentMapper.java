@@ -3,6 +3,7 @@ package com.creamakers.fresh.system.dao;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.creamakers.fresh.system.domain.dto.FreshNewsFatherComment;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
@@ -25,4 +26,20 @@ public interface FreshNewsFatherCommentMapper extends BaseMapper<FreshNewsFather
             "</foreach>" +
             "</script>")
     int updateCommentLikeNum(@Param("comments") List<FreshNewsFatherComment> comments);
+
+    /**
+     * 根据新鲜事id分页查询父评论id
+     * @param freshNewsId 新鲜事id
+     * @param offset 偏移量
+     * @param pageSize 每页数量
+     * @return 新鲜事父评论id列表
+     */
+    @Select("select id from fresh_news_father_comments " +
+            "where fresh_news_id = #{freshNewsId} and is_deleted = 0 " +
+            "order by create_time desc " +
+            "limit #{offset},#{pageSize}")
+    List<Long> listFatherCommentIds(
+            @Param("freshNewsId") Long freshNewsId,
+            @Param("offset") Integer offset,
+            @Param("pageSize") Integer pageSize);
 }
