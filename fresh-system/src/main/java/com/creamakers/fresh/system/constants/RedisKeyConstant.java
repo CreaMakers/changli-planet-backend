@@ -23,4 +23,9 @@ public class RedisKeyConstant {
 
     public static final String FRESH_NEWS_LIKE_COUNT = "freshNewsLikeCount:";
 
+    public static final String FRESH_NEWS_CACHE = "freshNewsCache:";
+
+    public static final String NEWS_FATHER_COMMENT_CACHE = "fatherCommentCache:";
+
+    public static final String NEWS_CHILD_COMMENT_CACHE = "childCommentCache:";
 }
