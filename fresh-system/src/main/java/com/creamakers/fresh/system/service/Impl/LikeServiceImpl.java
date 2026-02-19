@@ -9,6 +9,8 @@ import com.creamakers.fresh.system.domain.dto.FreshNewsChildComment;
 import com.creamakers.fresh.system.domain.dto.FreshNewsFatherComment;
 import com.creamakers.fresh.system.domain.vo.ResultVo;
 import com.creamakers.fresh.system.service.LikeService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -26,6 +28,8 @@ import static com.creamakers.fresh.system.constants.CommonConst.NEWS_LIKE_COUNT_
 
 @Service
 public class LikeServiceImpl implements LikeService {
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
@@ -55,6 +59,7 @@ public class LikeServiceImpl implements LikeService {
         Boolean isLiked = redisTemplate.opsForSet().isMember(RedisKeyConstant.LIKE_NEWS + newsId, userId);
 
         if (isLiked != null && !isLiked) {
+            logger.info("用户{} 点赞新鲜事{}",userId,newsId);
             // 如果没有点赞，则进行点赞
             redisTemplate.opsForSet().add(RedisKeyConstant.LIKE_NEWS + newsId, userId);
             // 增加新闻的点赞数
@@ -62,6 +67,7 @@ public class LikeServiceImpl implements LikeService {
 
             rabbitTemplate.convertAndSend("likeNewsExchange", "likeNews",newsId);
         } else {
+            logger.info("用户{} 取消新鲜事{} 的点赞",userId,newsId);
             // 如果已经点赞，再次点击则取消点赞
             redisTemplate.opsForSet().remove(RedisKeyConstant.LIKE_NEWS + newsId, userId);
             // 减少新闻的点赞数
@@ -136,6 +142,7 @@ public class LikeServiceImpl implements LikeService {
         Boolean isLiked = redisTemplate.opsForSet().isMember(userSetKey, userId);
 
         if (isLiked != null && !isLiked) {
+            logger.info("用户{} 点赞{}评论{}",userId, (isParent==1 ? "一级" : "二级") ,commentId);
             // 如果没有点赞，则进行点赞
             redisTemplate.opsForSet().add(userSetKey, userId);
             // 使用单独的key增加评论的点赞数
@@ -143,6 +150,7 @@ public class LikeServiceImpl implements LikeService {
 
             rabbitTemplate.convertAndSend("likeCommentExchange", "likeComment", commentId+":"+isParent);
         } else {
+            logger.info("用户{} 取消{}评论{} 的点赞",userId, (isParent==1 ? "一级" : "二级") ,commentId);
             // 如果已经点赞，再次点击则取消点赞
             redisTemplate.opsForSet().remove(userSetKey, userId);
             // 使用单独的key减少评论的点赞数
