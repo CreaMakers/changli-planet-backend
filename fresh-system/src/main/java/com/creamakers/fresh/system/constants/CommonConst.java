@@ -92,4 +92,8 @@ public class CommonConst {
     public final static String NOT_FRESH_NEWS_AUTHOR = "您不是该新鲜事的作者";
 
     public final static String DATABASE_OPERATION_ERROR = "与数据库交互失败，请检查配置";
+
+    public final static String FRESH_NEWS_NOT_ADMIN = "非管理员无法发布新鲜事";
+
+    public final static String COMMENT_NOT_ADMIN = "非管理员无法评论";
 }

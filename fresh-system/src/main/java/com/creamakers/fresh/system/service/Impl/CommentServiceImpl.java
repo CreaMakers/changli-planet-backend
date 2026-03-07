@@ -4,10 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.creamakers.fresh.system.constants.CommonConst;
 import com.creamakers.fresh.system.constants.RedisKeyConstant;
 import com.creamakers.fresh.system.context.UserContext;
-import com.creamakers.fresh.system.dao.FreshNewsChildCommentMapper;
-import com.creamakers.fresh.system.dao.FreshNewsFatherCommentMapper;
-import com.creamakers.fresh.system.dao.FreshNewsMapper;
-import com.creamakers.fresh.system.dao.UserMapper;
+import com.creamakers.fresh.system.dao.*;
 import com.creamakers.fresh.system.domain.dto.*;
 import com.creamakers.fresh.system.domain.vo.ResultVo;
 import com.creamakers.fresh.system.domain.vo.request.FreshNewsCommentRequest;
@@ -20,6 +17,7 @@ import com.creamakers.fresh.system.utils.RedisUtil;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,9 +56,15 @@ public class CommentServiceImpl implements CommentService {
     @Autowired
     private WordService wordService;
 
+    @Autowired
+    private UserAdminMapper userAdminMapper;
+
     // redis记录浏览量
     private static final String VIEW_COUNT_ZSET_KEY = "freshNews:viewCounts:zset";  // 定义 ZSET 键名
     private static final long EXPIRATION = 7L * 24 * 60 * 60; // 7天，单位为秒
+
+    @Value("${planet.freshNews.needAdmin}")
+    private boolean needAdmin;
 
     /**
      * 添加评论(非回复评论)
@@ -70,6 +74,12 @@ public class CommentServiceImpl implements CommentService {
      */
     @Override
     public ResultVo<Long> addComment(FreshNewsCommentRequest freshNewsCommentRequest) {
+        UserAdmin userAdmin = userAdminMapper.selectById(freshNewsCommentRequest.getUserId());
+        if (needAdmin && (userAdmin == null || userAdmin.getIsAdmin() == 0)) {
+            // 非管理员
+            return ResultVo.fail(CommonConst.UNAUTHORIZED,CommonConst.COMMENT_NOT_ADMIN);
+        }
+
         User user = userMapper.selectById(freshNewsCommentRequest.getUserId());
         if (user == null) {
             // 用户不存在
@@ -352,6 +362,12 @@ public class CommentServiceImpl implements CommentService {
      */
     @Override
     public ResultVo<Long> addReply(FreshNewsCommentRequest freshNewsCommentRequest) {
+        UserAdmin userAdmin = userAdminMapper.selectById(freshNewsCommentRequest.getUserId());
+        if (needAdmin && (userAdmin == null || userAdmin.getIsAdmin() == 0)) {
+            // 非管理员
+            return ResultVo.fail(CommonConst.UNAUTHORIZED,CommonConst.COMMENT_NOT_ADMIN);
+        }
+
         User user = userMapper.selectById(freshNewsCommentRequest.getUserId());
         if (user == null) {
             // 用户不存在

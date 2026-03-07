@@ -49,3 +49,5 @@ planet:
     fpp: 0.000001
   redis:
     tokenKey: "CSUSTPLANT:REFRESHTOKEN:"
+  freshNews:
+    needAdmin: true

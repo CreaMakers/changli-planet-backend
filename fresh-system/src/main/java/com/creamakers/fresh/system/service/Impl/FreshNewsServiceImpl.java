@@ -6,8 +6,10 @@ import com.creamakers.fresh.system.context.UserContext;
 import com.creamakers.fresh.system.dao.FreshNewsLikesMapper;
 import com.creamakers.fresh.system.dao.FreshNewsMapper;
 import com.creamakers.fresh.system.dao.TagsMapper;
+import com.creamakers.fresh.system.dao.UserAdminMapper;
 import com.creamakers.fresh.system.domain.dto.FreshNews;
 import com.creamakers.fresh.system.domain.dto.Tags;
+import com.creamakers.fresh.system.domain.dto.UserAdmin;
 import com.creamakers.fresh.system.domain.vo.ResultVo;
 import com.creamakers.fresh.system.domain.vo.request.FreshNewsRequest;
 import com.creamakers.fresh.system.domain.vo.response.FreshNewsDetailResp;
@@ -21,6 +23,7 @@ import jodd.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,7 +54,13 @@ public class FreshNewsServiceImpl implements FreshNewsService {
     @Autowired//新鲜事图片审核
     private FreshNewsCheckService freshNewsCheckService;
     @Autowired
+    private UserAdminMapper userAdminMapper;
+    @Autowired
     private RedisUtil redisUtil;
+
+    @Value("${planet.freshNews.needAdmin}")
+    private boolean needAdmin;
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ResultVo<FreshNewsResp> createFreshNews(List<MultipartFile> images, FreshNewsRequest freshNewsRequest) throws IOException {
@@ -60,6 +69,11 @@ public class FreshNewsServiceImpl implements FreshNewsService {
         }
         if (!CollectionUtils.isEmpty(images) && images.size() > 9) {
             return ResultVo.fail(IMAGE_COUNT_EXCEEDS_LIMIT_MESSAGE);
+        }
+        // 检查用户是否是管理员
+        UserAdmin userAdmin = userAdminMapper.selectById(freshNewsRequest.getUserId());
+        if(needAdmin && (userAdmin == null || userAdmin.getIsAdmin() == 0)){
+            return ResultVo.fail(UNAUTHORIZED,FRESH_NEWS_NOT_ADMIN);
         }
 
         // 敏感词检查
