@@ -4,11 +4,11 @@ planet:
     port: 3306
     db: csust_planet
     username: root
-    password: 3232539921
+    password: 1234 # 3232539921
   redis:
     host: localhost
     port: 6379
-    password: 3232539921
+    password: 1234 #3232539921
   rabbitmq:
     host: 127.0.0.1
     port: 5672
