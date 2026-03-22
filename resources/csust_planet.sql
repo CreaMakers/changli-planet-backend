@@ -817,3 +817,48 @@ CREATE TABLE `violation_record`
   ROW_FORMAT = DYNAMIC;
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+CREATE TABLE `user_upload_permission` (
+                                          `id` bigint(20) NOT NULL AUTO_INCREMENT,
+                                          `user_id` bigint(20) NOT NULL COMMENT '用户ID',
+                                          `permission_level` tinyint(4) DEFAULT 0 COMMENT '权限等级 0-无权限 1-普通权限 2-高级权限',
+                                          `total_quota_mb` int(11) NOT NULL DEFAULT 0 COMMENT '总配额(MB)',
+                                          `used_quota_mb` int(11) NOT NULL DEFAULT 0 COMMENT '已用配额(MB)',
+                                          `total_count` int(11) DEFAULT 0 COMMENT '总上传次数',
+                                          `used_count` int(11) DEFAULT 0 COMMENT '已上传次数',
+                                          `start_time` datetime COMMENT '配额生效时间',
+                                          `end_time` datetime COMMENT '配额过期时间',
+                                          `granted_by` bigint(20) COMMENT '授权管理员ID',
+                                          `grant_reason` varchar(500) COMMENT '授权理由',
+                                          `status` tinyint(4) DEFAULT 1 COMMENT '状态 1-有效 0-禁用',
+                                          `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+                                          `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                                          PRIMARY KEY (`id`),
+                                          UNIQUE KEY `uk_user_id` (`user_id`),
+                                          KEY `idx_status` (`status`)
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COMMENT='用户上传权限表';
+
+CREATE TABLE `learning_material` (
+                                     `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+                                     `file_name` varchar(255) NOT NULL COMMENT '文件名',
+                                     `file_key` varchar(500) NOT NULL COMMENT 'OSS存储的文件key（路径）',
+                                     `file_size` bigint(20) NOT NULL COMMENT '文件大小（字节）',
+                                     `file_type` varchar(50) DEFAULT NULL COMMENT '文件类型（pdf/ppt/zip等）',
+                                     `category` varchar(50) DEFAULT '其他' COMMENT '资料分类（高数/英语/专业课/其他等）',
+                                     `description` varchar(500) DEFAULT NULL COMMENT '资料描述',
+                                     `uploader_id` bigint(20) COMMENT '上传者ID',
+                                     `download_count` int(11) DEFAULT 0 COMMENT '下载次数',
+                                     `like_count` int(11) DEFAULT 0 COMMENT '点赞数',
+                                     `status` tinyint(4) DEFAULT 1 COMMENT '状态 1-正常 0-删除',
+                                     `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                     `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                     PRIMARY KEY (`id`),
+                                     KEY `idx_category` (`category`),
+                                     KEY `idx_uploader` (`uploader_id`),
+                                     KEY `idx_status` (`status`),
+                                     KEY `idx_download_count` (`download_count`)
+) ENGINE=InnoDB
+    DEFAULT CHARSET=utf8mb4
+    COMMENT='学习资料表';

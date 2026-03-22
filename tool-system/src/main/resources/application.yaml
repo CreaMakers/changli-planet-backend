@@ -34,3 +34,19 @@ spring:
     mode: HTML5
     servlet:
       content-type: text/html
+
+# 阿里云OSS配置
+aliyun:
+  oss:
+    # TODO: 请填写阿里云OSS的AccessKey ID
+    access-key: your-access-key-here
+    # TODO: 请填写阿里云OSS的SecretKey
+    secret-key: your-secret-key-here
+    # TODO: 请填写OSS存储桶名称
+    bucket-name: your-bucket-name
+    # TODO: 请填写用于STS临时授权的角色ARN（可选）
+    role-arn: your-role-arn
+    # TODO: 请填写OSS服务所在的地域，例如：cn-hangzhou
+    region: cn-shanghai
+    # TODO: 请填写OSS服务的Endpoint地址，例如：oss-cn-hangzhou.aliyuncs.com
+    endpoint: oss-cn-shanghai.aliyuncs.com
